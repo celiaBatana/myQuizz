@@ -30,7 +30,7 @@ export default function Layout() {
           {user ? (
             <NavLink to="/profile">
               <button className="btn btn-secondary" style={{ padding: '5px 13px', fontSize: 12 }}>
-                {user.displayName?.split(' ')[0] || 'Profil'}
+                {profile?.displayName?.split(' ')[0] || user.displayName?.split(' ')[0] || 'Profil'}
               </button>
             </NavLink>
           ) : (
