@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Raleway:wght@700;800;900&family=Josefin+Sans:wght@400;500;600&display=swap');
 
 :root {
   --bg: #0f0e17;
@@ -23,7 +23,7 @@
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Josefin Sans', sans-serif;
   background: var(--bg);
   color: var(--text);
   min-height: 100vh;
@@ -59,7 +59,7 @@ body {
   height: var(--nav-height);
 }
 .navbar-logo {
-  font-family: 'Syne', sans-serif;
+  font-family: 'Raleway', sans-serif;
   font-size: 22px; font-weight: 800;
   background: linear-gradient(90deg, var(--yellow), var(--pink));
   -webkit-background-clip: text; -webkit-text-fill-color: transparent;
@@ -98,7 +98,7 @@ body {
 .bnav-item svg { width: 19px; height: 19px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 
 /* ── BUTTONS ── */
-.btn { border: none; border-radius: var(--radius-sm); padding: 13px 20px; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; transition: transform 0.15s, opacity 0.15s; }
+.btn { border: none; border-radius: var(--radius-sm); padding: 13px 20px; font-family: 'Josefin Sans', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; transition: transform 0.15s, opacity 0.15s; }
 .btn:hover { transform: scale(1.01); }
 .btn:active { transform: scale(0.98); }
 .btn-primary { background: linear-gradient(135deg, var(--purple), var(--pink)); color: #fff; }
@@ -112,7 +112,7 @@ body {
 .input-group input, .input-group select, .input-group textarea {
   width: 100%; background: var(--s2); border: 1px solid var(--s3);
   border-radius: var(--radius-xs); padding: 10px 12px;
-  color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 13px;
+  color: var(--text); font-family: 'Josefin Sans', sans-serif; font-size: 13px;
   outline: none; transition: border-color 0.2s;
 }
 .input-group input:focus, .input-group select:focus, .input-group textarea:focus { border-color: var(--purple); }
@@ -188,7 +188,7 @@ body {
   background: none; border: none; color: var(--muted);
   font-size: 20px; cursor: pointer; line-height: 1;
 }
-.modal-title { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 800; margin-bottom: 4px; }
+.modal-title { font-family: 'Raleway', sans-serif; font-size: 22px; font-weight: 800; margin-bottom: 4px; }
 .modal-sub { color: var(--muted); font-size: 13px; margin-bottom: 18px; }
 .modal-tabs { display: flex; gap: 4px; background: var(--s2); border-radius: 10px; padding: 3px; margin-bottom: 16px; }
 .modal-tab { flex: 1; padding: 7px; text-align: center; font-size: 12px; font-weight: 600; border-radius: 7px; cursor: pointer; color: var(--muted); transition: all 0.2s; }
@@ -201,7 +201,7 @@ body {
   position: fixed; top: 68px; left: 50%;
   transform: translateX(-50%) translateY(-20px);
   background: var(--yellow); color: #0f0e17;
-  font-family: 'Syne', sans-serif; font-weight: 800; font-size: 14px;
+  font-family: 'Raleway', sans-serif; font-weight: 800; font-size: 14px;
   padding: 8px 20px; border-radius: 30px;
   opacity: 0; transition: all 0.3s; pointer-events: none; z-index: 300; white-space: nowrap;
 }
@@ -217,13 +217,13 @@ body {
 .toast-success.show { opacity: 1; }
 
 /* ── PAGE TITLE ── */
-.page-title { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 800; margin-bottom: 4px; }
+.page-title { font-family: 'Raleway', sans-serif; font-size: 22px; font-weight: 800; margin-bottom: 4px; }
 .page-sub { color: var(--muted); font-size: 13px; margin-bottom: 16px; }
 
 /* ── STATS GRID ── */
 .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 14px; }
 .stat-card { background: var(--s1); border: 1px solid var(--s2); border-radius: 12px; padding: 14px; text-align: center; }
-.stat-card-val { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 800; color: var(--yellow); }
+.stat-card-val { font-family: 'Raleway', sans-serif; font-size: 22px; font-weight: 800; color: var(--yellow); }
 .stat-card-label { font-size: 11px; color: var(--muted); margin-top: 2px; }
 
 /* ── ADMIN TABS ── */
@@ -243,7 +243,7 @@ body {
 .text-yellow { color: var(--yellow); }
 .text-cyan { color: var(--cyan); }
 .text-purple { color: var(--purple); }
-.font-syne { font-family: 'Syne', sans-serif; font-weight: 800; }
+.font-raleway { font-family: 'Raleway', sans-serif; font-weight: 800; }
 .flex { display: flex; align-items: center; }
 .flex-between { display: flex; align-items: center; justify-content: space-between; }
 .gap-2 { gap: 8px; }
