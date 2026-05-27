@@ -510,6 +510,673 @@ export const CATEGORIES = {
       },
     },
   },
+  gastronomie: {
+    id: 'gastronomie',
+    label: 'Gastronomie & Cuisine',
+    icon: '🍕',
+    color: '#FF7A3D',
+    gradient: 'linear-gradient(135deg, #3a2010, #5a3015)',
+    themes: {
+      cuisine_monde: {
+        id: 'cuisine_monde',
+        label: 'Cuisines du monde',
+        icon: '🌍',
+        quizzes: [
+          {
+            id: 'gas-cm-1',
+            name: 'Quiz #1 — Plats emblématiques',
+            diff: 'easy',
+            category: 'gastronomie',
+            theme: 'cuisine_monde',
+            questions: [
+              { t: "De quel pays est originaire la pizza ?", o: ['Espagne', 'Grèce', 'Italie', 'France'], a: 2, e: "La pizza est originaire de Naples, en Italie. La pizza Margherita date de 1889." },
+              { t: "Qu'est-ce que le 'sushi' ?", o: ['Un plat chinois', 'Un plat japonais', 'Un plat coréen', 'Un plat thaïlandais'], a: 1, e: "Le sushi est un plat japonais à base de riz vinaigré accompagné de poisson cru ou d'autres ingrédients." },
+              { t: "De quel pays vient le croissant ?", o: ['France', 'Autriche', 'Belgique', 'Suisse'], a: 1, e: "Le croissant est originaire d'Autriche (kipferl), popularisé en France au XIXe siècle." },
+              { t: "Qu'est-ce que la paella ?", o: ['Un plat mexicain', 'Un plat portugais', 'Un plat espagnol', 'Un plat argentin'], a: 2, e: "La paella est un plat espagnol originaire de Valence, à base de riz safrané et de viande ou fruits de mer." },
+              { t: "De quel pays vient le couscous ?", o: ['Maroc', 'Tunisie', 'Algérie', 'Afrique du Nord (partagé)'], a: 3, e: "Le couscous est partagé entre plusieurs pays d'Afrique du Nord — Maroc, Algérie, Tunisie. Il est inscrit au patrimoine de l'UNESCO." },
+            ],
+          },
+          {
+            id: 'gas-cm-2',
+            name: 'Quiz #2 — Ingrédients & Épices',
+            diff: 'medium',
+            category: 'gastronomie',
+            theme: 'cuisine_monde',
+            questions: [
+              { t: "Quelle épice est la plus chère au monde ?", o: ['Vanille', 'Safran', 'Cardamome', 'Poivre long'], a: 1, e: "Le safran est l'épice la plus chère au monde, issu des stigmates du crocus sativus." },
+              { t: "De quelle plante vient le chocolat ?", o: ['Caféier', 'Cacaoyer', 'Vanillier', 'Cannelier'], a: 1, e: "Le chocolat est fabriqué à partir des fèves du cacaoyer (Theobroma cacao)." },
+              { t: "Qu'est-ce que le wasabi ?", o: ['Une sauce soja', 'Un poisson séché', 'Une plante japonaise au goût piquant', 'Un vinaigre de riz'], a: 2, e: "Le wasabi est une plante japonaise dont la racine râpée produit une pâte verte au goût très piquant." },
+              { t: "De quel fruit est extrait l'huile d'olive ?", o: ['Avocat', 'Olive', 'Noix', 'Amande'], a: 1, e: "L'huile d'olive est extraite par pression des olives, fruit de l'olivier." },
+              { t: "Qu'est-ce que le miso ?", o: ['Un vin de riz japonais', 'Une pâte fermentée de soja japonaise', 'Un fromage japonais', 'Une sauce pimentée'], a: 1, e: "Le miso est une pâte fermentée japonaise à base de soja, utilisée notamment pour la soupe miso." },
+            ],
+          },
+        ],
+      },
+      cuisine_francaise: {
+        id: 'cuisine_francaise',
+        label: 'Cuisine française',
+        icon: '🥐',
+        quizzes: [
+          {
+            id: 'gas-cf-1',
+            name: 'Quiz #1 — Classiques français',
+            diff: 'easy',
+            category: 'gastronomie',
+            theme: 'cuisine_francaise',
+            questions: [
+              { t: "Quelle est la principale région productrice de champagne ?", o: ['Bourgogne', 'Bordeaux', 'Champagne', 'Alsace'], a: 2, e: "La région Champagne, autour de Reims et Épernay, est le berceau du champagne." },
+              { t: "Qu'est-ce que la bouillabaisse ?", o: ['Un dessert provençal', 'Une soupe de poisson marseillaise', 'Un fromage du Sud', 'Une tarte aux légumes'], a: 1, e: "La bouillabaisse est une soupe de poisson traditionnelle de Marseille, à base de plusieurs espèces de poissons." },
+              { t: "De quelle région vient le camembert ?", o: ['Bretagne', 'Normandie', 'Alsace', 'Auvergne'], a: 1, e: "Le camembert est originaire de Normandie, créé à Camembert vers la fin du XVIIIe siècle." },
+              { t: "Qu'est-ce qu'un macaron ?", o: ['Un gâteau breton', 'Une pâtisserie à base de meringue et ganache', 'Un biscuit alsacien', 'Un pain sucré normand'], a: 1, e: "Le macaron parisien est une pâtisserie composée de deux coques de meringue aux amandes et d'une ganache." },
+              { t: "Quel est le fromage français le plus consommé ?", o: ['Brie', 'Camembert', 'Comté', 'Emmental'], a: 3, e: "L'emmental est le fromage le plus consommé en France, suivi du comté." },
+            ],
+          },
+        ],
+      },
+      gastronomie_pro: {
+        id: 'gastronomie_pro',
+        label: 'Gastronomie & Chefs',
+        icon: '👨‍🍳',
+        quizzes: [
+          {
+            id: 'gas-gp-1',
+            name: 'Quiz #1 — Grands chefs & Étoiles',
+            diff: 'hard',
+            category: 'gastronomie',
+            theme: 'gastronomie_pro',
+            questions: [
+              { t: "Qui est le guide gastronomique de référence en France ?", o: ['Gault & Millau', 'Guide Michelin', 'Zagat', 'Le Fooding'], a: 1, e: "Le Guide Michelin, créé en 1900 par les frères Michelin, est la référence mondiale de la gastronomie." },
+              { t: "Combien d'étoiles Michelin peut obtenir un restaurant au maximum ?", o: ['1', '2', '3', '5'], a: 2, e: "Le maximum est 3 étoiles Michelin, synonyme de 'cuisine exceptionnelle, qui vaut le voyage'." },
+              { t: "Quel chef français a été le premier à obtenir 3 étoiles Michelin ?", o: ['Paul Bocuse', 'Eugénie Brazier', 'Fernand Point', 'Auguste Escoffier'], a: 1, e: "Eugénie Brazier fut la première personne à obtenir 3 étoiles Michelin en 1933, pour deux restaurants simultanément." },
+              { t: "Qu'est-ce que la 'cuisine moléculaire' ?", o: ['Une cuisine basse calorie', 'Une cuisine qui applique la science aux techniques culinaires', 'Une cuisine végane', 'Une cuisine rapide'], a: 1, e: "La cuisine moléculaire utilise les sciences pour transformer les textures et saveurs — popularisée par Ferran Adrià et Heston Blumenthal." },
+              { t: "Quel est le plat signature de Paul Bocuse ?", o: ['La bouillabaisse', 'La soupe aux truffes VGE', 'Le bœuf bourguignon', 'Le foie gras poêlé'], a: 1, e: "La soupe aux truffes VGE (Valéry Giscard d'Estaing) fut créée par Paul Bocuse en 1975 pour l'Élysée." },
+            ],
+          },
+        ],
+      },
+    },
+  },
+
+  jeux_video: {
+    id: 'jeux_video',
+    label: 'Jeux vidéo',
+    icon: '🎮',
+    color: '#9B6DFF',
+    gradient: 'linear-gradient(135deg, #1a0f3a, #2d1a5e)',
+    themes: {
+      classiques_jv: {
+        id: 'classiques_jv',
+        label: 'Classiques & Histoire',
+        icon: '👾',
+        quizzes: [
+          {
+            id: 'jv-cl-1',
+            name: 'Quiz #1 — Origines du jeu vidéo',
+            diff: 'medium',
+            category: 'jeux_video',
+            theme: 'classiques_jv',
+            questions: [
+              { t: "Quel est considéré comme le premier jeu vidéo commercial ?", o: ['Pac-Man', 'Pong', 'Space Invaders', 'Tetris'], a: 1, e: "Pong, sorti par Atari en 1972, est le premier jeu vidéo commercial grand public." },
+              { t: "Qui est le créateur de Mario ?", o: ['Hideo Kojima', 'Shigeru Miyamoto', 'Yuji Naka', 'Masahiro Sakurai'], a: 1, e: "Shigeru Miyamoto crée Mario (appelé Jumpman) en 1981 pour Donkey Kong." },
+              { t: "Sur quelle console est sorti le premier Zelda ?", o: ['Super Nintendo', 'Game Boy', 'NES (Famicom)', 'Atari'], a: 2, e: "The Legend of Zelda sort en 1986 sur NES (Famicom) au Japon." },
+              { t: "Qui a créé Tetris ?", o: ['Shigeru Miyamoto', 'Alexeï Pajitnov', 'Sid Meier', 'Will Wright'], a: 1, e: "Tetris est créé par le programmeur soviétique Alexeï Pajitnov en 1984." },
+              { t: "Quelle entreprise a créé PlayStation ?", o: ['Microsoft', 'Nintendo', 'Sega', 'Sony'], a: 3, e: "Sony lance la première PlayStation en 1994 au Japon." },
+            ],
+          },
+          {
+            id: 'jv-cl-2',
+            name: 'Quiz #2 — Jeux modernes',
+            diff: 'easy',
+            category: 'jeux_video',
+            theme: 'classiques_jv',
+            questions: [
+              { t: "Dans quel jeu incarne-t-on Master Chief ?", o: ['Call of Duty', 'Halo', 'Destiny', 'Gears of War'], a: 1, e: "Master Chief est le protagoniste principal de la saga Halo de Bungie/343 Industries." },
+              { t: "Quel jeu se passe dans la ville fictive de 'Los Santos' ?", o: ['Red Dead Redemption', 'GTA V', 'Saints Row', 'Watch Dogs'], a: 1, e: "Los Santos est la ville fictive de GTA V, inspirée de Los Angeles." },
+              { t: "Qu'est-ce que Minecraft ?", o: ['Un jeu de tir', 'Un jeu de construction en monde ouvert', 'Un jeu de course', 'Un RPG japonais'], a: 1, e: "Minecraft est un jeu de construction et de survie en monde ouvert créé par Markus Persson en 2011." },
+              { t: "Quel est le jeu le plus vendu de tous les temps ?", o: ['GTA V', 'Tetris', 'Minecraft', 'Wii Sports'], a: 2, e: "Minecraft est le jeu le plus vendu avec plus de 300 millions de copies." },
+              { t: "Dans quel jeu joue-t-on Geralt de Riv ?", o: ['Dragon Age', 'Dark Souls', 'The Witcher', 'Skyrim'], a: 2, e: "Geralt de Riv est le protagoniste de la saga The Witcher de CD Projekt Red." },
+            ],
+          },
+        ],
+      },
+      esport: {
+        id: 'esport',
+        label: 'Esport & Compétition',
+        icon: '🏆',
+        quizzes: [
+          {
+            id: 'jv-es-1',
+            name: 'Quiz #1 — Jeux compétitifs',
+            diff: 'medium',
+            category: 'jeux_video',
+            theme: 'esport',
+            questions: [
+              { t: "Quel jeu a popularisé le genre 'Battle Royale' ?", o: ['Fortnite', 'PUBG', 'Apex Legends', 'Warzone'], a: 1, e: "PlayerUnknown's Battlegrounds (PUBG) sort en 2017 et popularise le genre Battle Royale." },
+              { t: "Quel jeu de stratégie en temps réel a dominé l'esport coréen dans les années 2000 ?", o: ['Warcraft III', 'Age of Empires', 'StarCraft', 'Command & Conquer'], a: 2, e: "StarCraft de Blizzard a engendré une scène professionnelle massive en Corée du Sud." },
+              { t: "Combien de joueurs composent une équipe dans League of Legends ?", o: ['3', '4', '5', '6'], a: 2, e: "Une équipe de League of Legends est composée de 5 joueurs." },
+              { t: "Quel est le tournoi mondial de League of Legends ?", o: ['The International', 'World Championship', 'ESL One', 'DreamHack'], a: 1, e: "Le World Championship (Worlds) est le tournoi annuel mondial de League of Legends organisé par Riot Games." },
+              { t: "Quel jeu Valve organise 'The International' ?", o: ['CS:GO', 'Team Fortress 2', 'Dota 2', 'Half-Life'], a: 2, e: "The International est le tournoi mondial annuel de Dota 2, avec l'un des plus grands prize pools de l'esport." },
+            ],
+          },
+        ],
+      },
+      jv_culture: {
+        id: 'jv_culture',
+        label: 'Culture & Univers',
+        icon: '🌐',
+        quizzes: [
+          {
+            id: 'jv-cu-1',
+            name: 'Quiz #1 — Univers & Personnages',
+            diff: 'easy',
+            category: 'jeux_video',
+            theme: 'jv_culture',
+            questions: [
+              { t: "Quel est l'ennemi principal de Mario ?", o: ['Bowser', 'Wario', 'Donkey Kong', 'Waluigi'], a: 0, e: "Bowser (Koopa) est le grand antagoniste de la saga Mario, qui kidnappe la Princesse Peach." },
+              { t: "Comment s'appelle le héros de The Legend of Zelda ?", o: ['Zelda', 'Link', 'Ganon', 'Navi'], a: 1, e: "Link est le héros jouable de la saga Zelda. Zelda est en réalité la princesse qu'il doit sauver." },
+              { t: "Quel animal est Sonic ?", o: ['Lapin', 'Renard', 'Hérisson', 'Raton laveur'], a: 2, e: "Sonic est un hérisson bleu créé par Sega en 1991, connu pour sa vitesse." },
+              { t: "Dans Pokémon, quel est le Pokémon numéro 1 du Pokédex ?", o: ['Pikachu', 'Bulbizarre', 'Salamèche', 'Mew'], a: 1, e: "Bulbizarre (Bulbasaur) est le Pokémon numéro 001 du Pokédex national." },
+              { t: "Quel studio a créé The Last of Us ?", o: ['Rockstar Games', 'Naughty Dog', 'Insomniac Games', 'Santa Monica Studio'], a: 1, e: "The Last of Us est développé par Naughty Dog, studio de Sony." },
+            ],
+          },
+        ],
+      },
+    },
+  },
+
+  nature: {
+    id: 'nature',
+    label: 'Nature & Animaux',
+    icon: '🌿',
+    color: '#3DFFD0',
+    gradient: 'linear-gradient(135deg, #0f2d1f, #1a4a2e)',
+    themes: {
+      animaux: {
+        id: 'animaux',
+        label: 'Animaux',
+        icon: '🦁',
+        quizzes: [
+          {
+            id: 'nat-an-1',
+            name: 'Quiz #1 — Règne animal',
+            diff: 'easy',
+            category: 'nature',
+            theme: 'animaux',
+            questions: [
+              { t: "Quel est le plus grand animal terrestre ?", o: ['Girafe', 'Hippopotame', 'Éléphant d\'Afrique', 'Rhinocéros'], a: 2, e: "L'éléphant d'Afrique est le plus grand animal terrestre, pesant jusqu'à 7 tonnes." },
+              { t: "Quel animal a la gestation la plus longue ?", o: ['Baleine bleue', 'Éléphant', 'Girafe', 'Rhinocéros'], a: 1, e: "L'éléphant a la gestation la plus longue chez les mammifères : environ 22 mois." },
+              { t: "Combien de cœurs a une pieuvre ?", o: ['1', '2', '3', '4'], a: 2, e: "La pieuvre possède 3 cœurs : un principal qui pompe le sang dans le corps et deux branchiaux." },
+              { t: "Quel est le seul mammifère capable de voler vraiment ?", o: ['L\'écureuil volant', 'La chauve-souris', 'Le sucre planeur', 'Le colugos'], a: 1, e: "La chauve-souris est le seul mammifère capable de vol actif soutenu." },
+              { t: "Quel animal produit de la soie ?", o: ['Araignée uniquement', 'Ver à soie uniquement', 'Les deux', 'Aucun des deux'], a: 2, e: "Les araignées et les vers à soie (larves du bombyx du mûrier) produisent tous deux de la soie." },
+            ],
+          },
+          {
+            id: 'nat-an-2',
+            name: 'Quiz #2 — Animaux & Records',
+            diff: 'medium',
+            category: 'nature',
+            theme: 'animaux',
+            questions: [
+              { t: "Quel est l'animal le plus rapide du monde ?", o: ['Guépard', 'Faucon pèlerin', 'Espadon', 'Antilope'], a: 1, e: "Le faucon pèlerin peut atteindre 390 km/h en piqué, ce qui en fait l'animal le plus rapide." },
+              { t: "Quelle est la durée de vie d'un perroquet gris du Gabon ?", o: ['10-20 ans', '20-30 ans', '40-60 ans', '80-100 ans'], a: 2, e: "Le perroquet gris du Gabon peut vivre 40 à 60 ans en captivité." },
+              { t: "Quel animal a le plus grand cerveau par rapport à son corps ?", o: ['Dauphin', 'Chimpanzé', 'Corbeau', 'Humain'], a: 3, e: "Les humains ont le ratio cerveau/corps le plus élevé parmi les animaux." },
+              { t: "Combien de pattes a une araignée ?", o: ['6', '8', '10', '12'], a: 1, e: "Les araignées ont 8 pattes — c'est ce qui les distingue des insectes (6 pattes)." },
+              { t: "Quel est le plus grand oiseau du monde ?", o: ['Condor des Andes', 'Albatros', 'Autruche', 'Manchot empereur'], a: 2, e: "L'autruche est le plus grand oiseau vivant, pouvant mesurer 2,7 m et peser 156 kg." },
+            ],
+          },
+        ],
+      },
+      plantes: {
+        id: 'plantes',
+        label: 'Plantes & Écologie',
+        icon: '🌱',
+        quizzes: [
+          {
+            id: 'nat-pl-1',
+            name: 'Quiz #1 — Végétal & Nature',
+            diff: 'easy',
+            category: 'nature',
+            theme: 'plantes',
+            questions: [
+              { t: "Quel est le plus grand arbre du monde (en volume) ?", o: ['Séquoia géant', 'Baobab', 'Eucalyptus', 'Chêne'], a: 0, e: "Le séquoia géant General Sherman en Californie est le plus grand arbre par volume (1487 m³)." },
+              { t: "Quelle plante carnivore est la plus connue ?", o: ['Sarracénie', 'Drosera', 'Dionée attrape-mouche', 'Népenthès'], a: 2, e: "La dionée attrape-mouche (Venus flytrap) est la plante carnivore la plus célèbre." },
+              { t: "Quel gaz les plantes absorbent-elles lors de la photosynthèse ?", o: ['Oxygène', 'Azote', 'CO2', 'Hydrogène'], a: 2, e: "Les plantes absorbent le CO2 et rejettent de l'oxygène lors de la photosynthèse." },
+              { t: "Quelle est la fleur nationale du Japon ?", o: ['Rose', 'Chrysanthème', 'Cerisier (Sakura)', 'Lotus'], a: 2, e: "Le cerisier (Sakura) est le symbole floral du Japon, célébré chaque printemps." },
+              { t: "Combien de temps peut vivre un baobab ?", o: ['100 ans', '500 ans', '1000 ans', 'Plus de 2000 ans'], a: 3, e: "Certains baobabs vivent plus de 2000 ans. Ce sont parmi les arbres les plus anciens du monde." },
+            ],
+          },
+        ],
+      },
+      environnement: {
+        id: 'environnement',
+        label: 'Environnement & Climat',
+        icon: '🌍',
+        quizzes: [
+          {
+            id: 'nat-en-1',
+            name: 'Quiz #1 — Climat & Écologie',
+            diff: 'medium',
+            category: 'nature',
+            theme: 'environnement',
+            questions: [
+              { t: "Quel accord international porte sur le climat ?", o: ['Accord de Tokyo', 'Accord de Paris', 'Protocole de Montréal', 'Accord de Kyoto'], a: 1, e: "L'Accord de Paris (2015) vise à limiter le réchauffement climatique à moins de 2°C." },
+              { t: "Quel pays émet le plus de CO2 dans le monde ?", o: ['États-Unis', 'Inde', 'Chine', 'Russie'], a: 2, e: "La Chine est le premier émetteur mondial de CO2, représentant environ 30% des émissions mondiales." },
+              { t: "Qu'est-ce que la biodiversité ?", o: ["L'étude des bio-carburants", "La variété des espèces vivantes sur Terre", 'La production biologique', 'La diversité culturelle'], a: 1, e: "La biodiversité désigne la variété du vivant sur Terre : espèces, écosystèmes et diversité génétique." },
+              { t: "Quelle couche de l'atmosphère nous protège des UV ?", o: ['Troposphère', 'Stratosphère (couche d\'ozone)', 'Mésosphère', 'Thermosphère'], a: 1, e: "La couche d'ozone dans la stratosphère absorbe 97 à 99% des UV nocifs du soleil." },
+              { t: "Quel est le plus grand récif corallien du monde ?", o: ['Récif de Belize', 'Grand Récif de Nouvelle-Calédonie', 'Grande Barrière de Corail', 'Récif de la mer Rouge'], a: 2, e: "La Grande Barrière de Corail en Australie est le plus grand récif corallien (2300 km)." },
+            ],
+          },
+        ],
+      },
+    },
+  },
+
+  politique: {
+    id: 'politique',
+    label: 'Politique & Institutions',
+    icon: '🏛️',
+    color: '#378ADD',
+    gradient: 'linear-gradient(135deg, #0f1f3a, #1a2d5e)',
+    themes: {
+      institutions: {
+        id: 'institutions',
+        label: 'Institutions françaises',
+        icon: '🇫🇷',
+        quizzes: [
+          {
+            id: 'pol-if-1',
+            name: 'Quiz #1 — République française',
+            diff: 'medium',
+            category: 'politique',
+            theme: 'institutions',
+            questions: [
+              { t: "Sous quelle République sommes-nous en France ?", o: ['4e', '5e', '6e', '3e'], a: 1, e: "La France est sous la 5e République depuis la Constitution de 1958, sous De Gaulle." },
+              { t: "Combien de chambres compose le Parlement français ?", o: ['1', '2', '3', '4'], a: 1, e: "Le Parlement français est bicaméral : l'Assemblée nationale et le Sénat." },
+              { t: "Quelle est la durée du mandat présidentiel en France ?", o: ['4 ans', '5 ans', '6 ans', '7 ans'], a: 1, e: "Le mandat présidentiel est de 5 ans depuis la réforme de 2000 (quinquennat)." },
+              { t: "Qui nomme le Premier ministre en France ?", o: ['L\'Assemblée nationale', 'Le Sénat', 'Le Président de la République', 'Le Conseil d\'État'], a: 2, e: "Le Premier ministre est nommé par le Président de la République (article 8 de la Constitution)." },
+              { t: "Où siège le Sénat français ?", o: ['Palais Bourbon', 'Palais de l\'Élysée', 'Palais du Luxembourg', 'Hôtel Matignon'], a: 2, e: "Le Sénat siège au Palais du Luxembourg à Paris. L'Assemblée nationale siège au Palais Bourbon." },
+            ],
+          },
+        ],
+      },
+      international: {
+        id: 'international',
+        label: 'Politique internationale',
+        icon: '🌐',
+        quizzes: [
+          {
+            id: 'pol-pi-1',
+            name: 'Quiz #1 — Organisations mondiales',
+            diff: 'medium',
+            category: 'politique',
+            theme: 'international',
+            questions: [
+              { t: "Combien de membres permanents compte le Conseil de sécurité de l'ONU ?", o: ['3', '5', '7', '10'], a: 1, e: "5 membres permanents : États-Unis, Russie, Chine, France et Royaume-Uni, chacun avec droit de veto." },
+              { t: "Où se trouve le siège de l'Union européenne ?", o: ['Paris', 'Berlin', 'Bruxelles', 'Strasbourg'], a: 2, e: "Bruxelles est le principal siège des institutions européennes. Le Parlement siège aussi à Strasbourg." },
+              { t: "Combien de pays composent l'Union européenne ?", o: ['25', '27', '28', '30'], a: 1, e: "L'UE compte 27 membres depuis le Brexit du Royaume-Uni en 2020." },
+              { t: "Quelle organisation internationale gère le commerce mondial ?", o: ['FMI', 'Banque mondiale', 'OMC', 'OCDE'], a: 2, e: "L'OMC (Organisation mondiale du commerce) régule le commerce international depuis 1995." },
+              { t: "Qu'est-ce que le G7 ?", o: ['7 pays les plus peuplés', '7 grandes démocraties industrialisées', '7 pays membres de l\'OTAN', '7 pays producteurs de pétrole'], a: 1, e: "Le G7 regroupe les 7 grandes démocraties industrialisées : USA, Canada, France, Allemagne, Italie, Japon, Royaume-Uni." },
+            ],
+          },
+        ],
+      },
+      democratie: {
+        id: 'democratie',
+        label: 'Démocratie & Droits',
+        icon: '⚖️',
+        quizzes: [
+          {
+            id: 'pol-dd-1',
+            name: 'Quiz #1 — Droits & Libertés',
+            diff: 'hard',
+            category: 'politique',
+            theme: 'democratie',
+            questions: [
+              { t: "En quelle année la Déclaration universelle des droits de l'homme a-t-elle été adoptée ?", o: ['1945', '1948', '1950', '1955'], a: 1, e: "La DUDH est adoptée le 10 décembre 1948 par l'Assemblée générale de l'ONU." },
+              { t: "Quel pays a été le premier à accorder le droit de vote aux femmes ?", o: ['France', 'Nouvelle-Zélande', 'États-Unis', 'Suède'], a: 1, e: "La Nouvelle-Zélande est le premier pays à accorder le droit de vote aux femmes en 1893." },
+              { t: "En quelle année les femmes ont-elles obtenu le droit de vote en France ?", o: ['1936', '1944', '1958', '1962'], a: 1, e: "Les femmes ont obtenu le droit de vote en France par ordonnance du 21 avril 1944, sous De Gaulle." },
+              { t: "Qu'est-ce que l'habeas corpus ?", o: ['Un droit fiscal', 'Le droit de ne pas être détenu arbitrairement', 'Un traité international', 'Une loi sur la presse'], a: 1, e: "L'habeas corpus est un principe fondamental garantissant qu'une personne ne peut être détenue sans raison légale." },
+              { t: "Quel est le rôle du Conseil constitutionnel en France ?", o: ['Voter les lois', 'Vérifier la conformité des lois à la Constitution', 'Juger les crimes', 'Nommer les ministres'], a: 1, e: "Le Conseil constitutionnel contrôle la conformité des lois à la Constitution française." },
+            ],
+          },
+        ],
+      },
+    },
+  },
+
+  economie: {
+    id: 'economie',
+    label: 'Économie & Finance',
+    icon: '💰',
+    color: '#FFE14D',
+    gradient: 'linear-gradient(135deg, #2a2500, #3d3800)',
+    themes: {
+      bases_eco: {
+        id: 'bases_eco',
+        label: 'Bases de l\'économie',
+        icon: '📊',
+        quizzes: [
+          {
+            id: 'eco-be-1',
+            name: 'Quiz #1 — Concepts fondamentaux',
+            diff: 'medium',
+            category: 'economie',
+            theme: 'bases_eco',
+            questions: [
+              { t: "Qu'est-ce que le PIB ?", o: ['Produit Intérieur Brut', 'Prix d\'Indice de Base', 'Plan d\'Investissement Bancaire', 'Profit Industriel Brut'], a: 0, e: "Le PIB (Produit Intérieur Brut) mesure la valeur totale des biens et services produits dans un pays." },
+              { t: "Qu'est-ce que l'inflation ?", o: ['Baisse générale des prix', 'Hausse générale des prix', 'Stagnation des prix', 'Dévaluation d\'une monnaie'], a: 1, e: "L'inflation est la hausse générale et durable des prix, réduisant le pouvoir d'achat de la monnaie." },
+              { t: "Quel est le rôle d'une banque centrale ?", o: ['Prêter aux particuliers', 'Réguler la politique monétaire', 'Financer les entreprises', 'Gérer les impôts'], a: 1, e: "La banque centrale (ex: BCE) régule la politique monétaire, contrôle l'inflation et émet la monnaie." },
+              { t: "Qu'est-ce qu'une action en bourse ?", o: ['Un prêt à une entreprise', 'Une part de propriété d\'une entreprise', 'Une obligation d\'État', 'Un dépôt bancaire'], a: 1, e: "Une action représente une part de propriété dans une entreprise cotée en bourse." },
+              { t: "Qu'est-ce que le chômage frictionnel ?", o: ['Chômage dû à une crise', "Chômage entre deux emplois lors d'une transition", 'Chômage structurel long terme', 'Chômage saisonnier'], a: 1, e: "Le chômage frictionnel est temporaire, lié au temps de transition entre deux emplois — il existe même en plein emploi." },
+            ],
+          },
+        ],
+      },
+      finance: {
+        id: 'finance',
+        label: 'Finance & Marchés',
+        icon: '📈',
+        quizzes: [
+          {
+            id: 'eco-fi-1',
+            name: 'Quiz #1 — Bourse & Investissement',
+            diff: 'medium',
+            category: 'economie',
+            theme: 'finance',
+            questions: [
+              { t: "Où se trouve la bourse de New York ?", o: ['Manhattan', 'Wall Street', 'Broadway', 'Times Square'], a: 1, e: "La NYSE (New York Stock Exchange) est située sur Wall Street à Manhattan." },
+              { t: "Qu'est-ce qu'un ETF ?", o: ['Un fonds indiciel coté en bourse', 'Un prêt immobilier', 'Un compte d\'épargne', 'Une assurance-vie'], a: 0, e: "Un ETF (Exchange-Traded Fund) est un fonds indiciel coté en bourse qui réplique un indice comme le CAC 40." },
+              { t: "Qu'est-ce que le CAC 40 ?", o: ['L\'indice des 40 plus grandes entreprises françaises cotées', 'Un impôt sur les sociétés', 'Un fonds d\'investissement public', 'Un taux d\'intérêt bancaire'], a: 0, e: "Le CAC 40 est l'indice boursier de référence français, composé des 40 plus grandes capitalisations de la bourse de Paris." },
+              { t: "Qui est Warren Buffett ?", o: ['Fondateur d\'Amazon', 'Légendaire investisseur américain', 'Président de la Fed', 'PDG de Goldman Sachs'], a: 1, e: "Warren Buffett est l'un des investisseurs les plus célèbres au monde, PDG de Berkshire Hathaway." },
+              { t: "Qu'est-ce qu'une obligation ?", o: ['Une action prioritaire', 'Un titre de dette émis par une entreprise ou l\'État', 'Un contrat d\'assurance', 'Un dépôt à terme'], a: 1, e: "Une obligation est un titre de dette — l'émetteur s'engage à rembourser le capital avec des intérêts." },
+            ],
+          },
+        ],
+      },
+      grands_economistes: {
+        id: 'grands_economistes',
+        label: 'Grands économistes',
+        icon: '🎓',
+        quizzes: [
+          {
+            id: 'eco-ge-1',
+            name: 'Quiz #1 — Théories économiques',
+            diff: 'hard',
+            category: 'economie',
+            theme: 'grands_economistes',
+            questions: [
+              { t: "Qui a écrit 'La Richesse des Nations' ?", o: ['Karl Marx', 'John Maynard Keynes', 'Adam Smith', 'Milton Friedman'], a: 2, e: "Adam Smith publie La Richesse des Nations en 1776, posant les bases du libéralisme économique." },
+              { t: "Quelle théorie est associée à John Maynard Keynes ?", o: ['Le monétarisme', 'L\'interventionnisme de l\'État en période de crise', 'Le libre-échange absolu', 'La théorie des jeux'], a: 1, e: "Keynes prône l'intervention de l'État pour relancer l'économie en période de récession (stimulus)." },
+              { t: "Qui a écrit 'Le Capital' ?", o: ['Friedrich Engels', 'Karl Marx', 'Lénine', 'Max Weber'], a: 1, e: "Karl Marx publie Le Capital (Das Kapital) en 1867, critique fondamentale du capitalisme." },
+              { t: "Qu'est-ce que la 'main invisible' d'Adam Smith ?", o: ['Une politique protectionniste', 'Le mécanisme du marché qui régule l\'économie naturellement', 'L\'intervention de l\'État', 'Un monopole naturel'], a: 1, e: "La main invisible décrit comment les intérêts individuels conduisent, sans coordination, à un équilibre bénéfique pour tous." },
+              { t: "Qui a développé la théorie monétariste ?", o: ['Paul Krugman', 'Milton Friedman', 'Joseph Stiglitz', 'Thomas Piketty'], a: 1, e: "Milton Friedman est le chef de file de l'école monétariste de Chicago, défenseur du libre marché." },
+            ],
+          },
+        ],
+      },
+    },
+  },
+
+  astronomie: {
+    id: 'astronomie',
+    label: 'Astronomie & Espace',
+    icon: '🔭',
+    color: '#9B6DFF',
+    gradient: 'linear-gradient(135deg, #0a0520, #150a35)',
+    themes: {
+      systeme_solaire: {
+        id: 'systeme_solaire',
+        label: 'Système solaire',
+        icon: '☀️',
+        quizzes: [
+          {
+            id: 'ast-ss-1',
+            name: 'Quiz #1 — Planètes & Étoiles',
+            diff: 'easy',
+            category: 'astronomie',
+            theme: 'systeme_solaire',
+            questions: [
+              { t: "Combien de planètes compte le système solaire ?", o: ['7', '8', '9', '10'], a: 1, e: "8 planètes depuis la reclassification de Pluton en planète naine en 2006." },
+              { t: "Quelle est la planète la plus grande du système solaire ?", o: ['Saturne', 'Neptune', 'Jupiter', 'Uranus'], a: 2, e: "Jupiter est la plus grande planète, avec un diamètre 11 fois supérieur à celui de la Terre." },
+              { t: "Quelle planète est entourée d'anneaux visibles ?", o: ['Jupiter', 'Uranus', 'Saturne', 'Neptune'], a: 2, e: "Saturne est célèbre pour ses anneaux composés de glace et de roches. Jupiter, Uranus et Neptune en ont aussi, mais moins visibles." },
+              { t: "Quelle est la planète la plus proche du Soleil ?", o: ['Vénus', 'Mars', 'Mercure', 'Terre'], a: 2, e: "Mercure est la planète la plus proche du Soleil, à environ 58 millions de km." },
+              { t: "Qu'est-ce qu'une année-lumière ?", o: ['La durée que met la lumière à faire le tour de la Terre', 'La distance parcourue par la lumière en un an', 'L\'âge de notre Soleil', 'La période de rotation de la Terre'], a: 1, e: "Une année-lumière est la distance que parcourt la lumière en un an, soit environ 9 461 milliards de km." },
+            ],
+          },
+          {
+            id: 'ast-ss-2',
+            name: 'Quiz #2 — Lune & Exploration',
+            diff: 'medium',
+            category: 'astronomie',
+            theme: 'systeme_solaire',
+            questions: [
+              { t: "En quelle année l'homme a-t-il marché sur la Lune pour la première fois ?", o: ['1965', '1967', '1969', '1972'], a: 2, e: "Neil Armstrong et Buzz Aldrin marchent sur la Lune le 21 juillet 1969 (mission Apollo 11)." },
+              { t: "Quel est le nom de la première sonde à quitter le système solaire ?", o: ['Pioneer 10', 'Voyager 1', 'New Horizons', 'Cassini'], a: 1, e: "Voyager 1, lancée en 1977, a quitté le système solaire en 2012 — c'est l'objet humain le plus éloigné." },
+              { t: "Sur quelle planète a atterri le rover Perseverance en 2021 ?", o: ['Lune', 'Mars', 'Vénus', 'Titan'], a: 1, e: "Perseverance atterrit sur Mars le 18 février 2021 dans le cratère Jezero pour chercher des traces de vie." },
+              { t: "Qu'est-ce qu'une supernova ?", o: ['Une très grande étoile', 'L\'explosion d\'une étoile en fin de vie', 'Un type de galaxie', 'Un astéroïde géant'], a: 1, e: "Une supernova est l'explosion cataclysmique d'une étoile massive en fin de vie, l'un des événements les plus énergétiques de l'univers." },
+              { t: "Quel télescope spatial a révolutionné notre vision de l'univers depuis 1990 ?", o: ['James Webb', 'Hubble', 'Spitzer', 'Chandra'], a: 1, e: "Le télescope Hubble, lancé en 1990, a fourni des images révolutionnaires de l'univers profond." },
+            ],
+          },
+        ],
+      },
+      univers: {
+        id: 'univers',
+        label: 'Univers & Cosmologie',
+        icon: '🌌',
+        quizzes: [
+          {
+            id: 'ast-un-1',
+            name: 'Quiz #1 — Big Bang & Galaxies',
+            diff: 'hard',
+            category: 'astronomie',
+            theme: 'univers',
+            questions: [
+              { t: "Quel est l'âge estimé de l'univers ?", o: ['4,5 milliards d\'années', '10 milliards d\'années', '13,8 milliards d\'années', '20 milliards d\'années'], a: 2, e: "L'univers est âgé d'environ 13,8 milliards d'années depuis le Big Bang." },
+              { t: "Quelle est la galaxie la plus proche de la Voie Lactée ?", o: ['Galaxie de Bode', 'Grande Nébuleuse de Magellan', 'Galaxie d\'Andromède', 'Galaxie du Triangle'], a: 2, e: "La galaxie d'Andromède (M31) est la grande galaxie spirale la plus proche, à 2,5 millions d'années-lumière." },
+              { t: "Qu'est-ce que la matière noire ?", o: ['Des trous noirs', 'Une matière invisible qui représente 27% de l\'univers', 'Des étoiles éteintes', 'Du gaz froid'], a: 1, e: "La matière noire est une forme de matière non détectée directement, inférée par ses effets gravitationnels." },
+              { t: "Qu'est-ce que l'énergie sombre ?", o: ['L\'énergie des trous noirs', "L'énergie mystérieuse accélérant l'expansion de l'univers", 'L\'énergie des supernovas', 'La radiation cosmique'], a: 1, e: "L'énergie sombre représente ~68% de l'univers et serait responsable de son expansion accélérée." },
+              { t: "Comment s'appelle notre galaxie ?", o: ['Andromède', 'La Voie Lactée', 'Triangulum', 'Magellan'], a: 1, e: "Notre galaxie s'appelle la Voie Lactée. Elle contient entre 200 et 400 milliards d'étoiles." },
+            ],
+          },
+        ],
+      },
+      conquete_spatiale: {
+        id: 'conquete_spatiale',
+        label: 'Conquête spatiale',
+        icon: '🚀',
+        quizzes: [
+          {
+            id: 'ast-cs-1',
+            name: 'Quiz #1 — Histoire spatiale',
+            diff: 'medium',
+            category: 'astronomie',
+            theme: 'conquete_spatiale',
+            questions: [
+              { t: "Qui fut le premier humain à aller dans l'espace ?", o: ['Neil Armstrong', 'Alan Shepard', 'Youri Gagarine', 'John Glenn'], a: 2, e: "Youri Gagarine est le premier humain dans l'espace le 12 avril 1961 (mission Vostok 1)." },
+              { t: "Quel est le nom de la station spatiale internationale ?", o: ['Mir', 'ISS', 'Skylab', 'Tiangong'], a: 1, e: "L'ISS (International Space Station) est en orbite depuis 1998." },
+              { t: "Quel était le nom du programme spatial américain qui envoya l'homme sur la Lune ?", o: ['Gemini', 'Mercury', 'Apollo', 'Artemis'], a: 2, e: "Le programme Apollo de la NASA (1961-1972) a permis 6 alunissages habités." },
+              { t: "Qui est Elon Musk dans le domaine spatial ?", o: ['Directeur de la NASA', 'Fondateur de SpaceX', 'Astronaute', 'Ingénieur ESA'], a: 1, e: "Elon Musk fonde SpaceX en 2002, qui révolutionne l'accès à l'espace avec des fusées réutilisables." },
+              { t: "Quel animal a été le premier à aller dans l'espace ?", o: ['Singe', 'Souris', 'Chienne (Laïka)', 'Chat'], a: 2, e: "Laïka, une chienne soviétique, fut le premier animal à orbiter la Terre en novembre 1957 (Spoutnik 2)." },
+            ],
+          },
+        ],
+      },
+    },
+  },
+
+  theatre_culture: {
+    id: 'theatre_culture',
+    label: 'Théâtre & Culture française',
+    icon: '🎭',
+    color: '#FF5FA0',
+    gradient: 'linear-gradient(135deg, #2d0f20, #4a1535)',
+    themes: {
+      theatre: {
+        id: 'theatre',
+        label: 'Théâtre & Dramaturgie',
+        icon: '🎭',
+        quizzes: [
+          {
+            id: 'the-th-1',
+            name: 'Quiz #1 — Grands auteurs',
+            diff: 'medium',
+            category: 'theatre_culture',
+            theme: 'theatre',
+            questions: [
+              { t: "Qui a écrit 'Roméo et Juliette' ?", o: ['Molière', 'Victor Hugo', 'William Shakespeare', 'Jean Racine'], a: 2, e: "Roméo et Juliette est une pièce de William Shakespeare écrite vers 1595." },
+              { t: "Qui a écrit 'Le Misanthrope' ?", o: ['Racine', 'Molière', 'Corneille', 'La Fontaine'], a: 1, e: "Le Misanthrope est une comédie de Molière créée en 1666." },
+              { t: "Quel est le nom de la célèbre salle de théâtre nationale à Paris ?", o: ['L\'Odéon', 'La Comédie-Française', 'Le Châtelet', 'L\'Opéra Garnier'], a: 1, e: "La Comédie-Française (fondée en 1680) est le théâtre national le plus ancien du monde." },
+              { t: "Qui a écrit 'En attendant Godot' ?", o: ['Ionesco', 'Camus', 'Beckett', 'Sartre'], a: 2, e: "Samuel Beckett écrit En attendant Godot en 1949, pièce emblématique du théâtre de l'absurde." },
+              { t: "Qu'est-ce que la 'catharsis' au théâtre ?", o: ['Un décor de scène', 'La purification des émotions par le spectacle', 'Un type de comédie', 'Le dénouement d\'une pièce'], a: 1, e: "La catharsis (Aristote) désigne la purification émotionnelle que ressent le spectateur face à la tragédie." },
+            ],
+          },
+        ],
+      },
+      litterature_fr: {
+        id: 'litterature_fr',
+        label: 'Littérature française',
+        icon: '📚',
+        quizzes: [
+          {
+            id: 'the-lf-1',
+            name: 'Quiz #1 — Grands auteurs français',
+            diff: 'medium',
+            category: 'theatre_culture',
+            theme: 'litterature_fr',
+            questions: [
+              { t: "Qui a écrit 'À la recherche du temps perdu' ?", o: ['Flaubert', 'Proust', 'Zola', 'Balzac'], a: 1, e: "Marcel Proust écrit cette œuvre monumentale en 7 volumes entre 1913 et 1927." },
+              { t: "Quel auteur français a refusé le Prix Nobel de littérature ?", o: ['Albert Camus', 'Jean-Paul Sartre', 'Simone de Beauvoir', 'André Gide'], a: 1, e: "Jean-Paul Sartre refuse le Nobel de littérature en 1964, estimant qu'un écrivain ne doit pas se laisser institutionnaliser." },
+              { t: "Qui a écrit 'Madame Bovary' ?", o: ['Zola', 'Hugo', 'Flaubert', 'Stendhal'], a: 2, e: "Gustave Flaubert publie Madame Bovary en 1857, chef-d'œuvre du réalisme." },
+              { t: "Quel mouvement littéraire est associé à Zola ?", o: ['Romantisme', 'Surréalisme', 'Naturalisme', 'Symbolisme'], a: 2, e: "Émile Zola est le chef de file du naturalisme, courant qui applique les méthodes scientifiques à la littérature." },
+              { t: "Qui a écrit 'Le Petit Prince' ?", o: ['Jules Verne', 'Antoine de Saint-Exupéry', 'Jean de La Fontaine', 'Guy de Maupassant'], a: 1, e: "Le Petit Prince est écrit par Antoine de Saint-Exupéry en 1943, l'une des œuvres les plus traduites au monde." },
+            ],
+          },
+          {
+            id: 'the-lf-2',
+            name: 'Quiz #2 — Poésie & Mouvements',
+            diff: 'hard',
+            category: 'theatre_culture',
+            theme: 'litterature_fr',
+            questions: [
+              { t: "Quel poète a écrit 'Les Fleurs du Mal' ?", o: ['Verlaine', 'Rimbaud', 'Baudelaire', 'Mallarmé'], a: 2, e: "Charles Baudelaire publie Les Fleurs du Mal en 1857, recueil fondateur de la poésie moderne." },
+              { t: "Quel mouvement littéraire a précédé le réalisme ?", o: ['Classicisme', 'Romantisme', 'Symbolisme', 'Baroque'], a: 1, e: "Le romantisme (début XIXe) précède le réalisme et se caractérise par l'expression des sentiments et la nature." },
+              { t: "Qui était Molière dans la vie réelle ?", o: ['Louis Molière', 'Jean-Baptiste Poquelin', 'Pierre Corneille', 'Jean Molière'], a: 1, e: "Molière est le nom de plume de Jean-Baptiste Poquelin (1622-1673), dramaturge et comédien français." },
+              { t: "Qu'est-ce que le 'Nouveau Roman' ?", o: ['Un mouvement de BD française', 'Un mouvement littéraire des années 50-60 cassant les codes du roman traditionnel', 'Une collection de romans policiers', 'Le premier roman français'], a: 1, e: "Le Nouveau Roman (Robbe-Grillet, Sarraute, Butor) remet en question la narration traditionnelle dans les années 1950-60." },
+              { t: "Quel auteur français a écrit 'L\'Étranger' ?", o: ['Sartre', 'Camus', 'Malraux', 'Gide'], a: 1, e: "Albert Camus publie L'Étranger en 1942, œuvre emblématique de l'absurde et de l'existentialisme." },
+            ],
+          },
+        ],
+      },
+      culture_generale_fr: {
+        id: 'culture_generale_fr',
+        label: 'Culture française',
+        icon: '🥖',
+        quizzes: [
+          {
+            id: 'the-cf-1',
+            name: 'Quiz #1 — La France & ses symboles',
+            diff: 'easy',
+            category: 'theatre_culture',
+            theme: 'culture_generale_fr',
+            questions: [
+              { t: "Quelle est la devise de la France ?", o: ['Liberté, Égalité, Fraternité', 'Dieu, Honneur, Patrie', 'Unité, Force, Justice', 'Liberté, Démocratie, Progrès'], a: 0, e: "La devise républicaine est 'Liberté, Égalité, Fraternité', issue de la Révolution française." },
+              { t: "Quel est le symbole féminin de la République française ?", o: ['Vénus', 'Marianne', 'La Liberté', 'Cérès'], a: 1, e: "Marianne est le symbole officiel de la République française depuis 1792." },
+              { t: "Combien de régions compte la France métropolitaine ?", o: ['13', '15', '18', '22'], a: 0, e: "La France métropolitaine compte 13 régions depuis la réforme territoriale de 2016." },
+              { t: "Quel est le fleuve le plus long de France ?", o: ['Seine', 'Rhône', 'Loire', 'Garonne'], a: 2, e: "La Loire est le plus long fleuve de France avec 1006 km. Elle est aussi classée au patrimoine de l'UNESCO." },
+              { t: "Quel jour est la fête nationale française ?", o: ['1er mai', '8 mai', '14 juillet', '11 novembre'], a: 2, e: "Le 14 juillet commémore la prise de la Bastille (1789) et la Fête de la Fédération (1790)." },
+            ],
+          },
+        ],
+      },
+    },
+  },
+
+  mathematiques: {
+    id: 'mathematiques',
+    label: 'Logique & Mathématiques',
+    icon: '🧩',
+    color: '#3DFFD0',
+    gradient: 'linear-gradient(135deg, #0a1f2a, #0f3040)',
+    themes: {
+      logique: {
+        id: 'logique',
+        label: 'Logique & Raisonnement',
+        icon: '🧠',
+        quizzes: [
+          {
+            id: 'mat-lo-1',
+            name: 'Quiz #1 — Énigmes logiques',
+            diff: 'medium',
+            category: 'mathematiques',
+            theme: 'logique',
+            questions: [
+              { t: "Si tous les chats sont des animaux, et Félix est un chat, alors :", o: ['Félix est peut-être un animal', 'Félix est forcément un animal', 'Félix n\'est pas un animal', 'On ne peut pas conclure'], a: 1, e: "C'est un syllogisme logique : si A⊂B et Félix∈A, alors Félix∈B. Félix est forcément un animal." },
+              { t: "Quelle est la prochaine lettre dans la suite : A, C, E, G, ... ?", o: ['H', 'I', 'J', 'K'], a: 1, e: "La suite saute une lettre à chaque fois : A, C, E, G, I (lettres impaires de l'alphabet)." },
+              { t: "Un père a 3 fils. L'aîné a le double de l'âge du cadet. Le cadet a 4 ans de plus que le benjamin qui a 6 ans. Quel âge a l'aîné ?", o: ['16 ans', '18 ans', '20 ans', '24 ans'], a: 2, e: "Benjamin = 6 ans, cadet = 6+4 = 10 ans, aîné = 10×2 = 20 ans." },
+              { t: "Si 5 machines produisent 5 pièces en 5 minutes, combien de temps faut-il à 100 machines pour produire 100 pièces ?", o: ['100 minutes', '20 minutes', '5 minutes', '50 minutes'], a: 2, e: "Chaque machine produit 1 pièce en 5 minutes. 100 machines produisent 100 pièces en 5 minutes." },
+              { t: "Quelle figure géométrique a un nombre infini de côtés ?", o: ['Polygone', 'Cercle', 'Ellipse', 'Parabole'], a: 1, e: "Un cercle peut être vu comme un polygone avec un nombre infini de côtés infiniment petits." },
+            ],
+          },
+        ],
+      },
+      maths_fondamentaux: {
+        id: 'maths_fondamentaux',
+        label: 'Mathématiques',
+        icon: '📐',
+        quizzes: [
+          {
+            id: 'mat-mf-1',
+            name: 'Quiz #1 — Concepts & Théorèmes',
+            diff: 'medium',
+            category: 'mathematiques',
+            theme: 'maths_fondamentaux',
+            questions: [
+              { t: "Qu'est-ce que Pi (π) ?", o: ['La racine carrée de 2', 'Le rapport circonférence/diamètre d\'un cercle', 'La base des logarithmes naturels', 'Un nombre entier spécial'], a: 1, e: "Pi est le rapport constant entre la circonférence et le diamètre de tout cercle, environ 3,14159..." },
+              { t: "Quel est le théorème de Pythagore ?", o: ['a+b=c', 'a²+b²=c²', 'a²-b²=c²', 'a×b=c²'], a: 1, e: "Dans un triangle rectangle, le carré de l'hypoténuse (c) égale la somme des carrés des deux autres côtés : a²+b²=c²." },
+              { t: "Qu'est-ce qu'un nombre premier ?", o: ['Un nombre pair', 'Un nombre divisible uniquement par 1 et lui-même', 'Un nombre impair', 'Un nombre entier positif'], a: 1, e: "Un nombre premier n'est divisible que par 1 et lui-même (ex: 2, 3, 5, 7, 11...)." },
+              { t: "Quelle est la valeur de 0! (factorielle 0) ?", o: ['0', '1', 'Indéfinie', '∞'], a: 1, e: "Par convention mathématique, 0! = 1. Cela rend cohérentes de nombreuses formules combinatoires." },
+              { t: "Qu'est-ce que la suite de Fibonacci ?", o: ['1,2,4,8,16...', '1,1,2,3,5,8,13...', '1,3,9,27,81...', '2,4,6,8,10...'], a: 1, e: "La suite de Fibonacci : chaque nombre est la somme des deux précédents (1,1,2,3,5,8,13,21...)." },
+            ],
+          },
+          {
+            id: 'mat-mf-2',
+            name: 'Quiz #2 — Grands mathématiciens',
+            diff: 'hard',
+            category: 'mathematiques',
+            theme: 'maths_fondamentaux',
+            questions: [
+              { t: "Qui a formulé le dernier théorème de Fermat ?", o: ['Euler', 'Fermat', 'Gauss', 'Newton'], a: 1, e: "Pierre de Fermat énonce son théorème en 1637. Il ne fut prouvé qu'en 1995 par Andrew Wiles." },
+              { t: "Qui est considéré comme le 'prince des mathématiques' ?", o: ['Euler', 'Gauss', 'Riemann', 'Leibniz'], a: 1, e: "Carl Friedrich Gauss est surnommé le 'prince des mathématiques' pour ses contributions extraordinaires." },
+              { t: "Qui a inventé le calcul infinitésimal ?", o: ['Newton seul', 'Leibniz seul', 'Newton et Leibniz indépendamment', 'Euler'], a: 2, e: "Newton et Leibniz ont développé le calcul infinitésimal indépendamment au XVIIe siècle, ce qui créa une controverse de priorité." },
+              { t: "Qu'est-ce que l'hypothèse de Riemann ?", o: ['Un théorème prouvé', 'Une conjecture non résolue sur les zéros de la fonction zêta', 'Une théorie sur les nombres premiers', 'Une formule géométrique'], a: 1, e: "L'hypothèse de Riemann (1859) est l'un des problèmes du millénaire non résolus, valant 1 million de dollars à qui le résoudra." },
+              { t: "Qu'est-ce qu'un nombre d'or (φ) ?", o: ['π/2', '(1+√5)/2 ≈ 1,618', '√2 ≈ 1,414', 'e ≈ 2,718'], a: 1, e: "Le nombre d'or φ = (1+√5)/2 ≈ 1,618, présent dans la nature, l'art et l'architecture depuis l'Antiquité." },
+            ],
+          },
+        ],
+      },
+      enigmes: {
+        id: 'enigmes',
+        label: 'Énigmes & Puzzles',
+        icon: '🔮',
+        quizzes: [
+          {
+            id: 'mat-en-1',
+            name: 'Quiz #1 — Casse-têtes',
+            diff: 'hard',
+            category: 'mathematiques',
+            theme: 'enigmes',
+            questions: [
+              { t: "J'ai des têtes et des pattes. J'ai 5 têtes et 14 pattes. Je suis composé de poulets et de lapins. Combien de lapins ?", o: ['1', '2', '3', '4'], a: 2, e: "x poulets + y lapins = 5 têtes, 2x + 4y = 14 pattes. Donc x=2, y=3. Il y a 3 lapins." },
+              { t: "Quel est le prochain nombre : 2, 6, 12, 20, 30, ... ?", o: ['36', '40', '42', '44'], a: 2, e: "La suite est n(n+1) : 1×2, 2×3, 3×4, 4×5, 5×6, 6×7 = 42." },
+              { t: "Un escargot est au fond d'un puits de 10m. Il monte 3m par jour et redescend 2m la nuit. En combien de jours sort-il ?", o: ['8 jours', '9 jours', '10 jours', '7 jours'], a: 0, e: "Il gagne 1m net/jour. Après 7 jours il est à 7m. Le 8e jour il monte 3m jusqu'à 10m et sort. Réponse : 8 jours." },
+              { t: "Combien de carrés voit-on dans un damier 4×4 ?", o: ['16', '20', '24', '30'], a: 3, e: "1×1: 16, 2×2: 9, 3×3: 4, 4×4: 1. Total = 30 carrés." },
+              { t: "Si vous avez 3 pommes et que vous en prenez 2, combien en avez-vous ?", o: ['1', '2', '3', '5'], a: 1, e: "Vous avez pris 2 pommes, donc vous en avez 2 !" },
+            ],
+          },
+        ],
+      },
+    },
+  },
 };
 
 // Helpers
