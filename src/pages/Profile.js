@@ -13,7 +13,7 @@ export default function Profile() {
         {showAuth && <AuthModal onClose={() => setShowAuth(false)} />}
         <div style={{ textAlign: 'center', padding: '40px 16px' }}>
           <div style={{ fontSize: 48, marginBottom: 12 }}>🎮</div>
-          <div style={{ fontFamily: "'Syne', sans-serif", fontSize: 22, fontWeight: 800, marginBottom: 8 }}>Crée ton compte</div>
+          <div style={{ fontFamily: "'Raleway', sans-serif", fontSize: 22, fontWeight: 800, marginBottom: 8 }}>Crée ton compte</div>
           <p style={{ color: 'var(--muted)', fontSize: 13, marginBottom: 22, lineHeight: 1.6 }}>
             Connecte-toi pour suivre ta progression, ton historique et monter dans les classements.
           </p>
@@ -47,10 +47,10 @@ export default function Profile() {
         borderRadius: 16, padding: 20, marginBottom: 14, textAlign: 'center'
       }}>
         <div style={{ width: 60, height: 60, borderRadius: '50%', background: 'rgba(255,255,255,.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28, margin: '0 auto 10px', border: '3px solid rgba(255,255,255,.3)' }}>
-          {user.displayName?.[0]?.toUpperCase() || '😊'}
+          {(profile?.displayName || user.displayName)?.[0]?.toUpperCase() || '😊'}
         </div>
-        <div style={{ fontFamily: "'Syne', sans-serif", fontSize: 20, fontWeight: 800, marginBottom: 2 }}>
-          {user.displayName || 'Joueur'}
+        <div style={{ fontFamily: "'Raleway', sans-serif", fontSize: 20, fontWeight: 800, marginBottom: 2 }}>
+          {profile?.displayName || user.displayName || 'Joueur'}
         </div>
         <div style={{ fontSize: 12, opacity: .8 }}>{user.email}</div>
         <div style={{ display: 'inline-block', background: 'rgba(255,255,255,.2)', borderRadius: 20, padding: '4px 14px', fontSize: 11, fontWeight: 700, marginTop: 8 }}>
@@ -111,7 +111,7 @@ export default function Profile() {
                   </div>
                 </div>
               </div>
-              <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: 15, color: 'var(--cyan)' }}>
+              <div style={{ fontFamily: "'Raleway', sans-serif", fontWeight: 800, fontSize: 15, color: 'var(--cyan)' }}>
                 {h.score}/{h.total}
               </div>
             </div>
@@ -122,7 +122,7 @@ export default function Profile() {
       {/* Déconnexion */}
       <button
         className="btn btn-secondary btn-full"
-        style={{ marginTop: 12, fontFamily: "'Syne', sans-serif", fontWeight: 700 }}
+        style={{ marginTop: 12, fontFamily: "'Raleway', sans-serif", fontWeight: 700 }}
         onClick={logout}
       >
         Se déconnecter
