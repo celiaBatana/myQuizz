@@ -125,15 +125,52 @@ export default function Admin() {
     setEditQ(null); ok('✓ Question modifiée');
   }
 
-  async function importCSVQuestions() {
-    let n = 0;
-    for (const row of csvRows) {
-      const ref = await addDoc(collection(db, 'questions'), { ...row, createdAt: serverTimestamp(), createdBy: user.uid, active: true });
-      setQuestions(p => [...p, { id: ref.id, ...row }]);
-      n++;
+ async function importCSVQuestions() {
+  let n = 0;
+  let linked = 0;
+  let notFound = [];
+ 
+  for (const row of csvRows) {
+    // Cherche le quiz correspondant : même catégorie + même thème + même difficulté
+    const matchingQuiz = quizzes.find(q =>
+      q.catId    === row.category &&
+      q.themeId  === row.theme    &&
+      q.diff     === row.diff
+    );
+ 
+    const questionData = {
+      ...row,
+      quizId:    matchingQuiz ? matchingQuiz.id    : null,
+      category:  row.category,
+      theme:     row.theme,
+      createdAt: serverTimestamp(),
+      createdBy: user.uid,
+      active:    true,
+    };
+ 
+    const ref = await addDoc(collection(db, 'questions'), questionData);
+    setQuestions(p => [...p, { id: ref.id, ...questionData }]);
+    n++;
+ 
+    if (matchingQuiz) {
+      linked++;
+    } else {
+      // Garde une trace des questions non liées pour afficher un avertissement
+      if (!notFound.find(x => x.category === row.category && x.theme === row.theme && x.diff === row.diff)) {
+        notFound.push({ category: row.category, theme: row.theme, diff: row.diff });
+      }
     }
-    setCsvRows([]); ok(`✓ ${n} questions importées`);
   }
+ 
+  setCsvRows([]);
+ 
+  if (notFound.length > 0) {
+    const details = notFound.map(x => `${x.category}/${x.theme}/${x.diff}`).join(', ');
+    ok(`✓ ${n} questions importées · ${linked} liées automatiquement · ⚠️ ${n - linked} sans quiz (${details})`);
+  } else {
+    ok(`✓ ${n} questions importées et liées automatiquement à ${[...new Set(csvRows.map(r => r.category + '/' + r.theme))].length} quiz !`);
+  }
+}
 
   function parseCSVQuestions(e) {
     const file = e.target.files[0]; if (!file) return;
