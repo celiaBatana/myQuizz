@@ -336,6 +336,34 @@ export default function Admin() {
     ...themes,
   ];
 
+  // ── Quizzes groupés par catégorie → thème → difficulté ──────────────────────
+  const DIFF_ORDER = { easy: 0, medium: 1, hard: 2 };
+
+  const groupedQuizzes = allCats.map(cat => {
+    const catThemes = allThemes.filter(t => t.catId === cat.id);
+    const catQuizzes = quizzes.filter(q => q.catId === cat.id);
+    if (catQuizzes.length === 0) return null;
+
+    const themeGroups = catThemes.map(theme => {
+      const themeQuizzes = catQuizzes
+        .filter(q => q.themeId === theme.id)
+        .sort((a, b) => (DIFF_ORDER[a.diff] ?? 3) - (DIFF_ORDER[b.diff] ?? 3));
+      if (themeQuizzes.length === 0) return null;
+      return { theme, quizzes: themeQuizzes };
+    }).filter(Boolean);
+
+    // Quiz sans thème connu
+    const knownThemeIds = catThemes.map(t => t.id);
+    const orphanQuizzes = catQuizzes
+      .filter(q => !knownThemeIds.includes(q.themeId))
+      .sort((a, b) => (DIFF_ORDER[a.diff] ?? 3) - (DIFF_ORDER[b.diff] ?? 3));
+    if (orphanQuizzes.length > 0) {
+      themeGroups.push({ theme: { id: '__other', label: 'Autres', icon: '📂' }, quizzes: orphanQuizzes });
+    }
+
+    return { cat, themeGroups };
+  }).filter(Boolean);
+
   // ── Guards ────────────────────────────────────────────────────────────────────
   if (!user) return (
     <div className="page">
@@ -410,82 +438,111 @@ export default function Admin() {
             </div>
           )}
 
-          {quizzes.map(quiz => {
-            const quizQ = questions.filter(q => q.quizId === quiz.id);
-            return (
-              <div key={quiz.id} style={{ ...S.card, padding: 0, overflow: 'hidden' }}>
-                <div style={{ padding: '12px 13px' }}>
-                  {editQuiz?.id === quiz.id ? (
-                    <QuizForm quiz={editQuiz} cats={allCats} themes={allThemes} onSave={data => saveQuiz(quiz, data)} onCancel={() => setEditQuiz(null)} />
-                  ) : (
-                    <div style={S.row}>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 4 }}>{quiz.name}</div>
-                        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
-                          <span style={S.tag('var(--purple)')}>{quiz.catId}</span>
-                          {quiz.themeId && <span style={S.tag('var(--cyan)')}>{quiz.themeId}</span>}
-                          <span style={S.tag(quiz.diff === 'easy' ? 'var(--cyan)' : quiz.diff === 'medium' ? 'var(--yellow)' : 'var(--pink)')}>{DIFF_LABELS[quiz.diff]}</span>
-                          <span style={{ fontSize: 11, color: quizQ.length === 0 ? 'var(--pink)' : 'var(--muted)' }}>
-                            {quizQ.length === 0 ? '⚠️ 0 question' : `${quizQ.length} questions`}
-                          </span>
-                        </div>
-                      </div>
-                      <div style={{ display: 'flex', gap: 2, flexShrink: 0 }}>
-                        <button style={S.iconBtn('var(--cyan)')} onClick={() => setEditQuiz(quiz)}>✏️</button>
-                        <button style={{ ...S.iconBtn('var(--muted)'), fontSize: 13 }} onClick={() => setExpandedQuiz(expandedQuiz === quiz.id ? null : quiz.id)}>
-                          {expandedQuiz === quiz.id ? '▲' : '▼'}
-                        </button>
-                        <button style={S.iconBtn('var(--muted)')}
-                          onMouseEnter={e => e.currentTarget.style.color = 'var(--pink)'}
-                          onMouseLeave={e => e.currentTarget.style.color = 'var(--muted)'}
-                          onClick={() => setConfirmDel(confirmDel?.id === quiz.id ? null : quiz)}>×</button>
-                      </div>
-                    </div>
-                  )}
-                  {confirmDel?.id === quiz.id && (
-                    <div style={S.confirm}>
-                      <p style={{ fontSize: 11, color: 'var(--pink)', marginBottom: 8 }}>Supprimer ce quiz ?</p>
-                      <div style={{ display: 'flex', gap: 6 }}>
-                        <button className="btn btn-primary" style={{ padding: '5px 12px', fontSize: 11, background: '#FF4D4D' }} onClick={() => deleteQuiz(quiz)}>Supprimer</button>
-                        <button className="btn btn-secondary" style={{ padding: '5px 12px', fontSize: 11 }} onClick={() => setConfirmDel(null)}>Annuler</button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-                {expandedQuiz === quiz.id && (
-                  <div style={{ borderTop: '1px solid var(--s2)', background: 'rgba(0,0,0,.15)' }}>
-                    {quizQ.length === 0
-                      ? <div style={{ padding: '12px 13px', fontSize: 12, color: 'var(--pink)' }}>
-                          Aucune question liée.{' '}
-                          <span style={{ color: 'var(--cyan)', cursor: 'pointer', textDecoration: 'underline' }} onClick={() => setTab('lier')}>
-                            Lier des questions →
-                          </span>
-                        </div>
-                      : quizQ.map((q, i) => (
-                        <div key={q.id} style={{ borderBottom: '1px solid rgba(255,255,255,.04)', padding: '10px 13px' }}>
-                          {editQ?.id === q.id ? (
-                            <QuestionForm q={editQ} onSave={data => saveQuestion(q, data)} onCancel={() => setEditQ(null)} />
+          {/* Quiz groupés par catégorie → thème → difficulté */}
+          {groupedQuizzes.map(({ cat, themeGroups }) => (
+            <div key={cat.id} style={{ marginBottom: 20 }}>
+              {/* Header catégorie */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 4px', marginBottom: 6, borderBottom: '1px solid var(--s2)' }}>
+                <span style={{ fontSize: 18 }}>{cat.icon}</span>
+                <span style={{ fontFamily: "'Raleway', sans-serif", fontWeight: 800, fontSize: 14 }}>{cat.label}</span>
+                <span style={{ fontSize: 11, color: 'var(--muted)', marginLeft: 'auto' }}>
+                  {themeGroups.reduce((s, t) => s + t.quizzes.length, 0)} quiz
+                </span>
+              </div>
+
+              {themeGroups.map(({ theme, quizzes: themeQuizzes }) => (
+                <div key={theme.id} style={{ marginBottom: 12, paddingLeft: 8 }}>
+                  {/* Header thème */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
+                    <span style={{ fontSize: 14 }}>{theme.icon}</span>
+                    <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--muted)' }}>{theme.label}</span>
+                    <span style={{ fontSize: 10, color: 'var(--muted)', opacity: 0.6 }}>({themeQuizzes.length})</span>
+                  </div>
+
+                  {/* Quiz du thème triés par difficulté */}
+                  {themeQuizzes.map(quiz => {
+                    const quizQ = questions.filter(q => q.quizId === quiz.id);
+                    return (
+                      <div key={quiz.id} style={{ ...S.card, padding: 0, overflow: 'hidden', marginBottom: 6 }}>
+                        <div style={{ padding: '10px 13px' }}>
+                          {editQuiz?.id === quiz.id ? (
+                            <QuizForm quiz={editQuiz} cats={allCats} themes={allThemes} onSave={data => saveQuiz(quiz, data)} onCancel={() => setEditQuiz(null)} />
                           ) : (
                             <div style={S.row}>
                               <div style={{ flex: 1, minWidth: 0 }}>
-                                <div style={{ fontSize: 11, color: 'var(--muted)', marginBottom: 2 }}>Q{i + 1}</div>
-                                <div style={{ fontSize: 12, fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{q.text}</div>
-                                <div style={{ fontSize: 11, color: 'var(--cyan)', marginTop: 2 }}>✓ {q.options?.[q.answer]}</div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 3, flexWrap: 'wrap' }}>
+                                  {/* Badge difficulté en premier */}
+                                  <span style={S.tag(quiz.diff === 'easy' ? 'var(--cyan)' : quiz.diff === 'medium' ? 'var(--yellow)' : 'var(--pink)')}>
+                                    {DIFF_LABELS[quiz.diff]}
+                                  </span>
+                                  <span style={{ fontWeight: 700, fontSize: 13 }}>{quiz.name}</span>
+                                </div>
+                                <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                                  <span style={{ fontSize: 11, color: quizQ.length === 0 ? 'var(--pink)' : 'var(--muted)' }}>
+                                    {quizQ.length === 0 ? '⚠️ 0 question' : `${quizQ.length} questions`}
+                                  </span>
+                                </div>
                               </div>
-                              <div style={{ display: 'flex', gap: 2 }}>
-                                <button style={S.iconBtn('var(--cyan)')} onClick={() => setEditQ(q)}>✏️</button>
-                                <button style={S.iconBtn('var(--muted)')} title="Délier" onClick={() => unlinkQuestion(q)}>⛓️</button>
+                              <div style={{ display: 'flex', gap: 2, flexShrink: 0 }}>
+                                <button style={S.iconBtn('var(--cyan)')} onClick={() => setEditQuiz(quiz)}>✏️</button>
+                                <button style={{ ...S.iconBtn('var(--muted)'), fontSize: 13 }} onClick={() => setExpandedQuiz(expandedQuiz === quiz.id ? null : quiz.id)}>
+                                  {expandedQuiz === quiz.id ? '▲' : '▼'}
+                                </button>
+                                <button style={S.iconBtn('var(--muted)')}
+                                  onMouseEnter={e => e.currentTarget.style.color = 'var(--pink)'}
+                                  onMouseLeave={e => e.currentTarget.style.color = 'var(--muted)'}
+                                  onClick={() => setConfirmDel(confirmDel?.id === quiz.id ? null : quiz)}>×</button>
+                              </div>
+                            </div>
+                          )}
+                          {confirmDel?.id === quiz.id && (
+                            <div style={S.confirm}>
+                              <p style={{ fontSize: 11, color: 'var(--pink)', marginBottom: 8 }}>Supprimer ce quiz ?</p>
+                              <div style={{ display: 'flex', gap: 6 }}>
+                                <button className="btn btn-primary" style={{ padding: '5px 12px', fontSize: 11, background: '#FF4D4D' }} onClick={() => deleteQuiz(quiz)}>Supprimer</button>
+                                <button className="btn btn-secondary" style={{ padding: '5px 12px', fontSize: 11 }} onClick={() => setConfirmDel(null)}>Annuler</button>
                               </div>
                             </div>
                           )}
                         </div>
-                      ))
-                    }
-                  </div>
-                )}
-              </div>
-            );
-          })}
+                        {expandedQuiz === quiz.id && (
+                          <div style={{ borderTop: '1px solid var(--s2)', background: 'rgba(0,0,0,.15)' }}>
+                            {quizQ.length === 0
+                              ? <div style={{ padding: '12px 13px', fontSize: 12, color: 'var(--pink)' }}>
+                                  Aucune question liée.{' '}
+                                  <span style={{ color: 'var(--cyan)', cursor: 'pointer', textDecoration: 'underline' }} onClick={() => setTab('lier')}>
+                                    Lier des questions →
+                                  </span>
+                                </div>
+                              : quizQ.map((q, i) => (
+                                <div key={q.id} style={{ borderBottom: '1px solid rgba(255,255,255,.04)', padding: '10px 13px' }}>
+                                  {editQ?.id === q.id ? (
+                                    <QuestionForm q={editQ} onSave={data => saveQuestion(q, data)} onCancel={() => setEditQ(null)} />
+                                  ) : (
+                                    <div style={S.row}>
+                                      <div style={{ flex: 1, minWidth: 0 }}>
+                                        <div style={{ fontSize: 11, color: 'var(--muted)', marginBottom: 2 }}>Q{i + 1}</div>
+                                        <div style={{ fontSize: 12, fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{q.text}</div>
+                                        <div style={{ fontSize: 11, color: 'var(--cyan)', marginTop: 2 }}>✓ {q.options?.[q.answer]}</div>
+                                      </div>
+                                      <div style={{ display: 'flex', gap: 2 }}>
+                                        <button style={S.iconBtn('var(--cyan)')} onClick={() => setEditQ(q)}>✏️</button>
+                                        <button style={S.iconBtn('var(--muted)')} title="Délier" onClick={() => unlinkQuestion(q)}>⛓️</button>
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              ))
+                            }
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              ))}
+            </div>
+          ))}
 
           {/* Import CSV quiz */}
           <div style={S.divider} />
