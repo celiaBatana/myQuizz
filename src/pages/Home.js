@@ -1,8 +1,8 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { collection, getDocs } from 'firebase/firestore';
+import { db } from '../firebase';
 import { getCategoryList } from '../data/quizData';
-
-const CAT_CLASSES = ['c1', 'c2', 'c3', 'c4', 'c5', 'c6'];
 
 const styles = {
   hero: { textAlign: 'center', padding: '28px 0 20px' },
@@ -25,29 +25,62 @@ const styles = {
 };
 
 const CAT_STYLES = {
-  culture:          { background: 'linear-gradient(135deg, #2a1f4e, #3d2a6e)', borderColor: '#4a3580' },
-  sciences:         { background: 'linear-gradient(135deg, #1f3a2e, #1a4d3a)', borderColor: '#2a6b4e' },
-  cinema:           { background: 'linear-gradient(135deg, #3a1f2a, #5a1f35)', borderColor: '#7a2a45' },
-  sport:            { background: 'linear-gradient(135deg, #2a2a1f, #3d3a18)', borderColor: '#5a5520' },
-  histoire:         { background: 'linear-gradient(135deg, #1f2a3a, #1a3050)', borderColor: '#2a4570' },
-  langues:          { background: 'linear-gradient(135deg, #2a1f1f, #4a2a1a)', borderColor: '#6a3a20' },
-  gastronomie:      { background: 'linear-gradient(135deg, #3a2010, #5a3015)', borderColor: '#7a4a20' },
-  jeux_video:       { background: 'linear-gradient(135deg, #1a0f3a, #2d1a5e)', borderColor: '#3d2a7a' },
-  nature:           { background: 'linear-gradient(135deg, #0f2d1f, #1a4a2e)', borderColor: '#1a6a3e' },
-  politique:        { background: 'linear-gradient(135deg, #0f1f3a, #1a2d5e)', borderColor: '#1a3a7a' },
-  economie:         { background: 'linear-gradient(135deg, #2a2500, #3d3800)', borderColor: '#5a5000' },
-  astronomie:       { background: 'linear-gradient(135deg, #0a0520, #150a35)', borderColor: '#2a1550' },
-  theatre_culture:  { background: 'linear-gradient(135deg, #2d0f20, #4a1535)', borderColor: '#6a1a45' },
-  mathematiques:    { background: 'linear-gradient(135deg, #0a1f2a, #0f3040)', borderColor: '#0a4560' },
+  culture:         { background: 'linear-gradient(135deg, #2a1f4e, #3d2a6e)', borderColor: '#4a3580' },
+  sciences:        { background: 'linear-gradient(135deg, #1f3a2e, #1a4d3a)', borderColor: '#2a6b4e' },
+  cinema:          { background: 'linear-gradient(135deg, #3a1f2a, #5a1f35)', borderColor: '#7a2a45' },
+  sport:           { background: 'linear-gradient(135deg, #2a2a1f, #3d3a18)', borderColor: '#5a5520' },
+  histoire:        { background: 'linear-gradient(135deg, #1f2a3a, #1a3050)', borderColor: '#2a4570' },
+  langues:         { background: 'linear-gradient(135deg, #2a1f1f, #4a2a1a)', borderColor: '#6a3a20' },
+  gastronomie:     { background: 'linear-gradient(135deg, #3a2010, #5a3015)', borderColor: '#7a4a20' },
+  jeux_video:      { background: 'linear-gradient(135deg, #1a0f3a, #2d1a5e)', borderColor: '#3d2a7a' },
+  nature:          { background: 'linear-gradient(135deg, #0f2d1f, #1a4a2e)', borderColor: '#1a6a3e' },
+  politique:       { background: 'linear-gradient(135deg, #0f1f3a, #1a2d5e)', borderColor: '#1a3a7a' },
+  economie:        { background: 'linear-gradient(135deg, #2a2500, #3d3800)', borderColor: '#5a5000' },
+  astronomie:      { background: 'linear-gradient(135deg, #0a0520, #150a35)', borderColor: '#2a1550' },
+  theatre_culture: { background: 'linear-gradient(135deg, #2d0f20, #4a1535)', borderColor: '#6a1a45' },
+  mathematiques:   { background: 'linear-gradient(135deg, #0a1f2a, #0f3040)', borderColor: '#0a4560' },
 };
 
 export default function Home() {
   const navigate = useNavigate();
   const categories = getCategoryList();
 
+  const [totalQuizzes, setTotalQuizzes] = useState('...');
+  const [totalQuestions, setTotalQuestions] = useState('...');
+  const [featuredQuiz, setFeaturedQuiz] = useState(null);
+
   const totalThemes = categories.reduce((s, c) => s + Object.keys(c.themes).length, 0);
-  const totalQuizzes = categories.reduce((s, c) =>
-    s + Object.values(c.themes).reduce((s2, t) => s2 + t.quizzes.length, 0), 0);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const [quizSnap, qSnap] = await Promise.all([
+          getDocs(collection(db, 'quizzes')),
+          getDocs(collection(db, 'questions')),
+        ]);
+        setTotalQuizzes(quizSnap.size);
+        setTotalQuestions(qSnap.size);
+
+        // Quiz du jour : premier quiz avec des questions
+        const quizzes = quizSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+        const questions = qSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+        const withQ = quizzes.filter(q => questions.some(qu => qu.quizId === q.id));
+        if (withQ.length > 0) {
+          // Choisir un quiz du jour basé sur le jour de l'année
+          const dayIndex = Math.floor(Date.now() / 86400000) % withQ.length;
+          setFeaturedQuiz(withQ[dayIndex]);
+        }
+      } catch (e) {
+        console.error('Erreur chargement home:', e);
+        setTotalQuizzes('?');
+        setTotalQuestions('?');
+      }
+    })();
+  }, []);
+
+  const diffLabel = { easy: 'Facile', medium: 'Moyen', hard: 'Expert' };
+  const diffEmoji = { easy: '🟢', medium: '🟡', hard: '🔴' };
+  const xpLabel   = { easy: '+5–15 XP', medium: '+10–30 XP', hard: '+20–50 XP' };
 
   return (
     <div className="page">
@@ -67,46 +100,55 @@ export default function Home() {
             <div style={styles.statLabel}>Thèmes</div>
           </div>
           <div style={styles.stat}>
-            <div style={styles.statNum}>{totalQuizzes}+</div>
+            <div style={styles.statNum}>{totalQuizzes}</div>
             <div style={styles.statLabel}>Quiz</div>
+          </div>
+          <div style={styles.stat}>
+            <div style={styles.statNum}>{totalQuestions}</div>
+            <div style={styles.statLabel}>Questions</div>
           </div>
         </div>
       </div>
 
       {/* Quiz du jour */}
       <div className="section-label">Quiz du jour</div>
-      <div
-        style={styles.featured}
-        onClick={() => navigate('/quiz/cinema/classiques/cin-cl-1')}
-        onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
-        onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
-      >
-        <div style={styles.featuredLabel}>⭐ Sélection du jour</div>
-        <div style={styles.featuredTitle}>Cinéma classique — Les incontournables</div>
-        <div style={styles.featuredMeta}>
-          <span>🟡 Moyen</span>
-          <span>⚡ +10–30 XP/question</span>
-          <span>5 questions</span>
+      {featuredQuiz ? (
+        <div
+          style={styles.featured}
+          onClick={() => navigate(`/quiz/${featuredQuiz.catId}/${featuredQuiz.themeId}/${featuredQuiz.id}`)}
+          onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'}
+          onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
+        >
+          <div style={styles.featuredLabel}>⭐ Sélection du jour</div>
+          <div style={styles.featuredTitle}>{featuredQuiz.name}</div>
+          <div style={styles.featuredMeta}>
+            <span>{diffEmoji[featuredQuiz.diff]} {diffLabel[featuredQuiz.diff]}</span>
+            <span>⚡ {xpLabel[featuredQuiz.diff]}/question</span>
+          </div>
         </div>
-      </div>
+      ) : (
+        <div style={{ ...styles.featured, opacity: 0.5, cursor: 'default' }}>
+          <div style={styles.featuredLabel}>⭐ Sélection du jour</div>
+          <div style={styles.featuredTitle}>Chargement…</div>
+        </div>
+      )}
 
       {/* Catégories */}
       <div className="section-label" style={{ marginTop: 20 }}>Catégories</div>
       <div style={styles.catGrid}>
-        {categories.map((cat) => {
+        {categories.map(cat => {
           const themeCount = Object.keys(cat.themes).length;
-          const quizCount = Object.values(cat.themes).reduce((s, t) => s + t.quizzes.length, 0);
           return (
             <div
               key={cat.id}
-              style={{ ...styles.catCard, ...CAT_STYLES[cat.id] }}
+              style={{ ...styles.catCard, ...(CAT_STYLES[cat.id] || {}) }}
               onClick={() => navigate(`/category/${cat.id}`)}
-              onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 10px 24px rgba(0,0,0,.4)'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}
+              onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 10px 24px rgba(0,0,0,.4)'; }}
+              onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}
             >
               <span style={styles.catIcon}>{cat.icon}</span>
               <div style={styles.catName}>{cat.label}</div>
-              <div style={styles.catMeta}>{themeCount} thèmes · {quizCount} quiz</div>
+              <div style={styles.catMeta}>{themeCount} thèmes</div>
             </div>
           );
         })}
