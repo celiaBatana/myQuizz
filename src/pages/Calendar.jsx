@@ -11,6 +11,7 @@ const CATEGORIES = {
   loisirs:       { label: "Loisirs",       icon: "🎉", color: "#FFE14D" },
   administratif: { label: "Administratif", icon: "📋", color: "#FF7A3D" },
   sport:         { label: "Sport",         icon: "⚽", color: "#FF5FA0" },
+  soins: { label: "Soins", icon: "🩺", color: "#4DC9F6" },
 };
 
 const USER_SHAPES = ["●", "▲", "■", "◆", "★", "⬟"];
