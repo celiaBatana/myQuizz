@@ -256,24 +256,42 @@ export default function Calendar() {
                 )}
 
                 {/* Events avec horaire positionnés */}
-                {timedEvts.map(e => {
-                  const cat = CATEGORIES[e.cat] || CATEGORIES.loisirs;
-                  const top  = timeToY(e.timeStart);
-                  const h    = timeDuration(e.timeStart, e.timeEnd);
-                  const evtUsers = users.filter(u => e.userIds?.includes(u.id));
-                  return (
-                    <div key={e.id} onClick={() => openEditEvent(e)}
-                      style={{ position:"absolute", top, left:2, right:2, height:h, zIndex:3,
-                        background:cat.color+"33", borderLeft:`3px solid ${cat.color}`, borderRadius:6,
-                        padding:"2px 5px", cursor:"pointer", overflow:"hidden", transition:"opacity .15s" }}
-                      onMouseEnter={el => el.currentTarget.style.opacity=".8"}
-                      onMouseLeave={el => el.currentTarget.style.opacity="1"}>
-                      <div style={{ fontSize:10, fontWeight:700, color:cat.color, lineHeight:1.2 }}>{e.timeStart}{e.timeEnd?`→${e.timeEnd}`:""}</div>
-                      <div style={{ fontSize:11, fontWeight:600, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{cat.icon} {e.title}</div>
-                      {evtUsers.length > 0 && <div style={{ fontSize:9, marginTop:1 }}>{evtUsers.map(u=><span key={u.id} style={{ color:u.color, marginRight:2 }}>{u.shape}</span>)}</div>}
-                    </div>
-                  );
-                })}
+                {(() => {
+                  // Calculer les colonnes pour éviter les chevauchements
+                  const sorted = [...timedEvts].sort((a,b) => (a.timeStart||"").localeCompare(b.timeStart||""));
+                  const cols = []; // cols[i] = heure de fin du dernier event dans colonne i
+
+                  const withCol = sorted.map(e => {
+                    const eEnd = e.timeEnd || addOneHour(e.timeStart);
+                    let col = 0;
+                    while (cols[col] && cols[col] > e.timeStart) col++;
+                    cols[col] = eEnd;
+                    return { ...e, col };
+                  });
+                  const totalCols = Math.max(1, ...withCol.map(e => e.col + 1));
+
+                  return withCol.map(e => {
+                    const cat = CATEGORIES[e.cat] || CATEGORIES.loisirs;
+                    const top  = timeToY(e.timeStart);
+                    const h    = timeDuration(e.timeStart, e.timeEnd);
+                    const evtUsers = users.filter(u => e.userIds?.includes(u.id));
+                    const colW = 100 / totalCols;
+                    const left = `calc(${e.col * colW}% + 2px)`;
+                    const width = `calc(${colW}% - 4px)`;
+                    return (
+                      <div key={e.id} onClick={() => openEditEvent(e)}
+                        style={{ position:"absolute", top, left, width, height:h, zIndex:3+e.col,
+                          background:cat.color+"33", borderLeft:`3px solid ${cat.color}`, borderRadius:6,
+                          padding:"2px 5px", cursor:"pointer", overflow:"hidden", transition:"opacity .15s" }}
+                        onMouseEnter={el => el.currentTarget.style.opacity=".8"}
+                        onMouseLeave={el => el.currentTarget.style.opacity="1"}>
+                        <div style={{ fontSize:10, fontWeight:700, color:cat.color, lineHeight:1.2 }}>{e.timeStart}{e.timeEnd?` → ${e.timeEnd}`:""}</div>
+                        <div style={{ fontSize:11, fontWeight:600, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{cat.icon} {e.title}</div>
+                        {evtUsers.length > 0 && <div style={{ fontSize:9, marginTop:1 }}>{evtUsers.map(u=><span key={u.id} style={{ color:u.color, marginRight:2 }}>{u.shape}</span>)}</div>}
+                      </div>
+                    );
+                  });
+                })()}
               </div>
             );
           })}
