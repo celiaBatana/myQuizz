@@ -17,6 +17,7 @@ const USER_SHAPES = ["●", "▲", "■", "◆", "★", "⬟"];
 const USER_COLORS = ["#FF5FA0", "#3DFFD0", "#FFE14D", "#9B6DFF", "#FF7A3D", "#378ADD"];
 const JOURS = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
 const MOIS  = ["Janvier","Février","Mars","Avril","Mai","Juin","Juillet","Août","Septembre","Octobre","Novembre","Décembre"];
+const ROW_H = 56; // px par heure
 
 function toKey(date) {
   const y = date.getFullYear();
@@ -36,6 +37,17 @@ function startOfWeek(date) {
 function parseDate(str) {
   const [y, m, d] = str.split('-').map(Number);
   return new Date(y, m - 1, d);
+}
+function timeToMinutes(t) {
+  if (!t) return 0;
+  const [h, m] = t.split(':').map(Number);
+  return h * 60 + (m || 0);
+}
+function timeToY(t) { return (timeToMinutes(t) / 60) * ROW_H; }
+function timeDuration(s, e) {
+  if (!s || !e) return ROW_H;
+  const diff = (timeToMinutes(e) - timeToMinutes(s)) / 60;
+  return Math.max(diff * ROW_H, ROW_H * 0.4);
 }
 
 export default function Calendar() {
@@ -139,6 +151,22 @@ export default function Calendar() {
     else setCurDate(d => addDays(d, 7));
   }
 
+  // ── Calcul colonnes pour chevauchement ────────────────────────────────────
+  function computeColumns(evts) {
+    // Trier par heure de début
+    const sorted = [...evts].sort((a, b) => timeToMinutes(a.timeStart) - timeToMinutes(b.timeStart));
+    const cols = []; // cols[i] = minute de fin du dernier event dans colonne i
+
+    return sorted.map(e => {
+      const endMin = timeToMinutes(e.timeEnd || addOneHour(e.timeStart));
+      let col = 0;
+      while (cols[col] !== undefined && cols[col] > timeToMinutes(e.timeStart)) col++;
+      cols[col] = endMin;
+      return { ...e, col };
+    });
+  }
+
+  // ── Render mois ───────────────────────────────────────────────────────────
   function renderMonth() {
     const y = curDate.getFullYear(), m = curDate.getMonth();
     const total = daysInMonth(y, m), first = firstDayOfMonth(y, m);
@@ -173,126 +201,129 @@ export default function Calendar() {
     );
   }
 
+  // ── Render semaine avec vue horaire ───────────────────────────────────────
   function renderWeek() {
     const start = startOfWeek(curDate);
     const days  = Array.from({ length:7 }, (_, i) => addDays(start, i));
-    const HOURS = Array.from({ length:24 }, (_, i) => i); // 0h → 23h
-    const COL_W = 110; // px par colonne jour
-    const ROW_H = 50;  // px par heure
-
-    function timeToY(timeStr) {
-      if (!timeStr) return 0;
-      const [h, min] = timeStr.split(':').map(Number);
-      return (h + min/60) * ROW_H;
-    }
-    function timeDuration(start, end) {
-      if (!start || !end) return ROW_H;
-      const [sh, sm] = start.split(':').map(Number);
-      const [eh, em] = end.split(':').map(Number);
-      const diff = (eh + em/60) - (sh + sm/60);
-      return Math.max(diff * ROW_H, ROW_H * 0.5);
-    }
+    const HOURS = Array.from({ length:24 }, (_, i) => i);
+    const COL_W = 120;
 
     return (
-      <div style={{ overflowX:"auto", overflowY:"auto", maxHeight:"70vh", position:"relative" }}>
-        {/* Header jours */}
-        <div style={{ display:"grid", gridTemplateColumns:`44px repeat(7, ${COL_W}px)`, position:"sticky", top:0, zIndex:10, background:"var(--bg,#0f0e17)", borderBottom:"1px solid var(--s2)" }}>
-          <div />
+      <div style={{ overflowX:"auto", overflowY:"auto", maxHeight:"72vh", position:"relative", borderRadius:12, border:"1px solid var(--s2)" }}>
+        {/* Header jours — sticky */}
+        <div style={{ display:"grid", gridTemplateColumns:`44px repeat(7, ${COL_W}px)`, position:"sticky", top:0, zIndex:20, background:"var(--bg,#0f0e17)", borderBottom:"1px solid var(--s2)" }}>
+          <div style={{ borderRight:"1px solid var(--s2)" }} />
           {days.map((date, idx) => {
             const key = toKey(date), isToday = key === toKey(today);
             return (
-              <div key={key} style={{ textAlign:"center", padding:"8px 4px", borderLeft:"1px solid var(--s2)" }}>
-                <div style={{ fontSize:10, color:"var(--muted)", fontWeight:600, textTransform:"uppercase" }}>{JOURS[idx]}</div>
-                <div style={{ fontSize:15, fontWeight:800, color:isToday?"var(--purple)":"var(--text)",
-                  ...(isToday ? { background:"var(--purple)", color:"#fff", borderRadius:"50%", width:24, height:24, display:"inline-flex", alignItems:"center", justifyContent:"center", fontSize:12 } : {})
-                }}>{date.getDate()}</div>
+              <div key={key} style={{ textAlign:"center", padding:"8px 4px", borderRight:"1px solid var(--s2)" }}>
+                <div style={{ fontSize:10, color:"var(--muted)", fontWeight:600, textTransform:"uppercase", letterSpacing:".06em" }}>{JOURS[idx]}</div>
+                <div style={{ marginTop:2, display:"inline-flex", alignItems:"center", justifyContent:"center",
+                  width:24, height:24, borderRadius:"50%",
+                  background: isToday ? "var(--purple)" : "transparent",
+                  color: isToday ? "#fff" : "var(--text)",
+                  fontSize:13, fontWeight:800 }}>{date.getDate()}</div>
               </div>
             );
           })}
         </div>
 
-        {/* Grille horaire */}
-        <div style={{ display:"grid", gridTemplateColumns:`44px repeat(7, ${COL_W}px)`, position:"relative" }}>
+        {/* Corps horaire */}
+        <div style={{ display:"grid", gridTemplateColumns:`44px repeat(7, ${COL_W}px)` }}>
           {/* Colonne heures */}
-          <div>
+          <div style={{ borderRight:"1px solid var(--s2)" }}>
             {HOURS.map(h => (
-              <div key={h} style={{ height:ROW_H, display:"flex", alignItems:"flex-start", justifyContent:"flex-end", paddingRight:6, paddingTop:2 }}>
-                <span style={{ fontSize:10, color:"var(--muted)", fontWeight:500, whiteSpace:"nowrap" }}>{String(h).padStart(2,'0')}:00</span>
+              <div key={h} style={{ height:ROW_H, display:"flex", alignItems:"flex-start", justifyContent:"flex-end", paddingRight:6, paddingTop:3, borderTop: h===0?"none":"1px solid rgba(255,255,255,.05)" }}>
+                <span style={{ fontSize:9, color:"var(--muted)", fontWeight:500 }}>{h===0?"":String(h).padStart(2,'0')+"h"}</span>
               </div>
             ))}
           </div>
 
           {/* Colonnes jours */}
-          {days.map((date, idx) => {
-            const key = toKey(date), dayEvts = eventsOnDay(key), isToday = key === toKey(today);
-            const timedEvts   = dayEvts.filter(e => !e.allDay && e.timeStart);
-            const allDayEvts  = dayEvts.filter(e => e.allDay || !e.timeStart);
+          {days.map((date) => {
+            const key       = toKey(date);
+            const dayEvts   = eventsOnDay(key);
+            const timedEvts = dayEvts.filter(e => !e.allDay && e.timeStart);
+            const allDayEvts= dayEvts.filter(e => e.allDay || !e.timeStart);
+            const withCols  = computeColumns(timedEvts);
+            const totalCols = withCols.length > 0 ? Math.max(...withCols.map(e => e.col + 1)) : 1;
+
             return (
-              <div key={key} style={{ borderLeft:"1px solid var(--s2)", position:"relative", height: 24 * ROW_H }}>
-                {/* Lignes horaires */}
+              <div key={key} style={{ borderRight:"1px solid var(--s2)", position:"relative", height: 24 * ROW_H }}>
+                {/* Lignes horaires cliquables */}
                 {HOURS.map(h => (
-                  <div key={h} style={{ position:"absolute", top: h * ROW_H, left:0, right:0, height:ROW_H, borderTop:"1px solid rgba(255,255,255,.04)", cursor:"pointer" }}
+                  <div key={h} style={{
+                    position:"absolute", top: h * ROW_H, left:0, right:0, height:ROW_H,
+                    borderTop: h===0?"none":"1px solid rgba(255,255,255,.05)",
+                    cursor:"pointer", zIndex:1,
+                  }}
                     onClick={() => {
-                      const timeStr = String(h).padStart(2,'0') + ":00";
-                      const endStr  = String(h+1).padStart(2,'0') + ":00";
+                      const ts = String(h).padStart(2,'0') + ":00";
+                      const te = h < 23 ? String(h+1).padStart(2,'0') + ":00" : "23:59";
                       setSelDay(key);
-                      openNewEvent(key, { allDay:false, timeStart:timeStr, timeEnd: h<23?endStr:"23:59" });
+                      openNewEvent(key, { allDay:false, timeStart:ts, timeEnd:te });
                     }}
-                    onMouseEnter={e => e.currentTarget.style.background="rgba(155,109,255,.05)"}
+                    onMouseEnter={e => e.currentTarget.style.background="rgba(155,109,255,.06)"}
                     onMouseLeave={e => e.currentTarget.style.background=""}
                   />
                 ))}
 
-                {/* Events journée entière en haut */}
-                {allDayEvts.length > 0 && (
-                  <div style={{ position:"absolute", top:4, left:2, right:2, zIndex:2 }}>
-                    {allDayEvts.map(e => (
-                      <div key={e.id} onClick={() => openEditEvent(e)}
-                        style={{ background:CATEGORIES[e.cat]?.color+"33", borderLeft:`2px solid ${CATEGORIES[e.cat]?.color}`, borderRadius:4, padding:"2px 5px", fontSize:10, fontWeight:600, cursor:"pointer", marginBottom:2, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>
-                        {CATEGORIES[e.cat]?.icon} {e.title}
+                {/* Events journée entière */}
+                {allDayEvts.map(e => {
+                  const cat = CATEGORIES[e.cat] || CATEGORIES.loisirs;
+                  return (
+                    <div key={e.id} onClick={() => openEditEvent(e)}
+                      style={{ position:"absolute", top:2, left:2, right:2, zIndex:5,
+                        background:cat.color+"33", borderLeft:`2px solid ${cat.color}`,
+                        borderRadius:4, padding:"2px 5px", fontSize:10, fontWeight:600, cursor:"pointer",
+                        whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>
+                      {cat.icon} {e.title}
+                    </div>
+                  );
+                })}
+
+                {/* Events horaires — zIndex inversement proportionnel à l'heure */}
+                {withCols.map(e => {
+                  const cat    = CATEGORIES[e.cat] || CATEGORIES.loisirs;
+                  const top    = timeToY(e.timeStart);
+                  const height = timeDuration(e.timeStart, e.timeEnd);
+                  const colW   = 100 / totalCols;
+                  const left   = `calc(${e.col * colW}% + 1px)`;
+                  const width  = `calc(${colW}% - 2px)`;
+                  // zIndex basé sur heure : 09h → zIndex 1009, 20h → zIndex 980
+                  // Ainsi les events du matin sont visuellement au-dessus
+                  const zIdx   = 1000 - timeToMinutes(e.timeStart);
+                  const evtUsers = users.filter(u => e.userIds?.includes(u.id));
+                  return (
+                    <div key={e.id} onClick={() => openEditEvent(e)}
+                      style={{
+                        position:"absolute", top, left, width, height,
+                        zIndex: zIdx,
+                        background: cat.color + "30",
+                        borderLeft: `3px solid ${cat.color}`,
+                        borderRadius: 6,
+                        padding: "3px 5px",
+                        cursor: "pointer",
+                        overflow: "hidden",
+                        boxSizing: "border-box",
+                      }}
+                      onMouseEnter={el => { el.currentTarget.style.opacity=".75"; el.currentTarget.style.zIndex=2000; }}
+                      onMouseLeave={el => { el.currentTarget.style.opacity="1"; el.currentTarget.style.zIndex=zIdx; }}
+                    >
+                      <div style={{ fontSize:9, fontWeight:700, color:cat.color, lineHeight:1.3, whiteSpace:"nowrap" }}>
+                        {e.timeStart}{e.timeEnd ? ` → ${e.timeEnd}` : ""}
                       </div>
-                    ))}
-                  </div>
-                )}
-
-                {/* Events avec horaire positionnés */}
-                {(() => {
-                  // Calculer les colonnes pour éviter les chevauchements
-                  const sorted = [...timedEvts].sort((a,b) => (a.timeStart||'00:00').localeCompare(b.timeStart||'00:00'));
-                  const cols = []; // cols[i] = heure de fin du dernier event dans colonne i
-
-                  const withCol = sorted.map(e => {
-                    const eEnd = e.timeEnd || addOneHour(e.timeStart);
-                    let col = 0;
-                    while (cols[col] && cols[col] > e.timeStart) col++;
-                    cols[col] = eEnd;
-                    return { ...e, col };
-                  });
-                  const totalCols = Math.max(1, ...withCol.map(e => e.col + 1));
-
-                  // Rendre du plus tardif au plus tôt — les events du matin seront au-dessus visuellement
-                  return [...withCol].sort((a,b) => (b.timeStart||'').localeCompare(a.timeStart||'')).map(e => {
-                    const cat = CATEGORIES[e.cat] || CATEGORIES.loisirs;
-                    const top  = timeToY(e.timeStart);
-                    const h    = timeDuration(e.timeStart, e.timeEnd);
-                    const evtUsers = users.filter(u => e.userIds?.includes(u.id));
-                    const colW = 100 / totalCols;
-                    const left = `calc(${e.col * colW}% + 2px)`;
-                    const width = `calc(${colW}% - 4px)`;
-                    return (
-                      <div key={e.id} onClick={() => openEditEvent(e)}
-                        style={{ position:"absolute", top, left, width, height:h, zIndex:3,
-                          background:cat.color+"33", borderLeft:`3px solid ${cat.color}`, borderRadius:6,
-                          padding:"2px 5px", cursor:"pointer", overflow:"hidden", transition:"opacity .15s" }}
-                        onMouseEnter={el => el.currentTarget.style.opacity=".8"}
-                        onMouseLeave={el => el.currentTarget.style.opacity="1"}>
-                        <div style={{ fontSize:10, fontWeight:700, color:cat.color, lineHeight:1.2 }}>{e.timeStart}{e.timeEnd?` → ${e.timeEnd}`:""}</div>
-                        <div style={{ fontSize:11, fontWeight:600, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{cat.icon} {e.title}</div>
-                        {evtUsers.length > 0 && <div style={{ fontSize:9, marginTop:1 }}>{evtUsers.map(u=><span key={u.id} style={{ color:u.color, marginRight:2 }}>{u.shape}</span>)}</div>}
+                      <div style={{ fontSize:11, fontWeight:600, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis", color:"var(--text)" }}>
+                        {cat.icon} {e.title}
                       </div>
-                    );
-                  });
-                })()}
+                      {evtUsers.length > 0 && (
+                        <div style={{ fontSize:9, marginTop:1 }}>
+                          {evtUsers.map(u => <span key={u.id} style={{ color:u.color, marginRight:2 }}>{u.shape}</span>)}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             );
           })}
@@ -313,7 +344,7 @@ export default function Calendar() {
     const sorted = [...eventsOnDay(selectedDay)].sort((a, b) => {
       if (a.allDay && !b.allDay) return -1;
       if (!a.allDay && b.allDay) return 1;
-      return (a.timeStart||"").localeCompare(b.timeStart||"");
+      return timeToMinutes(a.timeStart) - timeToMinutes(b.timeStart);
     });
     return (
       <ModalWrap onClose={() => setModal(null)} wide>
@@ -469,7 +500,7 @@ export default function Calendar() {
   );
 
   return (
-    <div style={{ maxWidth:780, margin:"0 auto", padding:"16px 12px 80px", fontFamily:"Josefin Sans, sans-serif", color:"var(--text, #f0eeff)", minHeight:"100vh" }}>
+    <div style={{ maxWidth:900, margin:"0 auto", padding:"16px 12px 80px", fontFamily:"Josefin Sans, sans-serif", color:"var(--text, #f0eeff)", minHeight:"100vh" }}>
       <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:16, flexWrap:"wrap", gap:8 }}>
         <div style={{ fontFamily:"'Raleway',sans-serif", fontWeight:800, fontSize:22 }}>📅 Calendrier</div>
         <div style={{ display:"flex", gap:6 }}>
@@ -506,28 +537,23 @@ function addOneHour(timeStr) {
 }
 
 function parseTimeInput(raw) {
-  // Accepte : "9", "9h", "09", "9:30", "930", "9h30", "14h30"
   const s = raw.replace(/\s/g, '').toLowerCase();
   if (!s) return "";
-  // Format HH:MM déjà correct
   if (/^\d{1,2}:\d{2}$/.test(s)) {
     const [h, m] = s.split(':').map(Number);
     if (h < 24 && m < 60) return String(h).padStart(2,'0') + ":" + String(m).padStart(2,'0');
     return "";
   }
-  // "9h30" ou "9h"
   const hm = s.match(/^(\d{1,2})h(\d{0,2})$/);
   if (hm) {
     const h = parseInt(hm[1]), m = parseInt(hm[2]||"0");
     if (h < 24 && m < 60) return String(h).padStart(2,'0') + ":" + String(m).padStart(2,'0');
   }
-  // "930" → 9h30, "1430" → 14h30
   if (/^\d{3,4}$/.test(s)) {
     const str = s.padStart(4,'0');
     const h = parseInt(str.slice(0,-2)), m = parseInt(str.slice(-2));
     if (h < 24 && m < 60) return String(h).padStart(2,'0') + ":" + String(m).padStart(2,'0');
   }
-  // "9" ou "14" → heure ronde
   if (/^\d{1,2}$/.test(s)) {
     const h = parseInt(s);
     if (h < 24) return String(h).padStart(2,'0') + ":00";
@@ -538,7 +564,6 @@ function parseTimeInput(raw) {
 function TimeInput({ value, onChange, compact }) {
   const [raw, setRaw] = useState(value || "");
   const [focused, setFocused] = useState(false);
-
   useEffect(() => { if (!focused) setRaw(value || ""); }, [value, focused]);
 
   function handleBlur() {
@@ -548,24 +573,13 @@ function TimeInput({ value, onChange, compact }) {
     else { setRaw(value || ""); }
   }
 
-  const baseStyle = {
-    background:"var(--s2)", border:"1px solid var(--purple,#9B6DFF)", borderRadius:compact?7:9,
-    padding: compact ? "5px 8px" : "9px 12px",
-    color:"var(--text)", fontFamily:"Josefin Sans", fontSize:compact?12:12,
-    outline:"none", textAlign:"center", width: compact ? "auto" : "100%",
-    flex: compact ? 1 : undefined, boxSizing:"border-box",
-  };
-
   return (
-    <input
-      type="text"
-      value={focused ? raw : (value || "")}
-      placeholder="09:00"
-      style={baseStyle}
+    <input type="text" value={focused ? raw : (value || "")} placeholder="09:00"
+      style={{ background:"var(--s2)", border:"1px solid var(--purple,#9B6DFF)", borderRadius: compact?7:9, padding: compact?"5px 8px":"9px 12px", color:"var(--text)", fontFamily:"Josefin Sans", fontSize:12, outline:"none", textAlign:"center", width: compact?"auto":"100%", flex: compact?1:undefined, boxSizing:"border-box" }}
       onFocus={() => { setFocused(true); setRaw(value || ""); }}
       onChange={e => setRaw(e.target.value)}
       onBlur={handleBlur}
-      onKeyDown={e => { if (e.key === "Enter") { e.target.blur(); } }}
+      onKeyDown={e => { if (e.key === "Enter") e.target.blur(); }}
     />
   );
 }
@@ -596,8 +610,6 @@ function QuickAdd({ dateStr, users, onAdd, onOpenFull }) {
     onAdd({ title:title.trim(), cat, dateStart:dateStr, dateEnd:dateStr, allDay, timeStart:allDay?"":timeStart, timeEnd:allDay?"":timeEnd, userIds, note:"" });
     setTitle(""); setTimeStart(""); setTimeEnd(""); setAllDay(true);
   }
-
-  const timeInp = { flex:1, background:"var(--s2)", border:"1px solid var(--purple,#9B6DFF)", borderRadius:7, padding:"5px 8px", color:"var(--text)", fontFamily:"Josefin Sans", fontSize:12, outline:"none" };
 
   return (
     <div style={{ marginTop:12, borderTop:"1px solid var(--s2,#222)", paddingTop:14 }}>
