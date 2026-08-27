@@ -1,17 +1,33 @@
-// ─── THEMES PAGE ───────────────────────────────────────────────────────────
+// ─── THEMES / QUIZZES / QUIZPLAY ────────────────────────────────────────────
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
+import { collection, getDocs, query, where } from 'firebase/firestore';
+import { db } from '../firebase';
 import { CATEGORIES, DIFF_LABELS, DIFF_COLORS, XP_MAP, XP_TIMER_BONUS } from '../data/quizData';
 import { useAuth } from '../context/AuthContext';
 import { useQuiz } from '../hooks/useQuiz';
 
-// ── Themes ──────────────────────────────────────────────────────────────────
+// ── Themes ───────────────────────────────────────────────────────────────────
 export function Themes() {
   const { catId } = useParams();
   const navigate = useNavigate();
   const cat = CATEGORIES[catId];
   if (!cat) { navigate('/'); return null; }
+
   const themes = Object.values(cat.themes);
+  const [quizCounts, setQuizCounts] = useState({}); // themeId → nb quiz
+
+  useEffect(() => {
+    (async () => {
+      const snap = await getDocs(query(collection(db, 'quizzes'), where('catId', '==', catId)));
+      const counts = {};
+      snap.docs.forEach(d => {
+        const tid = d.data().themeId;
+        counts[tid] = (counts[tid] || 0) + 1;
+      });
+      setQuizCounts(counts);
+    })();
+  }, [catId]);
 
   return (
     <div className="page">
@@ -23,7 +39,6 @@ export function Themes() {
       <div className="page-title">{cat.icon} {cat.label}</div>
       <div className="page-sub">{themes.length} thèmes disponibles</div>
 
-      {/* Légende difficulté */}
       <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 16 }}>
         {Object.entries(DIFF_LABELS).map(([k, v]) => (
           <div key={k} style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, color: 'var(--muted)' }}>
@@ -33,50 +48,64 @@ export function Themes() {
         ))}
       </div>
 
-      {themes.map((theme) => {
-        const totalQ = theme.quizzes.reduce((s, q) => s + q.questions.length, 0);
-        const diffs = [...new Set(theme.quizzes.map((q) => q.diff))];
-        return (
-          <div
-            key={theme.id}
-            onClick={() => navigate(`/category/${catId}/theme/${theme.id}`)}
-            style={{
-              background: 'var(--s1)', border: '1px solid var(--s2)', borderRadius: 16,
-              padding: '14px 15px', marginBottom: 8, cursor: 'pointer', transition: 'all .2s',
-              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-            }}
-            onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--purple)'; e.currentTarget.style.background = 'rgba(155,109,255,.07)'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--s2)'; e.currentTarget.style.background = 'var(--s1)'; }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <div style={{ width: 42, height: 42, background: 'var(--s2)', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, flexShrink: 0 }}>
-                {theme.icon}
-              </div>
-              <div>
-                <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 3 }}>{theme.label}</div>
-                <div style={{ fontSize: 11, color: 'var(--muted)', display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-                  {theme.quizzes.length} quiz · {totalQ} questions
-                  {diffs.map((d) => (
-                    <span key={d} className={`diff-badge diff-${d}`}>{DIFF_LABELS[d]}</span>
-                  ))}
-                </div>
+      {themes.map(theme => (
+        <div
+          key={theme.id}
+          onClick={() => navigate(`/category/${catId}/theme/${theme.id}`)}
+          style={{
+            background: 'var(--s1)', border: '1px solid var(--s2)', borderRadius: 16,
+            padding: '14px 15px', marginBottom: 8, cursor: 'pointer', transition: 'all .2s',
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          }}
+          onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--purple)'; e.currentTarget.style.background = 'rgba(155,109,255,.07)'; }}
+          onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--s2)'; e.currentTarget.style.background = 'var(--s1)'; }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{ width: 42, height: 42, background: 'var(--s2)', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, flexShrink: 0 }}>
+              {theme.icon}
+            </div>
+            <div>
+              <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 3 }}>{theme.label}</div>
+              <div style={{ fontSize: 11, color: 'var(--muted)' }}>
+                {quizCounts[theme.id] ?? '…'} quiz disponibles
               </div>
             </div>
-            <span style={{ color: 'var(--muted)', fontSize: 18 }}>›</span>
           </div>
-        );
-      })}
+          <span style={{ color: 'var(--muted)', fontSize: 18 }}>›</span>
+        </div>
+      ))}
     </div>
   );
 }
 
-// ── Quizzes ──────────────────────────────────────────────────────────────────
+// ── Quizzes ───────────────────────────────────────────────────────────────────
 export function Quizzes() {
   const { catId, themeId } = useParams();
   const navigate = useNavigate();
   const cat = CATEGORIES[catId];
   const theme = cat?.themes[themeId];
   if (!cat || !theme) { navigate('/'); return null; }
+
+  const [quizzes, setQuizzes]   = useState([]);
+  const [loading, setLoading]   = useState(true);
+
+  const DIFF_ORDER = { easy: 0, medium: 1, hard: 2 };
+
+  useEffect(() => {
+    (async () => {
+      const snap = await getDocs(
+        query(collection(db, 'quizzes'),
+          where('catId',    '==', catId),
+          where('themeId',  '==', themeId)
+        )
+      );
+      const list = snap.docs
+        .map(d => ({ id: d.id, ...d.data() }))
+        .sort((a, b) => (DIFF_ORDER[a.diff] ?? 3) - (DIFF_ORDER[b.diff] ?? 3));
+      setQuizzes(list);
+      setLoading(false);
+    })();
+  }, [catId, themeId]);
 
   return (
     <div className="page">
@@ -88,11 +117,19 @@ export function Quizzes() {
         <span className="current">{theme.label}</span>
       </div>
       <div className="page-title">{theme.icon} {theme.label}</div>
-      <div className="page-sub">{theme.quizzes.length} quiz disponibles</div>
+      <div className="page-sub">{loading ? '…' : `${quizzes.length} quiz disponibles`}</div>
 
-      {theme.quizzes.map((quiz) => {
-        const xpBase = XP_MAP[quiz.diff];
-        const xpMax = xpBase + XP_TIMER_BONUS[quiz.diff];
+      {loading && <div style={{ textAlign: 'center', color: 'var(--muted)', padding: 40 }}>Chargement…</div>}
+
+      {!loading && quizzes.length === 0 && (
+        <div style={{ textAlign: 'center', padding: 32, color: 'var(--muted)', fontSize: 14 }}>
+          Aucun quiz disponible pour ce thème pour le moment.
+        </div>
+      )}
+
+      {quizzes.map(quiz => {
+        const xpBase = XP_MAP[quiz.diff] || 10;
+        const xpMax  = xpBase + (XP_TIMER_BONUS[quiz.diff] || 20);
         return (
           <div
             key={quiz.id}
@@ -101,15 +138,14 @@ export function Quizzes() {
               background: 'var(--s1)', border: '1px solid var(--s2)', borderRadius: 16,
               padding: '14px 15px', marginBottom: 8, cursor: 'pointer', transition: 'all .2s',
             }}
-            onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--purple)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--s2)'; e.currentTarget.style.transform = 'translateY(0)'; }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--purple)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--s2)'; e.currentTarget.style.transform = 'translateY(0)'; }}
           >
             <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 8 }}>
-              <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: 15 }}>{quiz.name}</div>
+              <div style={{ fontFamily: "'Raleway', sans-serif", fontWeight: 700, fontSize: 15 }}>{quiz.name}</div>
               <span className={`diff-badge diff-${quiz.diff}`}>{DIFF_LABELS[quiz.diff]}</span>
             </div>
             <div style={{ display: 'flex', gap: 14, fontSize: 11, color: 'var(--muted)' }}>
-              <span>📋 {quiz.questions.length} questions</span>
               <span style={{ fontWeight: 600, color: 'var(--yellow)' }}>⚡ {xpBase}–{xpMax} XP/question</span>
             </div>
           </div>
@@ -122,16 +158,78 @@ export function Quizzes() {
 // ── QuizPlay ──────────────────────────────────────────────────────────────────
 export function QuizPlay() {
   const { catId, themeId, quizId } = useParams();
-  const navigate = useNavigate();
-  const cat = CATEGORIES[catId];
+  const navigate  = useNavigate();
+  const cat   = CATEGORIES[catId];
   const theme = cat?.themes[themeId];
-  const quizData = theme?.quizzes.find((q) => q.id === quizId);
 
-  if (!quizData) { navigate('/'); return null; }
+  const [quizMeta,   setQuizMeta]   = useState(null);
+  const [questions,  setQuestions]  = useState([]);
+  const [loading,    setLoading]    = useState(true);
+  const [notFound,   setNotFound]   = useState(false);
 
+  useEffect(() => {
+    (async () => {
+      try {
+        // Charger le quiz + ses questions depuis Firestore
+        const [quizSnap, qSnap] = await Promise.all([
+          getDocs(query(collection(db, 'quizzes'), where('__name__', '==', quizId))),
+          getDocs(query(collection(db, 'questions'), where('quizId', '==', quizId))),
+        ]);
+
+        if (quizSnap.empty) { setNotFound(true); setLoading(false); return; }
+
+        const meta = { id: quizSnap.docs[0].id, ...quizSnap.docs[0].data() };
+        const qs   = qSnap.docs.map(d => ({
+          id: d.id,
+          t:  d.data().text,
+          o:  d.data().options,
+          a:  d.data().answer,
+          e:  d.data().explanation || '',
+        }));
+
+        if (qs.length === 0) { setNotFound(true); setLoading(false); return; }
+
+        setQuizMeta(meta);
+        setQuestions(qs);
+        setLoading(false);
+      } catch (err) {
+        console.error(err);
+        setNotFound(true);
+        setLoading(false);
+      }
+    })();
+  }, [quizId]);
+
+  if (loading) return (
+    <div className="page" style={{ textAlign: 'center', paddingTop: 60 }}>
+      <div style={{ fontSize: 36, marginBottom: 12 }}>⏳</div>
+      <div style={{ color: 'var(--muted)' }}>Chargement du quiz…</div>
+    </div>
+  );
+
+  if (notFound) return (
+    <div className="page" style={{ textAlign: 'center', paddingTop: 60 }}>
+      <div style={{ fontSize: 36, marginBottom: 12 }}>😕</div>
+      <div style={{ fontWeight: 700, marginBottom: 8 }}>Quiz introuvable</div>
+      <div style={{ color: 'var(--muted)', marginBottom: 20, fontSize: 13 }}>Ce quiz n'a pas encore de questions.</div>
+      <button className="btn btn-primary" onClick={() => navigate(-1)}>← Retour</button>
+    </div>
+  );
+
+  // Construire l'objet quizData attendu par useQuiz
+  const quizData = {
+    id:        quizMeta.id,
+    name:      quizMeta.name,
+    diff:      quizMeta.diff,
+    questions,
+  };
+
+  return <QuizPlayInner quizData={quizData} cat={cat} theme={theme} catId={catId} themeId={themeId} navigate={navigate} />;
+}
+
+// ── QuizPlayInner — logique de jeu ────────────────────────────────────────────
+function QuizPlayInner({ quizData, cat, theme, catId, themeId, navigate }) {
   const quiz = useQuiz(quizData);
-
-  // Toast XP local
   const [xpToast, setXpToast] = useState({ show: false, msg: '' });
   const toastTimer = useRef(null);
 
@@ -143,35 +241,26 @@ export function QuizPlay() {
 
   function handleAnswer(i) {
     const result = quiz.answer(i);
-    if (result?.correct) {
-      showXPToast(`+${result.xpGained} XP ⚡`);
-    }
+    if (result?.correct) showXPToast(`+${result.xpGained} XP ⚡`);
   }
 
-  // Résultats
   if (quiz.status === 'finished') {
     return <ResultScreen quiz={quiz} quizData={quizData} catId={catId} themeId={themeId} navigate={navigate} />;
   }
 
-  const q = quiz.currentQuestion;
-  const pct = (quiz.qIndex / quiz.totalQuestions) * 100;
+  const q        = quiz.currentQuestion;
+  const pct      = (quiz.qIndex / quiz.totalQuestions) * 100;
   const timerPct = quiz.timeLeft / quiz.TIMER_DURATION;
   const timerColor = timerPct > 0.5 ? 'var(--cyan)' : timerPct > 0.25 ? 'var(--yellow)' : 'var(--pink)';
 
   return (
     <div className="page">
-      {/* XP Toast */}
       <div className={`toast ${xpToast.show ? 'show' : ''}`}>{xpToast.msg}</div>
 
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12, paddingTop: 4 }}>
-        <button
-          className="btn btn-secondary"
-          style={{ padding: '6px 11px', fontSize: 12 }}
-          onClick={() => navigate(`/category/${catId}/theme/${themeId}`)}
-        >
-          ← Retour
-        </button>
+        <button className="btn btn-secondary" style={{ padding: '6px 11px', fontSize: 12 }}
+          onClick={() => navigate(`/category/${catId}/theme/${themeId}`)}>← Retour</button>
         <div style={{ fontSize: 13, color: 'var(--muted)', fontWeight: 500 }}>
           {quiz.qIndex + 1} / {quiz.totalQuestions}
         </div>
@@ -179,17 +268,12 @@ export function QuizPlay() {
           <div className="timer-circle">
             <svg viewBox="0 0 36 36" width="36" height="36">
               <circle className="tc-bg" cx="18" cy="18" r="15.9" />
-              <circle
-                className="tc-fg"
-                cx="18" cy="18" r="15.9"
-                style={{ strokeDashoffset: 100 - timerPct * 100, stroke: timerColor }}
-              />
+              <circle className="tc-fg" cx="18" cy="18" r="15.9"
+                style={{ strokeDashoffset: 100 - timerPct * 100, stroke: timerColor }} />
             </svg>
             <div className="timer-num" style={{ color: timerColor }}>{quiz.timeLeft}</div>
           </div>
-        ) : (
-          <div style={{ width: 36 }} />
-        )}
+        ) : <div style={{ width: 36 }} />}
       </div>
 
       {/* Timer toggle */}
@@ -220,10 +304,12 @@ export function QuizPlay() {
 
       {/* Question */}
       <div style={{ background: 'var(--s1)', border: '1px solid var(--s2)', borderRadius: 16, padding: '18px 16px', marginBottom: 12 }}>
-        <div style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.1em', color: 'var(--purple)', marginBottom: 8 }}>
-          {cat.label} › {theme.label}
-        </div>
-        <div style={{ fontFamily: "'Syne', sans-serif", fontSize: 'clamp(14px, 3.8vw, 18px)', fontWeight: 700, lineHeight: 1.4 }}>
+        {cat && theme && (
+          <div style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.1em', color: 'var(--purple)', marginBottom: 8 }}>
+            {cat.label} › {theme.label}
+          </div>
+        )}
+        <div style={{ fontFamily: "'Raleway', sans-serif", fontSize: 'clamp(14px, 3.8vw, 18px)', fontWeight: 700, lineHeight: 1.4 }}>
           {q?.t}
         </div>
       </div>
@@ -231,30 +317,19 @@ export function QuizPlay() {
       {/* Options */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 7, marginBottom: 12 }}>
         {q?.o.map((opt, i) => {
-          let borderColor = 'var(--s2)';
-          let bg = 'var(--s1)';
-          let letterBg = 'var(--s2)';
-          let letterColor = 'var(--muted)';
-
+          let borderColor = 'var(--s2)', bg = 'var(--s1)', letterBg = 'var(--s2)', letterColor = 'var(--muted)';
           if (quiz.answered) {
-            if (i === q.a) { borderColor = 'var(--cyan)'; bg = 'rgba(61,255,208,.07)'; letterBg = 'var(--cyan)'; letterColor = '#0f0e17'; }
+            if (i === q.a)                   { borderColor = 'var(--cyan)';  bg = 'rgba(61,255,208,.07)'; letterBg = 'var(--cyan)';  letterColor = '#0f0e17'; }
             else if (i === quiz.selectedOption) { borderColor = 'var(--pink)'; bg = 'rgba(255,95,160,.07)'; letterBg = 'var(--pink)'; letterColor = '#fff'; }
           }
-
           return (
-            <div
-              key={i}
-              onClick={() => !quiz.answered && handleAnswer(i)}
-              style={{
-                background: bg, border: `2px solid ${borderColor}`, borderRadius: 10,
-                padding: '12px 13px', cursor: quiz.answered ? 'default' : 'pointer',
-                transition: 'all .2s', display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, fontWeight: 500,
-              }}
-              onMouseEnter={(e) => { if (!quiz.answered) { e.currentTarget.style.borderColor = 'var(--purple)'; e.currentTarget.style.background = 'rgba(155,109,255,.08)'; } }}
-              onMouseLeave={(e) => { if (!quiz.answered) { e.currentTarget.style.borderColor = 'var(--s2)'; e.currentTarget.style.background = 'var(--s1)'; } }}
+            <div key={i} onClick={() => !quiz.answered && handleAnswer(i)}
+              style={{ background: bg, border: `2px solid ${borderColor}`, borderRadius: 10, padding: '12px 13px', cursor: quiz.answered ? 'default' : 'pointer', transition: 'all .2s', display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, fontWeight: 500 }}
+              onMouseEnter={e => { if (!quiz.answered) { e.currentTarget.style.borderColor = 'var(--purple)'; e.currentTarget.style.background = 'rgba(155,109,255,.08)'; } }}
+              onMouseLeave={e => { if (!quiz.answered) { e.currentTarget.style.borderColor = 'var(--s2)'; e.currentTarget.style.background = 'var(--s1)'; } }}
             >
               <div style={{ width: 25, height: 25, borderRadius: 7, background: letterBg, color: letterColor, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, flexShrink: 0 }}>
-                {['A', 'B', 'C', 'D'][i]}
+                {['A','B','C','D'][i]}
               </div>
               {opt}
             </div>
@@ -272,13 +347,10 @@ export function QuizPlay() {
         </div>
       )}
 
-      {/* Bouton suivant */}
+      {/* Suivant */}
       {quiz.answered && (
-        <button
-          className="btn btn-primary btn-full"
-          onClick={quiz.next}
-          style={{ animation: 'fadeIn .3s ease', fontFamily: "'Syne', sans-serif", fontWeight: 700 }}
-        >
+        <button className="btn btn-primary btn-full" onClick={quiz.next}
+          style={{ animation: 'fadeIn .3s ease', fontFamily: "'Raleway', sans-serif", fontWeight: 700 }}>
           {quiz.qIndex + 1 >= quiz.totalQuestions ? 'Voir mes résultats 🏆' : 'Question suivante →'}
         </button>
       )}
@@ -288,13 +360,13 @@ export function QuizPlay() {
 
 // ── ResultScreen ──────────────────────────────────────────────────────────────
 function ResultScreen({ quiz, quizData, catId, themeId, navigate }) {
-  const pct = quiz.score / quiz.totalQuestions;
+  const pct   = quiz.score / quiz.totalQuestions;
   const emoji = pct === 1 ? '🏆' : pct >= 0.8 ? '⭐' : pct >= 0.6 ? '👍' : pct >= 0.4 ? '🤔' : '💪';
   const title = pct === 1 ? 'Parfait !' : pct >= 0.8 ? 'Excellent !' : pct >= 0.6 ? 'Bien joué !' : pct >= 0.4 ? 'Pas mal !' : 'Continue !';
   const [xpBarWidth, setXpBarWidth] = React.useState(0);
   const { profile } = useAuth();
   const xpInLevel = profile?.xpInLevel || 0;
-  const level = profile?.level || 1;
+  const level     = profile?.level || 1;
 
   React.useEffect(() => {
     setTimeout(() => setXpBarWidth((xpInLevel / 200) * 100), 400);
@@ -304,29 +376,27 @@ function ResultScreen({ quiz, quizData, catId, themeId, navigate }) {
     <div className="page">
       <div style={{ textAlign: 'center', padding: '20px 0' }}>
         <div style={{ fontSize: 50, marginBottom: 10, animation: 'popIn .5s cubic-bezier(.175,.885,.32,1.275)' }}>{emoji}</div>
-        <div style={{ fontFamily: "'Syne', sans-serif", fontSize: 26, fontWeight: 800, marginBottom: 4 }}>{title}</div>
+        <div style={{ fontFamily: "'Raleway', sans-serif", fontSize: 26, fontWeight: 800, marginBottom: 4 }}>{title}</div>
         <div style={{ color: 'var(--muted)', fontSize: 13 }}>{pct >= 0.6 ? 'Tu maîtrises le sujet !' : "Reviens t'entraîner !"}</div>
       </div>
 
-      {/* Score grid */}
       <div style={{ background: 'var(--s1)', border: '1px solid var(--s2)', borderRadius: 16, padding: 16, margin: '14px 0', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6, textAlign: 'center' }}>
         <div>
-          <div style={{ fontFamily: "'Syne', sans-serif", fontSize: 22, fontWeight: 800, color: 'var(--yellow)' }}>{quiz.score}/{quiz.totalQuestions}</div>
+          <div style={{ fontFamily: "'Raleway', sans-serif", fontSize: 22, fontWeight: 800, color: 'var(--yellow)' }}>{quiz.score}/{quiz.totalQuestions}</div>
           <div style={{ fontSize: 10, color: 'var(--muted)', marginTop: 2 }}>Score</div>
         </div>
         <div>
-          <div style={{ fontFamily: "'Syne', sans-serif", fontSize: 22, fontWeight: 800, color: 'var(--cyan)' }}>+{quiz.totalXP}</div>
+          <div style={{ fontFamily: "'Raleway', sans-serif", fontSize: 22, fontWeight: 800, color: 'var(--cyan)' }}>+{quiz.totalXP}</div>
           <div style={{ fontSize: 10, color: 'var(--muted)', marginTop: 2 }}>XP gagnés</div>
         </div>
         <div>
-          <div style={{ fontFamily: "'Syne', sans-serif", fontSize: 22, fontWeight: 800, color: 'var(--purple)' }}>
+          <div style={{ fontFamily: "'Raleway', sans-serif", fontSize: 22, fontWeight: 800, color: 'var(--purple)' }}>
             {quiz.avgTime !== null ? `${quiz.avgTime}s` : '—'}
           </div>
           <div style={{ fontSize: 10, color: 'var(--muted)', marginTop: 2 }}>Temps moy.</div>
         </div>
       </div>
 
-      {/* XP bar */}
       <div className="xp-bar-wrap">
         <div className="xp-bar-labels">
           <span>Niveau {level}</span>
@@ -337,25 +407,21 @@ function ResultScreen({ quiz, quizData, catId, themeId, navigate }) {
         </div>
       </div>
 
-      {/* Boutons */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 8 }}>
-        <button className="btn btn-primary btn-full" style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700 }}
+        <button className="btn btn-primary btn-full" style={{ fontFamily: "'Raleway', sans-serif", fontWeight: 700 }}
           onClick={() => navigate(`/quiz/${catId}/${themeId}/${quizData.id}`)}>
           Rejouer ce quiz
         </button>
-        <button className="btn btn-secondary btn-full" style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700 }}
+        <button className="btn btn-secondary btn-full" style={{ fontFamily: "'Raleway', sans-serif", fontWeight: 700 }}
           onClick={() => navigate(`/category/${catId}/theme/${themeId}`)}>
           Autres quiz du thème
         </button>
-        <button className="btn btn-secondary btn-full" style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700 }}
+        <button className="btn btn-secondary btn-full" style={{ fontFamily: "'Raleway', sans-serif", fontWeight: 700 }}
           onClick={() => navigate('/')}>
           Accueil
         </button>
       </div>
-
-      <style>{`
-        @keyframes popIn { from { transform: scale(0); } to { transform: scale(1); } }
-      `}</style>
+      <style>{`@keyframes popIn { from { transform: scale(0); } to { transform: scale(1); } }`}</style>
     </div>
   );
 }
