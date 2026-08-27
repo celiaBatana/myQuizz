@@ -94,12 +94,12 @@ export default function Calendar() {
 
   // ── Events ─────────────────────────────────────────────────────────────────
   function openNewEvent(dateStr) {
-    setForm({ title:"", cat:"vacances", userIds: data.users.length === 1 ? [data.users[0].id] : [], dateStart: dateStr || toKey(today), dateEnd: dateStr || toKey(today), note:"" });
+    setForm({ title:"", cat:"vacances", userIds: data.users.length === 1 ? [data.users[0].id] : [], dateStart: dateStr || toKey(today), dateEnd: dateStr || toKey(today), timeStart:"", timeEnd:"", allDay:true, note:"" });
     setEditId(null);
     setModal("event");
   }
   function openEditEvent(e) {
-    setForm({ title: e.title, cat: e.cat, userIds: [...e.userIds], dateStart: e.dateStart, dateEnd: e.dateEnd || e.dateStart, note: e.note || "" });
+    setForm({ title: e.title, cat: e.cat, userIds: [...e.userIds], dateStart: e.dateStart, dateEnd: e.dateEnd || e.dateStart, timeStart: e.timeStart || "", timeEnd: e.timeEnd || "", allDay: e.allDay !== false, note: e.note || "" });
     setEditId(e.id);
     setModal("event");
   }
@@ -240,6 +240,11 @@ export default function Calendar() {
             <div style={{ fontSize:11, color:"var(--muted)", display:"flex", gap:8, flexWrap:"wrap" }}>
               <span>{CATEGORIES[e.cat].label}</span>
               {e.dateStart !== e.dateEnd && <span>{e.dateStart} → {e.dateEnd}</span>}
+              {!e.allDay && e.timeStart && (
+                <span style={{ fontWeight:700, color:"var(--cyan,#3DFFD0)" }}>
+                  ⏰ {e.timeStart}{e.timeEnd ? ` → ${e.timeEnd}` : ""}
+                </span>
+              )}
               <span>{e.userIds.map(uid => data.users.find(u=>u.id===uid)?.name).filter(Boolean).join(", ")}</span>
             </div>
             {e.note && <div style={{ fontSize:11, color:"var(--muted)", marginTop:4, fontStyle:"italic" }}>{e.note}</div>}
@@ -304,6 +309,32 @@ export default function Calendar() {
             })}
           </div>
         </>}
+
+        {/* Journée entière toggle */}
+        <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:12, padding:"9px 12px", background:"var(--s2,#1a1a2e)", borderRadius:9 }}>
+          <div style={{ flex:1 }}>
+            <div style={{ fontSize:12, fontWeight:600 }}>Journée entière</div>
+            <div style={{ fontSize:10, color:"var(--muted,#888)" }}>Désactive pour ajouter des horaires</div>
+          </div>
+          <label className="toggle">
+            <input type="checkbox" checked={form.allDay} onChange={e => setForm(f=>({...f, allDay:e.target.checked, timeStart:"", timeEnd:""}))} />
+            <span className="toggle-slider" />
+          </label>
+        </div>
+
+        {/* Horaires */}
+        {!form.allDay && (
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:8, marginBottom:12 }}>
+            <div>
+              <label style={lbl}>Heure de début</label>
+              <input type="time" style={inp} value={form.timeStart} onChange={e => setForm(f=>({...f, timeStart:e.target.value}))} />
+            </div>
+            <div>
+              <label style={lbl}>Heure de fin</label>
+              <input type="time" style={inp} value={form.timeEnd} onChange={e => setForm(f=>({...f, timeEnd:e.target.value}))} min={form.timeStart} />
+            </div>
+          </div>
+        )}
 
         {/* Note */}
         <label style={lbl}>Note (optionnel)</label>
@@ -459,6 +490,7 @@ function EventPill({ event, users, compact, onClick }) {
     }}>
       <span>{cat.icon}</span>
       <span style={{ flex:1, overflow:"hidden", textOverflow:"ellipsis" }}>{event.title}</span>
+      {!event.allDay && event.timeStart && <span style={{ fontSize:9, opacity:.7, flexShrink:0 }}>{event.timeStart}</span>}
       {evtUsers.map(u => <span key={u.id} style={{ color:u.color, fontSize:8, flexShrink:0 }}>{u.shape}</span>)}
     </div>
   );
