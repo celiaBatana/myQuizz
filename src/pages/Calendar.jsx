@@ -258,7 +258,7 @@ export default function Calendar() {
                 {/* Events avec horaire positionnés */}
                 {(() => {
                   // Calculer les colonnes pour éviter les chevauchements
-                  const sorted = [...timedEvts].sort((a,b) => (a.timeStart||"").localeCompare(b.timeStart||""));
+                  const sorted = [...timedEvts].sort((a,b) => (a.timeStart||'00:00').localeCompare(b.timeStart||'00:00'));
                   const cols = []; // cols[i] = heure de fin du dernier event dans colonne i
 
                   const withCol = sorted.map(e => {
@@ -270,7 +270,8 @@ export default function Calendar() {
                   });
                   const totalCols = Math.max(1, ...withCol.map(e => e.col + 1));
 
-                  return withCol.map(e => {
+                  // Rendre du plus tardif au plus tôt — les events du matin seront au-dessus visuellement
+                  return [...withCol].sort((a,b) => (b.timeStart||'').localeCompare(a.timeStart||'')).map(e => {
                     const cat = CATEGORIES[e.cat] || CATEGORIES.loisirs;
                     const top  = timeToY(e.timeStart);
                     const h    = timeDuration(e.timeStart, e.timeEnd);
@@ -280,7 +281,7 @@ export default function Calendar() {
                     const width = `calc(${colW}% - 4px)`;
                     return (
                       <div key={e.id} onClick={() => openEditEvent(e)}
-                        style={{ position:"absolute", top, left, width, height:h, zIndex:3+e.col,
+                        style={{ position:"absolute", top, left, width, height:h, zIndex:3,
                           background:cat.color+"33", borderLeft:`3px solid ${cat.color}`, borderRadius:6,
                           padding:"2px 5px", cursor:"pointer", overflow:"hidden", transition:"opacity .15s" }}
                         onMouseEnter={el => el.currentTarget.style.opacity=".8"}
