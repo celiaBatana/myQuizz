@@ -3,12 +3,15 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import Layout from './components/Layout';
 import Home from './pages/Home';
+import Calendar from './pages/Calendar';
 import Themes from './pages/Themes';
 import Quizzes from './pages/Quizzes';
 import QuizPlay from './pages/QuizPlay';
 import Profile from './pages/Profile';
 import Admin from './pages/Admin';
 import './styles/globals.css';
+
+
 
 export default function App() {
   return (
@@ -22,6 +25,7 @@ export default function App() {
             <Route path="/quiz/:catId/:themeId/:quizId" element={<QuizPlay />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/admin" element={<Admin />} />
+            <Route path="/calendar" element={<Calendar />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Route>
         </Routes>
