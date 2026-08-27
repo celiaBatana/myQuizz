@@ -28,7 +28,13 @@ function save(data) {
 }
 
 // ── Helpers date ──────────────────────────────────────────────────────────────
-function toKey(date) { return date.toISOString().slice(0, 10); }
+function toKey(date) {
+  // Utiliser les méthodes locales pour éviter le décalage UTC
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
 function daysInMonth(y, m) { return new Date(y, m + 1, 0).getDate(); }
 function firstDayOfMonth(y, m) {
   let d = new Date(y, m, 1).getDay();
@@ -43,7 +49,11 @@ function startOfWeek(date) {
   d.setDate(d.getDate() - day);
   return d;
 }
-function parseDate(str) { return new Date(str + "T00:00:00"); }
+function parseDate(str) {
+  // Parser sans décalage UTC en forçant minuit heure locale
+  const [y, m, d] = str.split('-').map(Number);
+  return new Date(y, m - 1, d);
+}
 
 // ── Main Component ────────────────────────────────────────────────────────────
 export default function Calendar() {
