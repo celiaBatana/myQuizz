@@ -186,27 +186,65 @@ export default function Calendar() {
   // ── Render mois ───────────────────────────────────────────────────────────
   function renderMonth() {
     const y = curDate.getFullYear(), m = curDate.getMonth();
-    const total = daysInMonth(y, m), first = firstDayOfMonth(y, m);
+    const total = daysInMonth(y, m);
+    const first = firstDayOfMonth(y, m);
+
+    // Jours du mois précédent pour remplir le début
+    const prevTotal = daysInMonth(y, m === 0 ? 11 : m - 1);
+    const prevY = m === 0 ? y - 1 : y;
+    const prevM = m === 0 ? 11 : m - 1;
+
+    // Jours du mois suivant pour remplir la fin
+    const nextY = m === 11 ? y + 1 : y;
+    const nextM = m === 11 ? 0 : m + 1;
+
     const cells = [];
-    for (let i = 0; i < first; i++) cells.push(null);
-    for (let d = 1; d <= total; d++) cells.push(new Date(y, m, d));
+    // Remplir avec les derniers jours du mois précédent
+    for (let i = first - 1; i >= 0; i--) {
+      cells.push({ date: new Date(prevY, prevM, prevTotal - i), overflow: true });
+    }
+    // Jours du mois courant
+    for (let d = 1; d <= total; d++) {
+      cells.push({ date: new Date(y, m, d), overflow: false });
+    }
+    // Remplir avec les premiers jours du mois suivant
+    const remaining = 42 - cells.length; // 6 semaines × 7 jours
+    for (let d = 1; d <= remaining; d++) {
+      cells.push({ date: new Date(nextY, nextM, d), overflow: true });
+    }
+
     return (
       <div>
-        <div style={{ display:"grid", gridTemplateColumns:"repeat(7,1fr)", marginBottom:2 }}>
-          {JOURS.map(j => <div key={j} style={{ textAlign:"center", fontSize:10, fontWeight:700, color:"var(--muted)", padding:"6px 0", textTransform:"uppercase", letterSpacing:".06em" }}>{j}</div>)}
+        <div style={{ display:"grid", gridTemplateColumns:"repeat(7,1fr)", marginBottom:4 }}>
+          {JOURS.map(j => (
+            <div key={j} style={{ textAlign:"center", fontSize:10, fontWeight:700, color:"var(--muted)", padding:"6px 0", textTransform:"uppercase", letterSpacing:".06em" }}>{j}</div>
+          ))}
         </div>
         <div style={{ display:"grid", gridTemplateColumns:"repeat(7,1fr)", gap:2 }}>
-          {cells.map((date, i) => {
-            if (!date) return <div key={i} />;
-            const key = toKey(date), dayEvts = eventsOnDay(key);
-            const isToday = key === toKey(today), isSel = key === selectedDay;
+          {cells.map(({ date, overflow }, i) => {
+            const key = toKey(date);
+            const dayEvts = overflow ? [] : eventsOnDay(key);
+            const isToday = key === toKey(today);
+            const isSel   = key === selectedDay;
             return (
-              <div key={key} onClick={() => { setSelDay(key); setModal("day"); }}
-                style={{ minHeight:70, borderRadius:10, padding:"5px 5px 3px", background: isSel?"rgba(155,109,255,.18)":"var(--s1)", border:`1px solid ${isToday||isSel?"var(--purple)":"var(--s2)"}`, cursor:"pointer", transition:"all .15s" }}
-                onMouseEnter={e => e.currentTarget.style.borderColor="var(--purple)"}
-                onMouseLeave={e => !isToday && !isSel && (e.currentTarget.style.borderColor="var(--s2)")}>
-                <div style={{ fontSize:11, fontWeight:isToday?800:500, color:isToday?"var(--purple)":"var(--text)", marginBottom:3, textAlign:"right" }}>
-                  {isToday ? <span style={{ background:"var(--purple)", color:"#fff", borderRadius:"50%", width:18, height:18, display:"inline-flex", alignItems:"center", justifyContent:"center", fontSize:10 }}>{date.getDate()}</span> : date.getDate()}
+              <div key={i}
+                onClick={() => { if (!overflow) { setSelDay(key); setModal("day"); } }}
+                style={{
+                  minHeight:70, borderRadius:10, padding:"5px 5px 3px",
+                  background: overflow ? "transparent" : isSel ? "rgba(155,109,255,.18)" : "var(--s1)",
+                  border: `1px solid ${overflow ? "rgba(255,255,255,.04)" : isToday || isSel ? "var(--purple)" : "var(--s2)"}`,
+                  cursor: overflow ? "default" : "pointer",
+                  transition:"all .15s",
+                  opacity: overflow ? 0.4 : 1,
+                }}
+                onMouseEnter={e => { if (!overflow) e.currentTarget.style.borderColor="var(--purple)"; }}
+                onMouseLeave={e => { if (!overflow && !isToday && !isSel) e.currentTarget.style.borderColor="var(--s2)"; }}
+              >
+                <div style={{ fontSize:11, fontWeight:isToday?800:500, color: overflow ? "var(--muted)" : isToday ? "var(--purple)" : "var(--text)", marginBottom:3, textAlign:"right" }}>
+                  {isToday && !overflow
+                    ? <span style={{ background:"var(--purple)", color:"#fff", borderRadius:"50%", width:18, height:18, display:"inline-flex", alignItems:"center", justifyContent:"center", fontSize:10 }}>{date.getDate()}</span>
+                    : date.getDate()
+                  }
                 </div>
                 {dayEvts.slice(0,3).map(e => <EventPill key={e.id} event={e} users={users} compact />)}
                 {dayEvts.length > 3 && <div style={{ fontSize:9, color:"var(--muted)", paddingLeft:2 }}>+{dayEvts.length-3}</div>}
