@@ -175,24 +175,105 @@ export default function Calendar() {
 
   function renderWeek() {
     const start = startOfWeek(curDate);
-    const days = Array.from({ length:7 }, (_, i) => addDays(start, i));
+    const days  = Array.from({ length:7 }, (_, i) => addDays(start, i));
+    const HOURS = Array.from({ length:24 }, (_, i) => i); // 0h → 23h
+    const COL_W = 110; // px par colonne jour
+    const ROW_H = 50;  // px par heure
+
+    function timeToY(timeStr) {
+      if (!timeStr) return 0;
+      const [h, min] = timeStr.split(':').map(Number);
+      return (h + min/60) * ROW_H;
+    }
+    function timeDuration(start, end) {
+      if (!start || !end) return ROW_H;
+      const [sh, sm] = start.split(':').map(Number);
+      const [eh, em] = end.split(':').map(Number);
+      const diff = (eh + em/60) - (sh + sm/60);
+      return Math.max(diff * ROW_H, ROW_H * 0.5);
+    }
+
     return (
-      <div style={{ overflowX:"auto" }}>
-        <div style={{ display:"grid", gridTemplateColumns:"repeat(7,1fr)", gap:4, minWidth:500 }}>
+      <div style={{ overflowX:"auto", overflowY:"auto", maxHeight:"70vh", position:"relative" }}>
+        {/* Header jours */}
+        <div style={{ display:"grid", gridTemplateColumns:`44px repeat(7, ${COL_W}px)`, position:"sticky", top:0, zIndex:10, background:"var(--bg,#0f0e17)", borderBottom:"1px solid var(--s2)" }}>
+          <div />
+          {days.map((date, idx) => {
+            const key = toKey(date), isToday = key === toKey(today);
+            return (
+              <div key={key} style={{ textAlign:"center", padding:"8px 4px", borderLeft:"1px solid var(--s2)" }}>
+                <div style={{ fontSize:10, color:"var(--muted)", fontWeight:600, textTransform:"uppercase" }}>{JOURS[idx]}</div>
+                <div style={{ fontSize:15, fontWeight:800, color:isToday?"var(--purple)":"var(--text)",
+                  ...(isToday ? { background:"var(--purple)", color:"#fff", borderRadius:"50%", width:24, height:24, display:"inline-flex", alignItems:"center", justifyContent:"center", fontSize:12 } : {})
+                }}>{date.getDate()}</div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Grille horaire */}
+        <div style={{ display:"grid", gridTemplateColumns:`44px repeat(7, ${COL_W}px)`, position:"relative" }}>
+          {/* Colonne heures */}
+          <div>
+            {HOURS.map(h => (
+              <div key={h} style={{ height:ROW_H, display:"flex", alignItems:"flex-start", justifyContent:"flex-end", paddingRight:6, paddingTop:2 }}>
+                <span style={{ fontSize:10, color:"var(--muted)", fontWeight:500, whiteSpace:"nowrap" }}>{String(h).padStart(2,'0')}:00</span>
+              </div>
+            ))}
+          </div>
+
+          {/* Colonnes jours */}
           {days.map((date, idx) => {
             const key = toKey(date), dayEvts = eventsOnDay(key), isToday = key === toKey(today);
+            const timedEvts   = dayEvts.filter(e => !e.allDay && e.timeStart);
+            const allDayEvts  = dayEvts.filter(e => e.allDay || !e.timeStart);
             return (
-              <div key={key} style={{ borderRadius:12, overflow:"hidden", border:`1px solid ${isToday?"var(--purple)":"var(--s2)"}` }}>
-                <div style={{ background:isToday?"rgba(155,109,255,.15)":"var(--s2)", padding:"8px 8px 6px", textAlign:"center" }}>
-                  <div style={{ fontSize:10, color:"var(--muted)", fontWeight:600, textTransform:"uppercase" }}>{JOURS[idx]}</div>
-                  <div style={{ fontSize:16, fontWeight:800, color:isToday?"var(--purple)":"var(--text)" }}>{date.getDate()}</div>
-                </div>
-                <div style={{ padding:"4px 4px 6px", minHeight:80, background:"var(--s1)" }}>
-                  {dayEvts.map(e => <EventPill key={e.id} event={e} users={users} onClick={() => openEditEvent(e)} />)}
-                  <div onClick={() => openNewEvent(key)} style={{ marginTop:4, cursor:"pointer", textAlign:"center", fontSize:16, color:"var(--s3)", lineHeight:1 }}
-                    onMouseEnter={e => e.currentTarget.style.color="var(--purple)"}
-                    onMouseLeave={e => e.currentTarget.style.color="var(--s3)"}>+</div>
-                </div>
+              <div key={key} style={{ borderLeft:"1px solid var(--s2)", position:"relative", height: 24 * ROW_H }}>
+                {/* Lignes horaires */}
+                {HOURS.map(h => (
+                  <div key={h} style={{ position:"absolute", top: h * ROW_H, left:0, right:0, height:ROW_H, borderTop:"1px solid rgba(255,255,255,.04)", cursor:"pointer" }}
+                    onClick={() => {
+                      const timeStr = String(h).padStart(2,'0') + ":00";
+                      const endStr  = String(h+1).padStart(2,'0') + ":00";
+                      setSelDay(key);
+                      openNewEvent(key, { allDay:false, timeStart:timeStr, timeEnd: h<23?endStr:"23:59" });
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.background="rgba(155,109,255,.05)"}
+                    onMouseLeave={e => e.currentTarget.style.background=""}
+                  />
+                ))}
+
+                {/* Events journée entière en haut */}
+                {allDayEvts.length > 0 && (
+                  <div style={{ position:"absolute", top:4, left:2, right:2, zIndex:2 }}>
+                    {allDayEvts.map(e => (
+                      <div key={e.id} onClick={() => openEditEvent(e)}
+                        style={{ background:CATEGORIES[e.cat]?.color+"33", borderLeft:`2px solid ${CATEGORIES[e.cat]?.color}`, borderRadius:4, padding:"2px 5px", fontSize:10, fontWeight:600, cursor:"pointer", marginBottom:2, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>
+                        {CATEGORIES[e.cat]?.icon} {e.title}
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Events avec horaire positionnés */}
+                {timedEvts.map(e => {
+                  const cat = CATEGORIES[e.cat] || CATEGORIES.loisirs;
+                  const top  = timeToY(e.timeStart);
+                  const h    = timeDuration(e.timeStart, e.timeEnd);
+                  const evtUsers = users.filter(u => e.userIds?.includes(u.id));
+                  return (
+                    <div key={e.id} onClick={() => openEditEvent(e)}
+                      style={{ position:"absolute", top, left:2, right:2, height:h, zIndex:3,
+                        background:cat.color+"33", borderLeft:`3px solid ${cat.color}`, borderRadius:6,
+                        padding:"2px 5px", cursor:"pointer", overflow:"hidden", transition:"opacity .15s" }}
+                      onMouseEnter={el => el.currentTarget.style.opacity=".8"}
+                      onMouseLeave={el => el.currentTarget.style.opacity="1"}>
+                      <div style={{ fontSize:10, fontWeight:700, color:cat.color, lineHeight:1.2 }}>{e.timeStart}{e.timeEnd?`→${e.timeEnd}`:""}</div>
+                      <div style={{ fontSize:11, fontWeight:600, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{cat.icon} {e.title}</div>
+                      {evtUsers.length > 0 && <div style={{ fontSize:9, marginTop:1 }}>{evtUsers.map(u=><span key={u.id} style={{ color:u.color, marginRight:2 }}>{u.shape}</span>)}</div>}
+                    </div>
+                  );
+                })}
               </div>
             );
           })}
@@ -293,8 +374,17 @@ export default function Calendar() {
         </div>
         {!form.allDay && (
           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:8, marginBottom:12 }}>
-            <div><label style={lbl}>Heure de début</label><input type="time" style={inp} value={form.timeStart} onChange={e => setForm(f=>({...f, timeStart:e.target.value}))} /></div>
-            <div><label style={lbl}>Heure de fin</label><input type="time" style={inp} value={form.timeEnd} onChange={e => setForm(f=>({...f, timeEnd:e.target.value}))} min={form.timeStart} /></div>
+            <div>
+              <label style={lbl}>Heure de début</label>
+              <TimeInput value={form.timeStart} onChange={v => {
+                const endAuto = addOneHour(v);
+                setForm(f => ({ ...f, timeStart:v, timeEnd: f.timeEnd && f.timeEnd > v ? f.timeEnd : endAuto }));
+              }} />
+            </div>
+            <div>
+              <label style={lbl}>Heure de fin</label>
+              <TimeInput value={form.timeEnd} onChange={v => setForm(f=>({...f, timeEnd:v}))} />
+            </div>
           </div>
         )}
         <label style={lbl}>Note (optionnel)</label>
@@ -387,6 +477,80 @@ export default function Calendar() {
   );
 }
 
+// ── Helpers temps ─────────────────────────────────────────────────────────────
+function addOneHour(timeStr) {
+  if (!timeStr) return "";
+  const [h, m] = timeStr.split(':').map(Number);
+  const newH = h + 1;
+  if (newH >= 24) return "23:59";
+  return String(newH).padStart(2,'0') + ":" + String(m||0).padStart(2,'0');
+}
+
+function parseTimeInput(raw) {
+  // Accepte : "9", "9h", "09", "9:30", "930", "9h30", "14h30"
+  const s = raw.replace(/\s/g, '').toLowerCase();
+  if (!s) return "";
+  // Format HH:MM déjà correct
+  if (/^\d{1,2}:\d{2}$/.test(s)) {
+    const [h, m] = s.split(':').map(Number);
+    if (h < 24 && m < 60) return String(h).padStart(2,'0') + ":" + String(m).padStart(2,'0');
+    return "";
+  }
+  // "9h30" ou "9h"
+  const hm = s.match(/^(\d{1,2})h(\d{0,2})$/);
+  if (hm) {
+    const h = parseInt(hm[1]), m = parseInt(hm[2]||"0");
+    if (h < 24 && m < 60) return String(h).padStart(2,'0') + ":" + String(m).padStart(2,'0');
+  }
+  // "930" → 9h30, "1430" → 14h30
+  if (/^\d{3,4}$/.test(s)) {
+    const str = s.padStart(4,'0');
+    const h = parseInt(str.slice(0,-2)), m = parseInt(str.slice(-2));
+    if (h < 24 && m < 60) return String(h).padStart(2,'0') + ":" + String(m).padStart(2,'0');
+  }
+  // "9" ou "14" → heure ronde
+  if (/^\d{1,2}$/.test(s)) {
+    const h = parseInt(s);
+    if (h < 24) return String(h).padStart(2,'0') + ":00";
+  }
+  return "";
+}
+
+function TimeInput({ value, onChange, compact }) {
+  const [raw, setRaw] = useState(value || "");
+  const [focused, setFocused] = useState(false);
+
+  useEffect(() => { if (!focused) setRaw(value || ""); }, [value, focused]);
+
+  function handleBlur() {
+    setFocused(false);
+    const parsed = parseTimeInput(raw);
+    if (parsed) { setRaw(parsed); onChange(parsed); }
+    else { setRaw(value || ""); }
+  }
+
+  const baseStyle = {
+    background:"var(--s2)", border:"1px solid var(--purple,#9B6DFF)", borderRadius:compact?7:9,
+    padding: compact ? "5px 8px" : "9px 12px",
+    color:"var(--text)", fontFamily:"Josefin Sans", fontSize:compact?12:12,
+    outline:"none", textAlign:"center", width: compact ? "auto" : "100%",
+    flex: compact ? 1 : undefined, boxSizing:"border-box",
+  };
+
+  return (
+    <input
+      type="text"
+      value={focused ? raw : (value || "")}
+      placeholder="09:00"
+      style={baseStyle}
+      onFocus={() => { setFocused(true); setRaw(value || ""); }}
+      onChange={e => setRaw(e.target.value)}
+      onBlur={handleBlur}
+      onKeyDown={e => { if (e.key === "Enter") { e.target.blur(); } }}
+    />
+  );
+}
+
 function EventPill({ event, users, compact, onClick }) {
   const cat = CATEGORIES[event.cat] || CATEGORIES.loisirs;
   const evtUsers = users.filter(u => event.userIds?.includes(u.id));
@@ -433,9 +597,9 @@ function QuickAdd({ dateStr, users, onAdd, onOpenFull }) {
         </div>
         {!allDay && (
           <div style={{ display:"flex", alignItems:"center", gap:6, flex:1 }}>
-            <input type="time" value={timeStart} onChange={e=>setTimeStart(e.target.value)} style={timeInp} />
+            <TimeInput value={timeStart} onChange={v => { setTimeStart(v); if (!timeEnd || timeEnd <= v) setTimeEnd(addOneHour(v)); }} compact />
             <span style={{ color:"var(--muted)", fontSize:11 }}>→</span>
-            <input type="time" value={timeEnd} onChange={e=>setTimeEnd(e.target.value)} min={timeStart} style={timeInp} />
+            <TimeInput value={timeEnd} onChange={setTimeEnd} compact />
           </div>
         )}
       </div>
