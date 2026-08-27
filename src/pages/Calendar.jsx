@@ -226,32 +226,66 @@ export default function Calendar() {
     if (!selectedDay) return null;
     const dayEvts = eventsOnDay(selectedDay);
     const d = parseDate(selectedDay);
+
+    // Trier les événements par heure
+    const sorted = [...dayEvts].sort((a, b) => {
+      if (a.allDay && !b.allDay) return -1;
+      if (!a.allDay && b.allDay) return 1;
+      return (a.timeStart || "").localeCompare(b.timeStart || "");
+    });
+
     return (
-      <ModalWrap onClose={() => setModal(null)}>
-        <div style={{ fontFamily:"'Raleway',sans-serif", fontWeight:800, fontSize:16, marginBottom:12 }}>
-          {d.toLocaleDateString("fr-FR", { weekday:"long", day:"numeric", month:"long" })}
+      <ModalWrap onClose={() => setModal(null)} wide>
+        {/* Header */}
+        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:14 }}>
+          <div style={{ fontFamily:"'Raleway',sans-serif", fontWeight:800, fontSize:16 }}>
+            {d.toLocaleDateString("fr-FR", { weekday:"long", day:"numeric", month:"long" })}
+          </div>
+          <span style={{ fontSize:11, color:"var(--muted)", background:"var(--s2)", padding:"3px 8px", borderRadius:6 }}>
+            {sorted.length} événement{sorted.length > 1 ? "s" : ""}
+          </span>
         </div>
-        {dayEvts.length === 0 ? (
-          <div style={{ textAlign:"center", color:"var(--muted)", padding:"16px 0", fontSize:13 }}>Aucun événement ce jour</div>
-        ) : dayEvts.map(e => (
-          <div key={e.id} style={{ background:CATEGORIES[e.cat].color+"22", border:`1px solid ${CATEGORIES[e.cat].color}55`, borderLeft:`3px solid ${CATEGORIES[e.cat].color}`, borderRadius:8, padding:"9px 11px", marginBottom:7, cursor:"pointer" }}
-            onClick={() => openEditEvent(e)}>
-            <div style={{ fontWeight:700, fontSize:13, marginBottom:3 }}>{CATEGORIES[e.cat].icon} {e.title}</div>
+
+        {/* Liste événements triés */}
+        {sorted.length === 0 ? (
+          <div style={{ textAlign:"center", color:"var(--muted)", padding:"12px 0 16px", fontSize:13 }}>
+            Aucun événement ce jour
+          </div>
+        ) : sorted.map(e => (
+          <div key={e.id}
+            style={{ background:CATEGORIES[e.cat].color+"18", border:`1px solid ${CATEGORIES[e.cat].color}44`, borderLeft:`3px solid ${CATEGORIES[e.cat].color}`, borderRadius:8, padding:"9px 11px", marginBottom:7, cursor:"pointer", transition:"opacity .15s" }}
+            onClick={() => openEditEvent(e)}
+            onMouseEnter={el => el.currentTarget.style.opacity=".8"}
+            onMouseLeave={el => el.currentTarget.style.opacity="1"}
+          >
+            <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:3 }}>
+              <div style={{ fontWeight:700, fontSize:13 }}>{CATEGORIES[e.cat].icon} {e.title}</div>
+              {!e.allDay && e.timeStart ? (
+                <span style={{ fontSize:11, fontWeight:700, color:CATEGORIES[e.cat].color, background:CATEGORIES[e.cat].color+"22", padding:"2px 7px", borderRadius:6, whiteSpace:"nowrap" }}>
+                  {e.timeStart}{e.timeEnd ? ` → ${e.timeEnd}` : ""}
+                </span>
+              ) : (
+                <span style={{ fontSize:10, color:"var(--muted)", background:"var(--s2)", padding:"2px 7px", borderRadius:6 }}>Journée</span>
+              )}
+            </div>
             <div style={{ fontSize:11, color:"var(--muted)", display:"flex", gap:8, flexWrap:"wrap" }}>
               <span>{CATEGORIES[e.cat].label}</span>
-              {e.dateStart !== e.dateEnd && <span>{e.dateStart} → {e.dateEnd}</span>}
-              {!e.allDay && e.timeStart && (
-                <span style={{ fontWeight:700, color:"var(--cyan,#3DFFD0)" }}>
-                  ⏰ {e.timeStart}{e.timeEnd ? ` → ${e.timeEnd}` : ""}
-                </span>
-              )}
-              <span>{e.userIds.map(uid => data.users.find(u=>u.id===uid)?.name).filter(Boolean).join(", ")}</span>
+              {e.dateStart !== e.dateEnd && <span>→ {e.dateEnd}</span>}
+              {e.userIds.length > 0 && <span>{e.userIds.map(uid => data.users.find(u=>u.id===uid)?.name).filter(Boolean).join(", ")}</span>}
             </div>
             {e.note && <div style={{ fontSize:11, color:"var(--muted)", marginTop:4, fontStyle:"italic" }}>{e.note}</div>}
           </div>
         ))}
-        <button className="btn btn-primary btn-full" style={{ marginTop:8, fontFamily:"'Raleway'", fontWeight:700 }}
-          onClick={() => openNewEvent(selectedDay)}>+ Ajouter un événement</button>
+
+        {/* Quick-add avec heure */}
+        <QuickAdd
+          dateStr={selectedDay}
+          users={data.users}
+          onAdd={(evt) => {
+            setData(d => ({ ...d, events: [...d.events, { id: Date.now().toString(), ...evt }] }));
+          }}
+          onOpenFull={() => openNewEvent(selectedDay)}
+        />
       </ModalWrap>
     );
   }
@@ -495,6 +529,102 @@ function EventPill({ event, users, compact, onClick }) {
     </div>
   );
 }
+
+// ── QuickAdd — barre rapide avec heure ────────────────────────────────────────
+function QuickAdd({ dateStr, users, onAdd, onOpenFull }) {
+  const [title,     setTitle]     = useState("");
+  const [cat,       setCat]       = useState("vacances");
+  const [allDay,    setAllDay]    = useState(true);
+  const [timeStart, setTimeStart] = useState("");
+  const [timeEnd,   setTimeEnd]   = useState("");
+  const [userIds,   setUserIds]   = useState(users.length === 1 ? [users[0].id] : []);
+
+  function submit() {
+    if (!title.trim()) return;
+    onAdd({ title: title.trim(), cat, dateStart: dateStr, dateEnd: dateStr, allDay, timeStart: allDay ? "" : timeStart, timeEnd: allDay ? "" : timeEnd, userIds, note: "" });
+    setTitle(""); setTimeStart(""); setTimeEnd(""); setAllDay(true);
+  }
+
+  return (
+    <div style={{ marginTop:12, borderTop:"1px solid var(--s2,#222)", paddingTop:14 }}>
+      <div style={{ fontSize:11, fontWeight:700, color:"var(--muted)", textTransform:"uppercase", letterSpacing:".07em", marginBottom:10 }}>
+        Ajouter rapidement
+      </div>
+
+      {/* Titre */}
+      <input
+        style={{ ...lbl2, width:"100%", background:"var(--s2,#1a1a2e)", border:"1px solid var(--s3,#333)", borderRadius:9, padding:"9px 12px", color:"var(--text,#f0eeff)", fontFamily:"Josefin Sans,sans-serif", fontSize:12, outline:"none", marginBottom:8, boxSizing:"border-box" }}
+        value={title} onChange={e => setTitle(e.target.value)}
+        onKeyDown={e => e.key === "Enter" && submit()}
+        placeholder="Titre de l'événement…"
+      />
+
+      {/* Catégorie rapide */}
+      <div style={{ display:"flex", gap:5, flexWrap:"wrap", marginBottom:8 }}>
+        {Object.entries(CATEGORIES).map(([k, v]) => (
+          <div key={k} onClick={() => setCat(k)} style={{
+            padding:"4px 9px", borderRadius:16, fontSize:11, fontWeight:600, cursor:"pointer",
+            background: cat===k ? v.color : "var(--s2,#1a1a2e)",
+            color: cat===k ? "#0f0e17" : "var(--muted,#888)",
+            border:`1px solid ${cat===k ? v.color : "var(--s3,#333)"}`,
+            transition:"all .15s",
+          }}>{v.icon} {v.label}</div>
+        ))}
+      </div>
+
+      {/* Toggle journée entière + horaires */}
+      <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom: allDay ? 8 : 0 }}>
+        <div
+          onClick={() => setAllDay(p => !p)}
+          style={{ display:"flex", alignItems:"center", gap:6, cursor:"pointer", padding:"5px 10px", borderRadius:8, background:"var(--s2,#1a1a2e)", border:`1px solid ${!allDay ? "var(--purple,#9B6DFF)" : "var(--s3,#333)"}`, transition:"all .15s" }}
+        >
+          <span style={{ fontSize:12 }}>⏰</span>
+          <span style={{ fontSize:11, fontWeight:600, color: !allDay ? "var(--purple,#9B6DFF)" : "var(--muted,#888)" }}>
+            {allDay ? "Journée entière" : "Avec horaires"}
+          </span>
+        </div>
+
+        {!allDay && (
+          <div style={{ display:"flex", alignItems:"center", gap:6, flex:1 }}>
+            <input type="time" value={timeStart} onChange={e => setTimeStart(e.target.value)}
+              style={{ flex:1, background:"var(--s2,#1a1a2e)", border:"1px solid var(--purple,#9B6DFF)", borderRadius:7, padding:"5px 8px", color:"var(--text,#f0eeff)", fontFamily:"Josefin Sans,sans-serif", fontSize:12, outline:"none" }} />
+            <span style={{ color:"var(--muted)", fontSize:11 }}>→</span>
+            <input type="time" value={timeEnd} onChange={e => setTimeEnd(e.target.value)} min={timeStart}
+              style={{ flex:1, background:"var(--s2,#1a1a2e)", border:"1px solid var(--purple,#9B6DFF)", borderRadius:7, padding:"5px 8px", color:"var(--text,#f0eeff)", fontFamily:"Josefin Sans,sans-serif", fontSize:12, outline:"none" }} />
+          </div>
+        )}
+      </div>
+
+      {/* Participants rapides */}
+      {users.length > 1 && (
+        <div style={{ display:"flex", gap:5, flexWrap:"wrap", margin:"8px 0" }}>
+          {users.map(u => {
+            const sel = userIds.includes(u.id);
+            return (
+              <div key={u.id} onClick={() => setUserIds(p => sel ? p.filter(x=>x!==u.id) : [...p, u.id])}
+                style={{ padding:"3px 9px", borderRadius:16, fontSize:11, fontWeight:600, cursor:"pointer", border:`1px solid ${sel?u.color:"var(--s3,#333)"}`, background:sel?u.color+"22":"var(--s2,#1a1a2e)", color:sel?u.color:"var(--muted,#888)", transition:"all .15s" }}>
+                <span style={{ marginRight:3 }}>{u.shape}</span>{u.name}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Boutons */}
+      <div style={{ display:"flex", gap:8, marginTop:10 }}>
+        <button
+          onClick={submit}
+          style={{ flex:1, padding:"9px 0", borderRadius:9, border:"none", background:"linear-gradient(135deg, var(--purple,#9B6DFF), var(--pink,#FF5FA0))", color:"#fff", fontFamily:"'Raleway',sans-serif", fontWeight:700, fontSize:13, cursor:"pointer", opacity: title.trim() ? 1 : 0.5 }}
+        >Ajouter</button>
+        <button
+          onClick={onOpenFull}
+          style={{ padding:"9px 14px", borderRadius:9, border:"1px solid var(--s3,#333)", background:"var(--s2,#1a1a2e)", color:"var(--muted,#888)", fontFamily:"Josefin Sans,sans-serif", fontSize:11, cursor:"pointer", whiteSpace:"nowrap" }}
+        >Plus d'options →</button>
+      </div>
+    </div>
+  );
+}
+const lbl2 = {};
 
 function ModalWrap({ children, onClose, wide }) {
   return (
