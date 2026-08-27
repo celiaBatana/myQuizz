@@ -84,10 +84,18 @@ export default function Calendar() {
   });
 
   function eventsOnDay(key) {
-    return events.filter(e => {
-      const s = e.dateStart, en = e.dateEnd || e.dateStart;
-      return key >= s && key <= en;
-    });
+    return events
+      .filter(e => {
+        const s = e.dateStart, en = e.dateEnd || e.dateStart;
+        return key >= s && key <= en;
+      })
+      .sort((a, b) => {
+        // Journées entières en premier
+        if ((a.allDay || !a.timeStart) && !(b.allDay || !b.timeStart)) return -1;
+        if (!(a.allDay || !a.timeStart) && (b.allDay || !b.timeStart)) return 1;
+        // Puis trier par heure
+        return timeToMinutes(a.timeStart) - timeToMinutes(b.timeStart);
+      });
   }
 
   async function addUser() {
