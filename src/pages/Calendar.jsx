@@ -11,7 +11,6 @@ const CATEGORIES = {
   loisirs:       { label: "Loisirs",       icon: "🎉", color: "#FFE14D" },
   administratif: { label: "Administratif", icon: "📋", color: "#FF7A3D" },
   sport:         { label: "Sport",         icon: "⚽", color: "#FF5FA0" },
-  soins: { label: "Soins", icon: "🩺", color: "#4DC9F6" },
 };
 
 const USER_SHAPES = ["●", "▲", "■", "◆", "★", "⬟"];
@@ -27,7 +26,16 @@ function toKey(date) {
   return `${y}-${m}-${d}`;
 }
 function daysInMonth(y, m) { return new Date(y, m + 1, 0).getDate(); }
-function firstDayOfMonth(y, m) { const d = new Date(y, m, 1).getDay(); return d === 0 ? 6 : d - 1; }
+function firstDayOfMonth(y, m) {
+  // Algorithme de Tomohiko Sakamoto — calcul pur sans Date pour éviter tout bug de fuseau
+  // Retourne 0=lundi, 1=mardi, ..., 6=dimanche
+  const t = [0, 3, 2, 5, 0, 3, 5, 1, 4, 6, 2, 4];
+  let yr = y;
+  if (m < 2) yr--; // mois 0=jan, 1=fev
+  const dow = (yr + Math.floor(yr/4) - Math.floor(yr/100) + Math.floor(yr/400) + t[m] + 1) % 7;
+  // dow: 0=dim, 1=lun, ..., 6=sam → convertir en lundi=0
+  return dow === 0 ? 6 : dow - 1;
+}
 function addDays(date, n) { const d = new Date(date); d.setDate(d.getDate() + n); return d; }
 function startOfWeek(date) {
   const d = new Date(date);
