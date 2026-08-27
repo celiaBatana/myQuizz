@@ -103,8 +103,18 @@ export default function Calendar() {
   }
 
   // ── Events ─────────────────────────────────────────────────────────────────
-  function openNewEvent(dateStr) {
-    setForm({ title:"", cat:"vacances", userIds: data.users.length === 1 ? [data.users[0].id] : [], dateStart: dateStr || toKey(today), dateEnd: dateStr || toKey(today), timeStart:"", timeEnd:"", allDay:true, note:"" });
+  function openNewEvent(dateStr, prefill = {}) {
+    setForm({
+      title:     prefill.title     || "",
+      cat:       prefill.cat       || "vacances",
+      userIds:   prefill.userIds   || (data.users.length === 1 ? [data.users[0].id] : []),
+      dateStart: dateStr           || toKey(today),
+      dateEnd:   dateStr           || toKey(today),
+      timeStart: prefill.timeStart || "",
+      timeEnd:   prefill.timeEnd   || "",
+      allDay:    prefill.allDay !== undefined ? prefill.allDay : true,
+      note:      "",
+    });
     setEditId(null);
     setModal("event");
   }
@@ -294,7 +304,7 @@ export default function Calendar() {
           onAdd={(evt) => {
             setData(d => ({ ...d, events: [...d.events, { id: Date.now().toString(), ...evt }] }));
           }}
-          onOpenFull={() => openNewEvent(selectedDay)}
+          onOpenFull={(prefill) => { setModal(null); setTimeout(() => openNewEvent(selectedDay, prefill), 50); }}
         />
       </ModalWrap>
     );
@@ -627,7 +637,7 @@ function QuickAdd({ dateStr, users, onAdd, onOpenFull }) {
           style={{ flex:1, padding:"9px 0", borderRadius:9, border:"none", background:"linear-gradient(135deg, var(--purple,#9B6DFF), var(--pink,#FF5FA0))", color:"#fff", fontFamily:"'Raleway',sans-serif", fontWeight:700, fontSize:13, cursor:"pointer", opacity: title.trim() ? 1 : 0.5 }}
         >Ajouter</button>
         <button
-          onClick={onOpenFull}
+          onClick={() => onOpenFull({ title, cat, allDay, timeStart, timeEnd, userIds })}
           style={{ padding:"9px 14px", borderRadius:9, border:"1px solid var(--s3,#333)", background:"var(--s2,#1a1a2e)", color:"var(--muted,#888)", fontFamily:"Josefin Sans,sans-serif", fontSize:11, cursor:"pointer", whiteSpace:"nowrap" }}
         >Plus d'options →</button>
       </div>
@@ -637,11 +647,16 @@ function QuickAdd({ dateStr, users, onAdd, onOpenFull }) {
 const lbl2 = {};
 
 function ModalWrap({ children, onClose, wide }) {
+  // Utiliser onMouseDown au lieu de onClick pour éviter la fermeture
+  // lors d'une sélection de texte (drag qui finit sur le fond)
+  function handleBackdropMouseDown(e) {
+    if (e.target === e.currentTarget) onClose();
+  }
   return (
     <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,.7)", zIndex:1000, display:"flex", alignItems:"center", justifyContent:"center", padding:"16px" }}
-      onClick={onClose}>
+      onMouseDown={handleBackdropMouseDown}>
       <div style={{ background:"var(--bg, #0f0e17)", border:"1px solid var(--s2,#222)", borderRadius:20, padding:"20px 16px 24px", width:"100%", maxWidth: wide ? 520 : 400, maxHeight:"85vh", overflowY:"auto" }}
-        onClick={e => e.stopPropagation()}>
+        onMouseDown={e => e.stopPropagation()}>
         {children}
       </div>
     </div>
