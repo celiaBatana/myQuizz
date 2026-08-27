@@ -466,11 +466,10 @@ function EventPill({ event, users, compact, onClick }) {
 
 function ModalWrap({ children, onClose, wide }) {
   return (
-    <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,.7)", zIndex:1000, display:"flex", alignItems:"flex-end", justifyContent:"center", padding:"0 0 0 0" }}
+    <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,.7)", zIndex:1000, display:"flex", alignItems:"center", justifyContent:"center", padding:"16px" }}
       onClick={onClose}>
-      <div style={{ background:"var(--bg, #0f0e17)", border:"1px solid var(--s2,#222)", borderRadius:"20px 20px 0 0", padding:"20px 16px 32px", width:"100%", maxWidth: wide ? 520 : 400, maxHeight:"88vh", overflowY:"auto" }}
+      <div style={{ background:"var(--bg, #0f0e17)", border:"1px solid var(--s2,#222)", borderRadius:20, padding:"20px 16px 24px", width:"100%", maxWidth: wide ? 520 : 400, maxHeight:"85vh", overflowY:"auto" }}
         onClick={e => e.stopPropagation()}>
-        <div style={{ width:36, height:4, background:"var(--s3,#333)", borderRadius:2, margin:"0 auto 16px" }} />
         {children}
       </div>
     </div>
