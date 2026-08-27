@@ -1,4 +1,9 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
+import {
+  collection, addDoc, getDocs, deleteDoc, updateDoc,
+  doc, onSnapshot, serverTimestamp, query, orderBy,
+} from 'firebase/firestore';
+import { db } from '../firebase';
 
 // ── Config ────────────────────────────────────────────────────────────────────
 
@@ -7,8 +12,6 @@ const CATEGORIES = {
   travail:       { label: "Travail",       icon: "💼", color: "#9B6DFF" },
   loisirs:       { label: "Loisirs",       icon: "🎉", color: "#FFE14D" },
   administratif: { label: "Administratif", icon: "📋", color: "#FF7A3D" },
-  sport:         { label: "Sport",         icon: "⚽", color: "#FF5FA0" },
-
 };
 
 const USER_SHAPES = ["●", "▲", "■", "◆", "★", "⬟"];
@@ -17,17 +20,9 @@ const USER_COLORS = ["#FF5FA0", "#3DFFD0", "#FFE14D", "#9B6DFF", "#FF7A3D", "#37
 const JOURS = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
 const MOIS  = ["Janvier","Février","Mars","Avril","Mai","Juin","Juillet","Août","Septembre","Octobre","Novembre","Décembre"];
 
-// ── Storage helpers ───────────────────────────────────────────────────────────
-const STORAGE_KEY = "quizly_calendar";
-
-function load() {
-  try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY) || "null") || { users: [], events: [] };
-  } catch { return { users: [], events: [] }; }
-}
-function save(data) {
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); } catch {}
-}
+// ── Firestore collections ─────────────────────────────────────────────────────
+// calendar_users  : { name, color, shape }
+// calendar_events : { title, cat, dateStart, dateEnd, timeStart, timeEnd, allDay, userIds, note }
 
 // ── Helpers date ──────────────────────────────────────────────────────────────
 function toKey(date) {
@@ -60,7 +55,9 @@ function parseDate(str) {
 // ── Main Component ────────────────────────────────────────────────────────────
 export default function Calendar() {
   const today = new Date();
-  const [data, setData]           = useState(load);
+  const [users,  setUsers]  = useState([]);
+  const [events, setEvents] = useState([]);
+  const [loadingData, setLoadingData] = useState(true);
   const [view, setView]           = useState("month"); // month | week
   const [curDate, setCurDate]     = useState(today);
   const [selectedDay, setSelDay]  = useState(null);
@@ -75,11 +72,23 @@ export default function Calendar() {
   // Formulaire utilisateur
   const [uName, setUName] = useState("");
 
-  // Persistance
-  useEffect(() => { save(data); }, [data]);
+  // ── Chargement Firestore temps réel ──────────────────────────────────────────
+  useEffect(() => {
+    const unsubUsers = onSnapshot(collection(db, 'calendar_users'), snap => {
+      setUsers(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    });
+    const unsubEvts = onSnapshot(
+      query(collection(db, 'calendar_events'), orderBy('dateStart')),
+      snap => {
+        setEvents(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+        setLoadingData(false);
+      }
+    );
+    return () => { unsubUsers(); unsubEvts(); };
+  }, []);
 
   // Filtered events
-  const events = data.events.filter(e => {
+  const events = events.filter(e => {
     if (filterUsers.length && !e.userIds.some(u => filterUsers.includes(u))) return false;
     if (filterCats.length  && !filterCats.includes(e.cat)) return false;
     return true;
@@ -93,23 +102,29 @@ export default function Calendar() {
   }
 
   // ── Users ──────────────────────────────────────────────────────────────────
-  function addUser() {
+  // ── Users (Firestore) ──────────────────────────────────────────────────────
+  async function addUser() {
     if (!uName.trim()) return;
-    const idx = data.users.length % USER_COLORS.length;
-    const u = { id: Date.now().toString(), name: uName.trim(), color: USER_COLORS[idx], shape: USER_SHAPES[idx] };
-    setData(d => ({ ...d, users: [...d.users, u] }));
+    const idx = users.length % USER_COLORS.length;
+    await addDoc(collection(db, 'calendar_users'), {
+      name: uName.trim(), color: USER_COLORS[idx], shape: USER_SHAPES[idx],
+    });
     setUName("");
   }
-  function deleteUser(id) {
-    setData(d => ({ ...d, users: d.users.filter(u => u.id !== id), events: d.events.filter(e => !e.userIds.includes(id) || e.userIds.length > 1) }));
+  async function deleteUser(id) {
+    await deleteDoc(doc(db, 'calendar_users', id));
+    const linked = events.filter(e => e.userIds?.includes(id));
+    for (const e of linked) {
+      await updateDoc(doc(db, 'calendar_events', e.id), { userIds: e.userIds.filter(u => u !== id) });
+    }
   }
 
-  // ── Events ─────────────────────────────────────────────────────────────────
+  // ── Events (Firestore) ─────────────────────────────────────────────────────
   function openNewEvent(dateStr, prefill = {}) {
     setForm({
       title:     prefill.title     || "",
       cat:       prefill.cat       || "vacances",
-      userIds:   prefill.userIds   || (data.users.length === 1 ? [data.users[0].id] : []),
+      userIds:   prefill.userIds   || (users.length === 1 ? [users[0].id] : []),
       dateStart: dateStr           || toKey(today),
       dateEnd:   dateStr           || toKey(today),
       timeStart: prefill.timeStart || "",
@@ -121,21 +136,27 @@ export default function Calendar() {
     setModal("event");
   }
   function openEditEvent(e) {
-    setForm({ title: e.title, cat: e.cat, userIds: [...e.userIds], dateStart: e.dateStart, dateEnd: e.dateEnd || e.dateStart, timeStart: e.timeStart || "", timeEnd: e.timeEnd || "", allDay: e.allDay !== false, note: e.note || "" });
+    setForm({ title: e.title, cat: e.cat, userIds: [...(e.userIds||[])], dateStart: e.dateStart, dateEnd: e.dateEnd || e.dateStart, timeStart: e.timeStart || "", timeEnd: e.timeEnd || "", allDay: e.allDay !== false, note: e.note || "" });
     setEditId(e.id);
     setModal("event");
   }
-  function saveEvent() {
+  async function saveEvent() {
     if (!form.title.trim() || !form.dateStart) return;
+    const payload = { ...form, updatedAt: serverTimestamp() };
     if (editId) {
-      setData(d => ({ ...d, events: d.events.map(e => e.id === editId ? { ...e, ...form } : e) }));
+      await updateDoc(doc(db, 'calendar_events', editId), payload);
     } else {
-      setData(d => ({ ...d, events: [...d.events, { id: Date.now().toString(), ...form }] }));
+      await addDoc(collection(db, 'calendar_events'), { ...payload, createdAt: serverTimestamp() });
     }
     setModal(null);
   }
+  async function deleteEvent(id) {
+    await deleteDoc(doc(db, 'calendar_events', id));
+    setModal(null);
+  }
+  }
   function deleteEvent(id) {
-    setData(d => ({ ...d, events: d.events.filter(e => e.id !== id) }));
+    // handled by Firestore onSnapshot
     setModal(null);
   }
 
@@ -190,7 +211,7 @@ export default function Calendar() {
                 <div style={{ fontSize:11, fontWeight: isToday ? 800 : 500, color: isToday ? "var(--purple)" : "var(--text)", marginBottom:3, textAlign:"right" }}>
                   {isToday ? <span style={{ background:"var(--purple)", color:"#fff", borderRadius:"50%", width:18, height:18, display:"inline-flex", alignItems:"center", justifyContent:"center", fontSize:10 }}>{date.getDate()}</span> : date.getDate()}
                 </div>
-                {dayEvts.slice(0, 3).map(e => <EventPill key={e.id} event={e} users={data.users} compact />)}
+                {dayEvts.slice(0, 3).map(e => <EventPill key={e.id} event={e} users={users} compact />)}
                 {dayEvts.length > 3 && <div style={{ fontSize:9, color:"var(--muted)", paddingLeft:2 }}>+{dayEvts.length-3}</div>}
               </div>
             );
@@ -221,7 +242,7 @@ export default function Calendar() {
                 </div>
                 {/* Événements */}
                 <div style={{ padding:"4px 4px 6px", minHeight:80, background:"var(--s1)" }}>
-                  {dayEvts.map(e => <EventPill key={e.id} event={e} users={data.users} onClick={() => openEditEvent(e)} />)}
+                  {dayEvts.map(e => <EventPill key={e.id} event={e} users={users} onClick={() => openEditEvent(e)} />)}
                   <div onClick={() => openNewEvent(key)} style={{ marginTop:4, cursor:"pointer", textAlign:"center", fontSize:16, color:"var(--s3)", lineHeight:1 }}
                     onMouseEnter={e => e.currentTarget.style.color="var(--purple)"}
                     onMouseLeave={e => e.currentTarget.style.color="var(--s3)"}
@@ -293,7 +314,7 @@ export default function Calendar() {
             <div style={{ fontSize:11, color:"var(--muted)", display:"flex", gap:8, flexWrap:"wrap" }}>
               <span>{CATEGORIES[e.cat].label}</span>
               {e.dateStart !== e.dateEnd && <span>→ {e.dateEnd}</span>}
-              {e.userIds.length > 0 && <span>{e.userIds.map(uid => data.users.find(u=>u.id===uid)?.name).filter(Boolean).join(", ")}</span>}
+              {e.userIds.length > 0 && <span>{e.userIds.map(uid => users.find(u=>u.id===uid)?.name).filter(Boolean).join(", ")}</span>}
             </div>
             {e.note && <div style={{ fontSize:11, color:"var(--muted)", marginTop:4, fontStyle:"italic" }}>{e.note}</div>}
           </div>
@@ -302,9 +323,9 @@ export default function Calendar() {
         {/* Quick-add avec heure */}
         <QuickAdd
           dateStr={selectedDay}
-          users={data.users}
-          onAdd={(evt) => {
-            setData(d => ({ ...d, events: [...d.events, { id: Date.now().toString(), ...evt }] }));
+          users={users}
+          onAdd={async (evt) => {
+            await addDoc(collection(db, 'calendar_events'), { ...evt, createdAt: serverTimestamp() });
           }}
           onOpenFull={(prefill) => { setModal(null); setTimeout(() => openNewEvent(selectedDay, prefill), 50); }}
         />
@@ -351,10 +372,10 @@ export default function Calendar() {
         </div>
 
         {/* Utilisateurs */}
-        {data.users.length > 0 && <>
+        {users.length > 0 && <>
           <label style={lbl}>Participants</label>
           <div style={{ display:"flex", gap:6, flexWrap:"wrap", marginBottom:12 }}>
-            {data.users.map(u => {
+            {users.map(u => {
               const sel = form.userIds.includes(u.id);
               return (
                 <div key={u.id} onClick={() => setForm(f => ({ ...f, userIds: sel ? f.userIds.filter(x=>x!==u.id) : [...f.userIds, u.id] }))}
@@ -419,7 +440,7 @@ export default function Calendar() {
         </div>
 
         {/* Liste */}
-        {data.users.map((u, i) => (
+        {users.map((u, i) => (
           <div key={u.id} style={{ display:"flex", alignItems:"center", gap:10, padding:"9px 11px", background:"var(--s2)", borderRadius:10, marginBottom:6 }}>
             <span style={{ fontSize:16, color:u.color }}>{u.shape}</span>
             <div style={{ flex:1, fontWeight:600, fontSize:13 }}>{u.name}</div>
@@ -431,7 +452,7 @@ export default function Calendar() {
           </div>
         ))}
 
-        {data.users.length === 0 && <div style={{ color:"var(--muted)", fontSize:13, textAlign:"center", padding:"12px 0" }}>Aucun utilisateur — ajoute-en un !</div>}
+        {users.length === 0 && <div style={{ color:"var(--muted)", fontSize:13, textAlign:"center", padding:"12px 0" }}>Aucun utilisateur — ajoute-en un !</div>}
 
         {/* Ajouter */}
         <div style={{ display:"flex", gap:8, marginTop:12 }}>
@@ -463,9 +484,9 @@ export default function Calendar() {
           })}
         </div>
         {/* Users */}
-        {data.users.length > 0 && (
+        {users.length > 0 && (
           <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
-            {data.users.map(u => {
+            {users.map(u => {
               const active = !filterUsers.length || filterUsers.includes(u.id);
               return (
                 <div key={u.id} onClick={() => setFU(p => p.includes(u.id) ? p.filter(x=>x!==u.id) : [...p,u.id])}
@@ -482,6 +503,13 @@ export default function Calendar() {
   }
 
   // ── Rendu principal ────────────────────────────────────────────────────────
+  if (loadingData) return (
+    <div style={{ textAlign:"center", paddingTop:80, color:"var(--muted,#888)", fontFamily:"Josefin Sans,sans-serif" }}>
+      <div style={{ fontSize:32, marginBottom:12 }}>📅</div>
+      <div>Chargement du calendrier…</div>
+    </div>
+  );
+
   return (
     <div style={{ maxWidth:780, margin:"0 auto", padding:"16px 12px 80px", fontFamily:"Josefin Sans, sans-serif", color:"var(--text, #f0eeff)", minHeight:"100vh" }}>
 
