@@ -7,6 +7,8 @@ const CATEGORIES = {
   travail:       { label: "Travail",       icon: "💼", color: "#9B6DFF" },
   loisirs:       { label: "Loisirs",       icon: "🎉", color: "#FFE14D" },
   administratif: { label: "Administratif", icon: "📋", color: "#FF7A3D" },
+  sport:         { label: "Sport",         icon: "⚽", color: "#FF5FA0" },
+
 };
 
 const USER_SHAPES = ["●", "▲", "■", "◆", "★", "⬟"];
