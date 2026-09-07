@@ -230,12 +230,13 @@ export default function Calendar() {
               <div key={i}
                 onClick={() => { if (!overflow) { setSelDay(key); setModal("day"); } }}
                 style={{
-                  minHeight:70, borderRadius:10, padding:"5px 5px 3px",
+                  height:90, borderRadius:10, padding:"5px 5px 3px",
                   background: overflow ? "transparent" : isSel ? "rgba(155,109,255,.18)" : "var(--s1)",
                   border: `1px solid ${overflow ? "rgba(255,255,255,.04)" : isToday || isSel ? "var(--purple)" : "var(--s2)"}`,
                   cursor: overflow ? "default" : "pointer",
                   transition:"all .15s",
                   opacity: overflow ? 0.4 : 1,
+                  overflow:"hidden",
                 }}
                 onMouseEnter={e => { if (!overflow) e.currentTarget.style.borderColor="var(--purple)"; }}
                 onMouseLeave={e => { if (!overflow && !isToday && !isSel) e.currentTarget.style.borderColor="var(--s2)"; }}
@@ -246,8 +247,8 @@ export default function Calendar() {
                     : date.getDate()
                   }
                 </div>
-                {dayEvts.slice(0,3).map(e => <EventPill key={e.id} event={e} users={users} compact />)}
-                {dayEvts.length > 3 && <div style={{ fontSize:9, color:"var(--muted)", paddingLeft:2 }}>+{dayEvts.length-3}</div>}
+                {dayEvts.slice(0,2).map(e => <EventPill key={e.id} event={e} users={users} compact />)}
+                {dayEvts.length > 2 && <div style={{ fontSize:9, color:"var(--muted)", paddingLeft:2, marginTop:1 }}>+{dayEvts.length-2} autres</div>}
               </div>
             );
           })}
@@ -643,9 +644,16 @@ function EventPill({ event, users, compact, onClick }) {
   const cat = CATEGORIES[event.cat] || CATEGORIES.loisirs;
   const evtUsers = users.filter(u => event.userIds?.includes(u.id));
   return (
-    <div onClick={onClick} style={{ background:cat.color+"22", borderLeft:`2px solid ${cat.color}`, borderRadius:4, padding:compact?"1px 4px":"4px 7px", marginBottom:2, cursor:onClick?"pointer":"default", fontSize:compact?10:11, fontWeight:600, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis", display:"flex", alignItems:"center", gap:3 }}>
-      <span>{cat.icon}</span>
-      <span style={{ flex:1, overflow:"hidden", textOverflow:"ellipsis" }}>{event.title}</span>
+    <div onClick={onClick} style={{
+      background: cat.color+"22", borderLeft:`2px solid ${cat.color}`, borderRadius:4,
+      padding: compact?"1px 4px":"4px 7px", marginBottom:2,
+      cursor: onClick?"pointer":"default",
+      fontSize: compact?10:11, fontWeight:600,
+      display:"flex", alignItems:"center", gap:3,
+      overflow:"hidden", minWidth:0, width:"100%", boxSizing:"border-box",
+    }}>
+      <span style={{ flexShrink:0 }}>{cat.icon}</span>
+      <span style={{ overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", flex:1, minWidth:0 }}>{event.title}</span>
       {!event.allDay && event.timeStart && <span style={{ fontSize:9, opacity:.7, flexShrink:0 }}>{event.timeStart}</span>}
       {evtUsers.map(u => <span key={u.id} style={{ color:u.color, fontSize:8, flexShrink:0 }}>{u.shape}</span>)}
     </div>
