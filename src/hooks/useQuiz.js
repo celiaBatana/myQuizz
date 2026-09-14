@@ -12,28 +12,39 @@ const FREE_DAILY_LIMIT = 3;
 export function useQuiz(quiz) {
   const { user, profile, updateProfile } = useAuth();
 
+  // Mélanger les questions (Fisher-Yates)
+  function shuffle(arr) {
+    const a = [...arr];
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  const [questions,      setQuestions]      = useState(() => shuffle(quiz?.questions || []));
   const [qIndex,         setQIndex]         = useState(0);
-  const [status,         setStatus]         = useState('playing'); // playing | finished
+  const [status,         setStatus]         = useState('playing');
   const [answered,       setAnswered]       = useState(false);
   const [selectedOption, setSelectedOption] = useState(null);
   const [explanation,    setExplanation]    = useState('');
   const [timerEnabled,   setTimerEnabled]   = useState(false);
   const [timeLeft,       setTimeLeft]       = useState(TIMER_DURATION);
 
-  // On stocke score et XP dans des refs pour éviter les problèmes async
-  const scoreRef   = useRef(0);
-  const totalXPRef = useRef(0);
+  // Refs pour éviter les problèmes async
+  const scoreRef     = useRef(0);
+  const totalXPRef   = useRef(0);
   const totalTimeRef = useRef(0);
 
-  // States affichés dans l'UI (miroir des refs)
-  const [scoreDisplay,  setScoreDisplay]  = useState(0);
-  const [totalXPDisplay,setTotalXPDisplay]= useState(0);
+  // States affichés dans l'UI
+  const [scoreDisplay,   setScoreDisplay]   = useState(0);
+  const [totalXPDisplay, setTotalXPDisplay] = useState(0);
 
   const timerRef     = useRef(null);
   const startTimeRef = useRef(null);
 
-  const currentQuestion = quiz?.questions[qIndex];
-  const totalQuestions  = quiz?.questions?.length || 0;
+  const currentQuestion = questions[qIndex];
+  const totalQuestions  = questions?.length || 0;
   const diff            = quiz?.diff || 'medium';
 
   const startTimer = useCallback(() => {
@@ -192,6 +203,24 @@ export function useQuiz(quiz) {
     }
   }
 
+  function restart() {
+    // Remettre à zéro tout le state
+    scoreRef.current     = 0;
+    totalXPRef.current   = 0;
+    totalTimeRef.current = 0;
+    setScoreDisplay(0);
+    setTotalXPDisplay(0);
+    setQIndex(0);
+    setStatus('playing');
+    setAnswered(false);
+    setSelectedOption(null);
+    setExplanation('');
+    setTimeLeft(TIMER_DURATION);
+    // Mélanger les questions dans un nouvel ordre
+    setQuestions(shuffle(quiz?.questions || []));
+    clearInterval(timerRef.current);
+  }
+
   function canPlay() {
     if (!user) return { allowed: true };
     if (profile?.isPremium) return { allowed: true };
@@ -229,6 +258,7 @@ export function useQuiz(quiz) {
     diff,
     answer,
     next,
+    restart,
     toggleTimer,
     canPlay,
     XP_MAP,
