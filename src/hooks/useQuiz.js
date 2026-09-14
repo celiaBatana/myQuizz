@@ -3,66 +3,63 @@ import { doc, updateDoc, arrayUnion, increment, serverTimestamp } from 'firebase
 import { db } from '../firebase';
 import { useAuth } from '../context/AuthContext';
 
-const XP_MAP = { easy: 5, medium: 10, hard: 20 };
+const XP_MAP         = { easy: 5,  medium: 10, hard: 20 };
 const XP_TIMER_BONUS = { easy: 10, medium: 20, hard: 30 };
 const TIMER_DURATION = 15;
-const XP_PER_LEVEL = 200;
+const XP_PER_LEVEL   = 200;
 const FREE_DAILY_LIMIT = 3;
 
 export function useQuiz(quiz) {
   const { user, profile, updateProfile } = useAuth();
 
-  const [qIndex, setQIndex] = useState(0);
-  const [score, setScore] = useState(0);
-  const [totalXP, setTotalXP] = useState(0);
-  const [totalTime, setTotalTime] = useState(0);
-  const [answered, setAnswered] = useState(false);
+  const [qIndex,         setQIndex]         = useState(0);
+  const [status,         setStatus]         = useState('playing'); // playing | finished
+  const [answered,       setAnswered]       = useState(false);
   const [selectedOption, setSelectedOption] = useState(null);
-  const [status, setStatus] = useState('playing'); // playing | finished
-  const [timerEnabled, setTimerEnabled] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(TIMER_DURATION);
-  const [explanation, setExplanation] = useState('');
+  const [explanation,    setExplanation]    = useState('');
+  const [timerEnabled,   setTimerEnabled]   = useState(false);
+  const [timeLeft,       setTimeLeft]       = useState(TIMER_DURATION);
 
-  const timerRef = useRef(null);
+  // On stocke score et XP dans des refs pour éviter les problèmes async
+  const scoreRef   = useRef(0);
+  const totalXPRef = useRef(0);
+  const totalTimeRef = useRef(0);
+
+  // States affichés dans l'UI (miroir des refs)
+  const [scoreDisplay,  setScoreDisplay]  = useState(0);
+  const [totalXPDisplay,setTotalXPDisplay]= useState(0);
+
+  const timerRef     = useRef(null);
   const startTimeRef = useRef(null);
 
   const currentQuestion = quiz?.questions[qIndex];
-  const totalQuestions = quiz?.questions?.length || 0;
-  const diff = quiz?.diff || 'medium';
+  const totalQuestions  = quiz?.questions?.length || 0;
+  const diff            = quiz?.diff || 'medium';
 
-  // Démarre le timer
   const startTimer = useCallback(() => {
     clearInterval(timerRef.current);
     setTimeLeft(TIMER_DURATION);
     startTimeRef.current = Date.now();
     timerRef.current = setInterval(() => {
-      setTimeLeft((t) => {
-        if (t <= 1) {
-          clearInterval(timerRef.current);
-          return 0;
-        }
+      setTimeLeft(t => {
+        if (t <= 1) { clearInterval(timerRef.current); return 0; }
         return t - 1;
       });
     }, 1000);
   }, []);
 
-  // Arrête le timer
   const stopTimer = useCallback(() => {
     clearInterval(timerRef.current);
   }, []);
 
-  // Quand timeLeft atteint 0, auto-wrong
   useEffect(() => {
     if (timerEnabled && timeLeft === 0 && !answered && status === 'playing') {
       handleTimeout();
     }
   }, [timeLeft, answered, timerEnabled, status]);
 
-  // Démarre le timer si activé
   useEffect(() => {
-    if (timerEnabled && status === 'playing' && !answered) {
-      startTimer();
-    }
+    if (timerEnabled && status === 'playing' && !answered) startTimer();
     return () => clearInterval(timerRef.current);
   }, [qIndex, timerEnabled, status]);
 
@@ -72,44 +69,43 @@ export function useQuiz(quiz) {
     setExplanation(currentQuestion?.e || '');
   }
 
-  // Répond à une question
   function answer(optionIndex) {
     if (answered) return;
     setAnswered(true);
     stopTimer();
 
-    const elapsed = timerEnabled
-      ? TIMER_DURATION - timeLeft
-      : 0;
-
+    const elapsed = timerEnabled ? TIMER_DURATION - timeLeft : 0;
     setSelectedOption(optionIndex);
-    const correct = optionIndex === currentQuestion.a;
 
+    const correct = optionIndex === currentQuestion?.a;
     let xpGained = 0;
+
     if (correct) {
       xpGained = XP_MAP[diff];
       if (timerEnabled) {
         const speedRatio = Math.max(0, (TIMER_DURATION - elapsed) / TIMER_DURATION);
         xpGained += Math.floor(speedRatio * XP_TIMER_BONUS[diff]);
       }
-      setScore((s) => s + 1);
-      setTotalXP((x) => x + xpGained);
+      // Mettre à jour les refs immédiatement (pas de problème async)
+      scoreRef.current   += 1;
+      totalXPRef.current += xpGained;
+      setScoreDisplay(scoreRef.current);
+      setTotalXPDisplay(totalXPRef.current);
     }
 
     if (timerEnabled) {
-      setTotalTime((t) => t + elapsed);
+      totalTimeRef.current += elapsed;
     }
 
     setExplanation(currentQuestion?.e || '');
     return { correct, xpGained };
   }
 
-  // Passe à la question suivante
   function next() {
     if (qIndex + 1 >= totalQuestions) {
       finish();
     } else {
-      setQIndex((i) => i + 1);
+      setQIndex(i => i + 1);
       setAnswered(false);
       setSelectedOption(null);
       setExplanation('');
@@ -117,95 +113,112 @@ export function useQuiz(quiz) {
     }
   }
 
-  // Termine le quiz et sauvegarde en Firebase
   async function finish() {
     stopTimer();
     setStatus('finished');
 
-    if (!user || !profile) return;
+    // Lire les valeurs depuis les refs (pas depuis le state React)
+    const finalScore = scoreRef.current;
+    const finalXP    = totalXPRef.current;
+    const finalTime  = totalTimeRef.current;
 
-    const xpToAdd = totalXP;
-    const newTotalXP = (profile.totalXP || 0) + xpToAdd;
+    console.log('Quiz terminé — score:', finalScore, 'XP:', finalXP, 'user:', user?.uid);
 
-    // Calcul du niveau
-    let lvl = 1;
-    let remaining = newTotalXP;
-    while (remaining >= XP_PER_LEVEL) {
-      remaining -= XP_PER_LEVEL;
-      lvl++;
+    if (!user) {
+      console.warn('Pas de user connecté — stats non sauvegardées');
+      return;
     }
 
-    const historyEntry = {
-      quizId: quiz.id,
-      quizName: quiz.name,
-      category: quiz.category,
-      theme: quiz.theme,
-      diff: quiz.diff,
-      score,
-      total: totalQuestions,
-      xp: xpToAdd,
-      date: new Date().toISOString(),
-    };
+    try {
+      const xpToAdd    = finalXP;
+      const prevXP     = profile?.totalXP || 0;
+      const newTotalXP = prevXP + xpToAdd;
 
-    // Vérification limite gratuit
-    const today = new Date().toDateString();
-    const lastPlay = profile.lastPlayDate;
-    const quizzesToday = lastPlay === today ? (profile.quizzesToday || 0) : 0;
+      // Calcul du niveau
+      let lvl       = 1;
+      let remaining = newTotalXP;
+      while (remaining >= XP_PER_LEVEL) {
+        remaining -= XP_PER_LEVEL;
+        lvl++;
+      }
 
-    await updateDoc(doc(db, 'users', user.uid), {
-      totalXP: increment(xpToAdd),
-      level: lvl,
-      xpInLevel: remaining,
-      quizzesPlayed: increment(1),
-      correctAnswers: increment(score),
-      totalAnswers: increment(totalQuestions),
-      quizzesToday: lastPlay === today ? increment(1) : 1,
-      lastPlayDate: today,
-      history: arrayUnion(historyEntry),
-      updatedAt: serverTimestamp(),
-    });
+      const today     = new Date().toDateString();
+      const lastPlay  = profile?.lastPlayDate;
+      const quizzesToday = lastPlay === today ? (profile?.quizzesToday || 0) : 0;
 
-    await updateProfile({
-      totalXP: newTotalXP,
-      level: lvl,
-      xpInLevel: remaining,
-      quizzesPlayed: (profile.quizzesPlayed || 0) + 1,
-      quizzesToday: quizzesToday + 1,
-      lastPlayDate: today,
-    });
+      const historyEntry = {
+        quizId:    quiz.id   || '',
+        quizName:  quiz.name || 'Quiz',
+        diff:      quiz.diff || 'medium',
+        score:     finalScore,
+        total:     totalQuestions,
+        xp:        xpToAdd,
+        date:      new Date().toISOString(),
+      };
+
+      console.log('Sauvegarde Firestore...', { xpToAdd, finalScore, lvl, remaining });
+
+      await updateDoc(doc(db, 'users', user.uid), {
+        totalXP:        increment(xpToAdd),
+        level:          lvl,
+        xpInLevel:      remaining,
+        quizzesPlayed:  increment(1),
+        correctAnswers: increment(finalScore),
+        totalAnswers:   increment(totalQuestions),
+        quizzesToday:   lastPlay === today ? increment(1) : 1,
+        lastPlayDate:   today,
+        history:        arrayUnion(historyEntry),
+        updatedAt:      serverTimestamp(),
+      });
+
+      console.log('✅ Firestore OK');
+
+      // Mettre à jour le state local du contexte
+      await updateProfile({
+        totalXP:        newTotalXP,
+        level:          lvl,
+        xpInLevel:      remaining,
+        quizzesPlayed:  (profile?.quizzesPlayed || 0) + 1,
+        correctAnswers: (profile?.correctAnswers || 0) + finalScore,
+        totalAnswers:   (profile?.totalAnswers   || 0) + totalQuestions,
+        quizzesToday:   quizzesToday + 1,
+        lastPlayDate:   today,
+      });
+
+      console.log('✅ Profile local mis à jour');
+
+    } catch (err) {
+      console.error('❌ Erreur sauvegarde quiz:', err);
+    }
   }
 
-  // Vérifie si l'utilisateur peut jouer (limite gratuit)
   function canPlay() {
-    if (!user) return { allowed: true }; // non connecté = pas de limite (pour l'instant)
+    if (!user) return { allowed: true };
     if (profile?.isPremium) return { allowed: true };
     const today = new Date().toDateString();
-    const quizzesToday =
-      profile?.lastPlayDate === today ? profile.quizzesToday || 0 : 0;
-    if (quizzesToday >= FREE_DAILY_LIMIT) {
-      return { allowed: false, reason: 'limit', remaining: 0 };
-    }
+    const quizzesToday = profile?.lastPlayDate === today ? (profile.quizzesToday || 0) : 0;
+    if (quizzesToday >= FREE_DAILY_LIMIT) return { allowed: false, reason: 'limit', remaining: 0 };
     return { allowed: true, remaining: FREE_DAILY_LIMIT - quizzesToday };
   }
 
   function toggleTimer() {
-    setTimerEnabled((v) => {
+    setTimerEnabled(v => {
       if (!v) startTimer();
       else stopTimer();
       return !v;
     });
   }
 
-  const avgTime =
-    timerEnabled && score > 0 ? Math.round(totalTime / totalQuestions) : null;
+  const avgTime = timerEnabled && scoreRef.current > 0
+    ? Math.round(totalTimeRef.current / totalQuestions)
+    : null;
 
   return {
-    // État
     qIndex,
     currentQuestion,
     totalQuestions,
-    score,
-    totalXP,
+    score:    scoreDisplay,
+    totalXP:  totalXPDisplay,
     answered,
     selectedOption,
     status,
@@ -214,12 +227,10 @@ export function useQuiz(quiz) {
     timeLeft,
     avgTime,
     diff,
-    // Actions
     answer,
     next,
     toggleTimer,
     canPlay,
-    // Constantes
     XP_MAP,
     XP_TIMER_BONUS,
     TIMER_DURATION,
