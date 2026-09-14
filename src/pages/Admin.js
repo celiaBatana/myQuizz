@@ -1039,7 +1039,8 @@ function QuestionForm({ q, onSave, onCancel }) {
           </div>
         ))}
       </div>
-      <input style={inp} value={expl} onChange={e => setExpl(e.target.value)} placeholder="Explication..." />
+      <label style={{ fontSize:10, color:'var(--muted)', marginBottom:3, display:'block' }}>Explication</label>
+      <textarea style={{ ...inp, minHeight:60, resize:'vertical' }} value={expl} onChange={e => setExpl(e.target.value)} placeholder="Explication de la bonne réponse..." />
       <div style={{ display: 'flex', gap: 6 }}>
         <button className="btn btn-primary" style={{ padding: '6px 14px', fontSize: 12 }} onClick={() => onSave({ text, options: opts, answer: ans, explanation: expl, diff })}>Enregistrer</button>
         <button className="btn btn-secondary" style={{ padding: '6px 14px', fontSize: 12 }} onClick={onCancel}>Annuler</button>
