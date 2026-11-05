@@ -25,6 +25,38 @@ service cloud.firestore {
         && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['isAdmin', 'isPremium']);
     }
 
+    // Classement public : chacun écrit uniquement sa propre ligne
+    match /leaderboard/{uid} {
+      allow read: if true;
+      allow create, update: if signedIn() && request.auth.uid == uid;
+    }
+
+    // Défi du jour : un score par joueur et par jour (id = date_uid), non modifiable
+    match /daily_scores/{id} {
+      allow read: if true;
+      allow create: if signedIn()
+        && request.resource.data.uid == request.auth.uid
+        && id == request.resource.data.date + '_' + request.auth.uid;
+    }
+
+    // Duels entre amis
+    match /duels/{id} {
+      allow read: if true;
+      allow create: if signedIn() && request.resource.data.creatorUid == request.auth.uid;
+    }
+    match /duel_results/{id} {
+      allow read: if true;
+      allow create: if signedIn()
+        && request.resource.data.uid == request.auth.uid
+        && id == request.resource.data.duelId + '_' + request.auth.uid;
+    }
+
+    // Signalements de questions : création par tout joueur connecté, gestion par l'admin
+    match /reports/{id} {
+      allow create: if signedIn();
+      allow read, update, delete: if isAdmin();
+    }
+
     // ── Calendrier partagé (ouvert) ───────────────────────────
     match /calendar_users/{id}  { allow read, write: if true; }
     match /calendar_events/{id} { allow read, write: if true; }

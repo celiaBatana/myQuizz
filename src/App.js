@@ -9,6 +9,11 @@ import Quizzes from './pages/Quizzes';
 import QuizPlay from './pages/QuizPlay';
 import Profile from './pages/Profile';
 import Admin from './pages/Admin';
+import Jouer from './pages/Jouer';
+import Play from './pages/Play';
+import Daily from './pages/Daily';
+import Duel from './pages/Duel';
+import Leaderboard from './pages/Leaderboard';
 import './styles/globals.css';
 
 
@@ -23,6 +28,11 @@ export default function App() {
             <Route path="/category/:catId" element={<Themes />} />
             <Route path="/category/:catId/theme/:themeId" element={<Quizzes />} />
             <Route path="/quiz/:catId/:themeId/:quizId" element={<QuizPlay />} />
+            <Route path="/jouer" element={<Jouer />} />
+            <Route path="/play" element={<Play />} />
+            <Route path="/daily" element={<Daily />} />
+            <Route path="/duel/:id" element={<Duel />} />
+            <Route path="/classement" element={<Leaderboard />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/admin" element={<Admin />} />
             <Route path="/calendar" element={<Calendar />} />

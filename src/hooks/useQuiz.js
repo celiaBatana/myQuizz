@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { doc, updateDoc, increment, serverTimestamp } from 'firebase/firestore';
+import { doc, updateDoc, setDoc, increment, serverTimestamp } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useAuth } from '../context/AuthContext';
 
@@ -9,10 +9,15 @@ const TIMER_DURATION = 15;
 const XP_PER_LEVEL   = 200;
 const HISTORY_MAX    = 50;
 
-function dayKey(d = new Date()) {
+export function dayKey(offsetDays = 0) {
+  const d = new Date();
+  d.setDate(d.getDate() + offsetDays);
   const p = n => String(n).padStart(2, '0');
   return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
 }
+
+// Multiplicateur de combo : 3 bonnes d'affilée = x1,5 ; 5 = x2
+export function comboMult(c) { return c >= 5 ? 2 : c >= 3 ? 1.5 : 1; }
 
 export function useQuiz(quiz) {
   const { user, profile, updateProfile } = useAuth();
@@ -42,6 +47,12 @@ export function useQuiz(quiz) {
   const totalTimeRef = useRef(0);
   const timedCountRef = useRef(0);
   const wrongRef      = useRef([]);
+  const comboRef      = useRef(0);
+  const mode          = quiz?.mode || 'normal';
+  const [combo, setCombo] = useState(0);
+  const [over, setOver]   = useState(false);
+  const [rewards, setRewards] = useState(null);
+  const [saved, setSaved]     = useState(false);
   const [practice, setPractice] = useState(false);
   const [wrongCount, setWrongCount] = useState(0);
 
@@ -53,8 +64,10 @@ export function useQuiz(quiz) {
   const startTimeRef = useRef(null);
 
   const currentQuestion = questions[qIndex];
-  const totalQuestions  = questions?.length || 0;
+  const questionCount   = questions?.length || 0;
+  const totalQuestions  = (mode === 'sudden' && status === 'finished') ? qIndex + 1 : questionCount;
   const diff            = quiz?.diff || 'medium';
+  const qDiff           = XP_MAP[currentQuestion?.d] ? currentQuestion.d : (XP_MAP[diff] ? diff : 'medium');
 
   const startTimer = useCallback(() => {
     clearInterval(timerRef.current);
@@ -86,6 +99,8 @@ export function useQuiz(quiz) {
   function handleTimeout() {
     totalTimeRef.current += TIMER_DURATION;
     timedCountRef.current += 1;
+    comboRef.current = 0; setCombo(0);
+    if (mode === 'sudden') setOver(true);
     if (currentQuestion) { wrongRef.current.push(currentQuestion); setWrongCount(wrongRef.current.length); }
     setAnswered(true);
     setSelectedOption(null);
@@ -103,18 +118,24 @@ export function useQuiz(quiz) {
     const correct = optionIndex === currentQuestion?.a;
     let xpGained = 0;
 
+    let mult = 1;
     if (correct) {
-      xpGained = XP_MAP[diff];
+      xpGained = XP_MAP[qDiff];
       if (timerEnabled) {
         const speedRatio = Math.max(0, (TIMER_DURATION - elapsed) / TIMER_DURATION);
-        xpGained += Math.floor(speedRatio * XP_TIMER_BONUS[diff]);
+        xpGained += Math.floor(speedRatio * XP_TIMER_BONUS[qDiff]);
       }
+      comboRef.current += 1; setCombo(comboRef.current);
+      mult = comboMult(comboRef.current);
+      xpGained = Math.round(xpGained * mult);
       // Mettre à jour les refs immédiatement (pas de problème async)
       scoreRef.current   += 1;
       totalXPRef.current += xpGained;
       setScoreDisplay(scoreRef.current);
       setTotalXPDisplay(totalXPRef.current);
     } else if (currentQuestion) {
+      comboRef.current = 0; setCombo(0);
+      if (mode === 'sudden') setOver(true);
       wrongRef.current.push(currentQuestion);
       setWrongCount(wrongRef.current.length);
     }
@@ -125,11 +146,11 @@ export function useQuiz(quiz) {
     }
 
     setExplanation(currentQuestion?.e || '');
-    return { correct, xpGained };
+    return { correct, xpGained, combo: comboRef.current, mult };
   }
 
   function next() {
-    if (qIndex + 1 >= totalQuestions) {
+    if (qIndex + 1 >= questionCount || over) {
       finish();
     } else {
       setQIndex(i => i + 1);
@@ -147,7 +168,7 @@ export function useQuiz(quiz) {
     // Lire les valeurs depuis les refs (pas depuis le state React)
     const finalScore = scoreRef.current;
     const finalXP    = totalXPRef.current;
-    const finalTime  = totalTimeRef.current;
+    const finalTotal = mode === 'sudden' ? qIndex + 1 : questionCount;
 
     if (practice) return; // mode révision : rien n'est sauvegardé
     if (!user) {
@@ -156,41 +177,47 @@ export function useQuiz(quiz) {
     }
 
     try {
-      const xpToAdd    = finalXP;
-      const prevXP     = profile?.totalXP || 0;
-      const newTotalXP = prevXP + xpToAdd;
+      const todayKey  = dayKey();
+      const lastKey   = profile?.lastStreakDate;
 
-      // Calcul du niveau
-      let lvl       = 1;
-      let remaining = newTotalXP;
-      while (remaining >= XP_PER_LEVEL) {
-        remaining -= XP_PER_LEVEL;
-        lvl++;
-      }
+      // Coffre quotidien : bonus à la première partie du jour
+      const chestXP   = profile?.lastChestDate === todayKey ? 0 : 10 + 5 * Math.floor(Math.random() * 9);
+      const xpToAdd   = finalXP + chestXP;
+      const newTotalXP = (profile?.totalXP || 0) + xpToAdd;
 
-      const today     = new Date().toDateString();
-      const lastPlay  = profile?.lastPlayDate;
+      let lvl = 1, remaining = newTotalXP;
+      while (remaining >= XP_PER_LEVEL) { remaining -= XP_PER_LEVEL; lvl++; }
+
+      // Série + gel de série
+      let freezes = profile?.freezes || 0;
+      let freezeUsed = false, freezeGained = false, newStreak;
+      if (lastKey === todayKey)            newStreak = profile?.streak || 1;
+      else if (lastKey === dayKey(-1))     newStreak = (profile?.streak || 0) + 1;
+      else if (lastKey === dayKey(-2) && freezes > 0 && (profile?.streak || 0) > 0) {
+        newStreak = profile.streak + 1; freezes -= 1; freezeUsed = true;
+      } else newStreak = 1;
+      if (lastKey !== todayKey && newStreak % 7 === 0 && freezes < 2) { freezes += 1; freezeGained = true; }
+
+      const today        = new Date().toDateString();
+      const lastPlay     = profile?.lastPlayDate;
       const quizzesToday = lastPlay === today ? (profile?.quizzesToday || 0) : 0;
 
       const historyEntry = {
-        quizId:    quiz.id   || '',
-        quizName:  quiz.name || 'Quiz',
-        diff:      quiz.diff || 'medium',
-        score:     finalScore,
-        total:     totalQuestions,
-        xp:        xpToAdd,
-        date:      new Date().toISOString(),
+        quizId:   quiz.id   || '',
+        quizName: quiz.name || 'Quiz',
+        diff:     quiz.diff || 'medium',
+        score:    finalScore,
+        total:    finalTotal,
+        xp:       xpToAdd,
+        date:     new Date().toISOString(),
       };
-
-      const todayKey  = dayKey();
-      const yKey      = dayKey(new Date(Date.now() - 86400000));
-      const lastKey   = profile?.lastStreakDate;
-      const newStreak = lastKey === todayKey ? (profile?.streak || 1)
-                      : lastKey === yKey     ? (profile?.streak || 0) + 1 : 1;
       const newHistory = [...(profile?.history || []), historyEntry].slice(-HISTORY_MAX);
-      const pctScore  = totalQuestions > 0 ? Math.round((finalScore / totalQuestions) * 100) : 0;
-      const prevBest  = profile?.bestScores?.[quiz.id];
-      const isBest    = !quiz.noBest && quiz.id && (prevBest === undefined || pctScore > prevBest);
+
+      const pctScore = finalTotal > 0 ? Math.round((finalScore / finalTotal) * 100) : 0;
+      const prevBest = profile?.bestScores?.[quiz.id];
+      const isBest   = !quiz.noBest && quiz.id && (prevBest === undefined || pctScore > prevBest);
+      const perfect  = finalScore === finalTotal && finalTotal > 0 && mode !== 'sudden';
+      const newSudden = mode === 'sudden' ? Math.max(profile?.suddenBest || 0, finalScore) : (profile?.suddenBest || 0);
 
       await updateDoc(doc(db, 'users', user.uid), {
         totalXP:        increment(xpToAdd),
@@ -198,41 +225,69 @@ export function useQuiz(quiz) {
         xpInLevel:      remaining,
         quizzesPlayed:  increment(1),
         correctAnswers: increment(finalScore),
-        totalAnswers:   increment(totalQuestions),
+        totalAnswers:   increment(finalTotal),
         quizzesToday:   lastPlay === today ? increment(1) : 1,
         lastPlayDate:   today,
         history:        newHistory,
         streak:         newStreak,
         lastStreakDate: todayKey,
+        freezes,
+        lastChestDate:  todayKey,
+        suddenBest:     newSudden,
         updatedAt:      serverTimestamp(),
         ...(isBest ? { [`bestScores.${quiz.id}`]: pctScore } : {}),
-        ...(finalScore === totalQuestions && totalQuestions > 0 ? { perfectQuizzes: increment(1) } : {}),
+        ...(perfect ? { perfectQuizzes: increment(1) } : {}),
       });
 
-      // Mettre à jour le state local du contexte
+      setRewards({ chestXP, freezeUsed, freezeGained, streak: newStreak });
+
       await updateProfile({
         totalXP:        newTotalXP,
         level:          lvl,
         xpInLevel:      remaining,
         quizzesPlayed:  (profile?.quizzesPlayed || 0) + 1,
         correctAnswers: (profile?.correctAnswers || 0) + finalScore,
-        totalAnswers:   (profile?.totalAnswers   || 0) + totalQuestions,
+        totalAnswers:   (profile?.totalAnswers   || 0) + finalTotal,
         quizzesToday:   quizzesToday + 1,
         lastPlayDate:   today,
         history:        newHistory,
         streak:         newStreak,
         lastStreakDate: todayKey,
-        perfectQuizzes: (profile?.perfectQuizzes || 0) + (finalScore === totalQuestions && totalQuestions > 0 ? 1 : 0),
+        freezes,
+        lastChestDate:  todayKey,
+        suddenBest:     newSudden,
+        perfectQuizzes: (profile?.perfectQuizzes || 0) + (perfect ? 1 : 0),
         bestScores:     isBest ? { ...(profile?.bestScores || {}), [quiz.id]: pctScore } : (profile?.bestScores || {}),
       });
 
+      // Données publiques (classement, défi du jour, duel) : échec non bloquant
+      const name = profile?.displayName || user.displayName || 'Joueur';
+      try {
+        await setDoc(doc(db, 'leaderboard', user.uid), {
+          uid: user.uid, name, totalXP: newTotalXP, level: lvl, streak: newStreak, updatedAt: serverTimestamp(),
+        }, { merge: true });
+        if (mode === 'daily' && quiz.dailyDate) {
+          await setDoc(doc(db, 'daily_scores', `${quiz.dailyDate}_${user.uid}`), {
+            uid: user.uid, name, date: quiz.dailyDate, score: finalScore, total: finalTotal, xp: finalXP, createdAt: serverTimestamp(),
+          });
+        }
+        if (mode === 'duel' && quiz.duelId) {
+          await setDoc(doc(db, 'duel_results', `${quiz.duelId}_${user.uid}`), {
+            uid: user.uid, name, duelId: quiz.duelId, score: finalScore, total: finalTotal, createdAt: serverTimestamp(),
+          });
+        }
+      } catch (e) {
+        console.warn('Données publiques non enregistrées (règles Firestore à publier ?)', e);
+      }
     } catch (err) {
       console.error('❌ Erreur sauvegarde quiz:', err);
     }
+    setSaved(true);
   }
 
   function reset(list, isPractice) {
     wrongRef.current = [];
+    comboRef.current = 0; setCombo(0); setOver(false); setRewards(null); setSaved(false);
     setWrongCount(0);
     setPractice(isPractice);
     scoreRef.current     = 0;
@@ -281,6 +336,12 @@ export function useQuiz(quiz) {
     timeLeft,
     avgTime,
     practice,
+    mode,
+    combo,
+    over,
+    rewards,
+    saved,
+    qDiff,
     wrongCount,
     practiceWrong,
     diff,

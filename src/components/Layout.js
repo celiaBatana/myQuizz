@@ -56,6 +56,14 @@ export default function Layout() {
           <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
           Accueil
         </NavLink>
+        <NavLink to="/jouer" className={({ isActive }) => `bnav-item ${isActive ? 'active' : ''}`}>
+          <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          Jouer
+        </NavLink>
+        <NavLink to="/classement" className={({ isActive }) => `bnav-item ${isActive ? 'active' : ''}`}>
+          <svg viewBox="0 0 24 24"><path d="M6 9H4a2 2 0 01-2-2V5h4M18 9h2a2 2 0 002-2V5h-4M6 3h12v6a6 6 0 01-12 0zM12 15v4M8 21h8"/></svg>
+          Classement
+        </NavLink>
         <NavLink to="/profile" className={({ isActive }) => `bnav-item ${isActive ? 'active' : ''}`}>
           <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
           Profil

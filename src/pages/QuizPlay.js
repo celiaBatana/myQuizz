@@ -247,7 +247,8 @@ export function QuizPlay() {
 }
 
 // ── QuizPlayInner — logique de jeu ────────────────────────────────────────────
-function QuizPlayInner({ quizData, cat, theme, catId, themeId, navigate }) {
+export function QuizPlayInner({ quizData, cat, theme, catId, themeId, navigate, backTo, tagLabel, extra, noReplay }) {
+  const back = backTo || `/category/${catId}/theme/${themeId}`;
   const quiz = useQuiz(quizData);
   const [xpToast, setXpToast] = useState({ show: false, msg: '' });
   const toastTimer = useRef(null);
@@ -260,11 +261,11 @@ function QuizPlayInner({ quizData, cat, theme, catId, themeId, navigate }) {
 
   function handleAnswer(i) {
     const result = quiz.answer(i);
-    if (result?.correct) showXPToast(`+${result.xpGained} XP ⚡`);
+    if (result?.correct) showXPToast(`+${result.xpGained} XP ⚡${result.mult > 1 ? ` · combo ×${result.mult} 🔥` : ''}`);
   }
 
   if (quiz.status === 'finished') {
-    return <ResultScreen quiz={quiz} quizData={quizData} catId={catId} themeId={themeId} navigate={navigate} onReplay={quiz.restart} onPractice={quiz.practiceWrong} />;
+    return <ResultScreen quiz={quiz} quizData={quizData} catId={catId} themeId={themeId} navigate={navigate} onReplay={quiz.restart} onPractice={quiz.practiceWrong} backTo={back} extra={extra} noReplay={noReplay} />;
   }
 
   const q        = quiz.currentQuestion;
@@ -282,7 +283,7 @@ function QuizPlayInner({ quizData, cat, theme, catId, themeId, navigate }) {
           onClick={() => {
             const inProgress = quiz.qIndex > 0 || quiz.answered;
             if (inProgress && !window.confirm('Quitter le quiz en cours ? Ta progression sera perdue.')) return;
-            navigate(`/category/${catId}/theme/${themeId}`);
+            navigate(back);
           }}>← Retour</button>
         <div style={{ fontSize: 13, color: 'var(--muted)', fontWeight: 500 }}>
           {quiz.qIndex + 1} / {quiz.totalQuestions}
@@ -318,15 +319,25 @@ function QuizPlayInner({ quizData, cat, theme, catId, themeId, navigate }) {
 
       {/* Difficulté */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-        <span className={`diff-badge diff-${quiz.diff}`}>{DIFF_LABELS[quiz.diff]}</span>
+        <span className={`diff-badge diff-${quiz.qDiff}`}>{DIFF_LABELS[quiz.qDiff]}</span>
         <span style={{ fontSize: 11, color: 'var(--muted)' }}>
-          +{quiz.XP_MAP[quiz.diff]} XP/réponse
-          {quiz.timerEnabled && ` · bonus vitesse jusqu'à +${quiz.XP_TIMER_BONUS[quiz.diff]} XP`}
+          +{quiz.XP_MAP[quiz.qDiff]} XP/réponse
+          {quiz.timerEnabled && ` · bonus vitesse jusqu'à +${quiz.XP_TIMER_BONUS[quiz.qDiff]} XP`}
         </span>
+        {quiz.combo >= 2 && (
+          <span style={{ marginLeft: 'auto', fontSize: 12, fontWeight: 700, color: 'var(--yellow)' }}>
+            🔥 ×{quiz.combo}
+          </span>
+        )}
       </div>
 
       {/* Question */}
       <div style={{ background: 'var(--s1)', border: '1px solid var(--s2)', borderRadius: 16, padding: '18px 16px', marginBottom: 12 }}>
+        {tagLabel && (
+          <div style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.1em', color: 'var(--purple)', marginBottom: 8 }}>
+            {tagLabel}
+          </div>
+        )}
         {cat && theme && (
           <div style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.1em', color: 'var(--purple)', marginBottom: 8 }}>
             {cat.label} › {theme.label}
@@ -370,11 +381,17 @@ function QuizPlayInner({ quizData, cat, theme, catId, themeId, navigate }) {
         </div>
       )}
 
+      {quiz.answered && quiz.over && (
+        <div style={{ textAlign: 'center', color: 'var(--pink)', fontWeight: 700, fontSize: 13, marginBottom: 10 }}>
+          💥 Mort subite : une erreur et c'est fini !
+        </div>
+      )}
+
       {/* Suivant */}
       {quiz.answered && (
         <button className="btn btn-primary btn-full" onClick={quiz.next}
           style={{ animation: 'fadeIn .3s ease', fontFamily: "'Raleway', sans-serif", fontWeight: 700 }}>
-          {quiz.qIndex + 1 >= quiz.totalQuestions ? 'Voir mes résultats 🏆' : 'Question suivante →'}
+          {(quiz.qIndex + 1 >= quiz.totalQuestions || quiz.over) ? 'Voir mes résultats 🏆' : 'Question suivante →'}
         </button>
       )}
     </div>
@@ -382,7 +399,7 @@ function QuizPlayInner({ quizData, cat, theme, catId, themeId, navigate }) {
 }
 
 // ── ResultScreen ──────────────────────────────────────────────────────────────
-function ResultScreen({ quiz, quizData, catId, themeId, navigate, onReplay, onPractice }) {
+function ResultScreen({ quiz, quizData, catId, themeId, navigate, onReplay, onPractice, backTo, extra, noReplay }) {
   const pct   = quiz.score / quiz.totalQuestions;
   const emoji = pct === 1 ? '🏆' : pct >= 0.8 ? '⭐' : pct >= 0.6 ? '👍' : pct >= 0.4 ? '🤔' : '💪';
   const title = pct === 1 ? 'Parfait !' : pct >= 0.8 ? 'Excellent !' : pct >= 0.6 ? 'Bien joué !' : pct >= 0.4 ? 'Pas mal !' : 'Continue !';
@@ -430,6 +447,17 @@ function ResultScreen({ quiz, quizData, catId, themeId, navigate, onReplay, onPr
         </div>
       </div>
 
+      {quiz.rewards && (quiz.rewards.chestXP > 0 || quiz.rewards.freezeUsed || quiz.rewards.freezeGained || quiz.rewards.streak > 1) && (
+        <div style={{ background: 'var(--s1)', border: '1px solid var(--s2)', borderRadius: 14, padding: '11px 14px', marginTop: 10, fontSize: 13, lineHeight: 1.7 }}>
+          {quiz.rewards.chestXP > 0 && <div>🎁 Coffre du jour : <strong style={{ color: 'var(--yellow)' }}>+{quiz.rewards.chestXP} XP</strong></div>}
+          {quiz.rewards.streak > 1 && <div>🔥 Série : <strong>{quiz.rewards.streak} jours</strong></div>}
+          {quiz.rewards.freezeUsed && <div>🧊 Un gel de série a sauvé ta série d'hier !</div>}
+          {quiz.rewards.freezeGained && <div>🧊 Nouveau gel de série gagné (7 jours d'affilée) !</div>}
+        </div>
+      )}
+
+      {extra && (quiz.saved ? extra : <div style={{ textAlign: 'center', color: 'var(--muted)', fontSize: 12, padding: 14 }}>Enregistrement du score…</div>)}
+
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 8 }}>
         {quiz.wrongCount > 0 && (
           <button className="btn btn-primary btn-full" style={{ fontFamily: "'Raleway', sans-serif", fontWeight: 700 }}
@@ -437,13 +465,15 @@ function ResultScreen({ quiz, quizData, catId, themeId, navigate, onReplay, onPr
             🔁 Rejouer mes {quiz.wrongCount} erreur{quiz.wrongCount > 1 ? 's' : ''} (sans XP)
           </button>
         )}
-        <button className={`btn ${quiz.wrongCount > 0 ? 'btn-secondary' : 'btn-primary'} btn-full`} style={{ fontFamily: "'Raleway', sans-serif", fontWeight: 700 }}
-          onClick={onReplay}>
-          Rejouer ce quiz
-        </button>
+        {!noReplay && (
+          <button className={`btn ${quiz.wrongCount > 0 ? 'btn-secondary' : 'btn-primary'} btn-full`} style={{ fontFamily: "'Raleway', sans-serif", fontWeight: 700 }}
+            onClick={onReplay}>
+            Rejouer ce quiz
+          </button>
+        )}
         <button className="btn btn-secondary btn-full" style={{ fontFamily: "'Raleway', sans-serif", fontWeight: 700 }}
-          onClick={() => navigate(`/category/${catId}/theme/${themeId}`)}>
-          Autres quiz du thème
+          onClick={() => navigate(backTo || `/category/${catId}/theme/${themeId}`)}>
+          {backTo && !catId ? 'Retour' : 'Autres quiz du thème'}
         </button>
         <button className="btn btn-secondary btn-full" style={{ fontFamily: "'Raleway', sans-serif", fontWeight: 700 }}
           onClick={() => navigate('/')}>

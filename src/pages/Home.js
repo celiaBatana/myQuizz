@@ -115,6 +115,18 @@ export default function Home() {
         </div>
       </div>
 
+      <div
+        onClick={() => navigate('/daily')}
+        style={{ background: 'var(--s1)', border: '2px solid var(--purple)', borderRadius: 16, padding: '14px 16px', marginBottom: 14, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 12 }}
+      >
+        <div style={{ fontSize: 28 }}>📅</div>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontFamily: "'Raleway', sans-serif", fontWeight: 800, fontSize: 15 }}>Défi du jour</div>
+          <div style={{ fontSize: 11, color: 'var(--muted)' }}>5 questions pour tous · un seul essai · classement</div>
+        </div>
+        <div style={{ color: 'var(--purple)', fontWeight: 800 }}>›</div>
+      </div>
+
       {/* Quiz du jour */}
       <div className="section-label">Quiz du jour</div>
       {featuredQuiz ? (
