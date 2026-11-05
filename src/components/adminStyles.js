@@ -1,0 +1,26 @@
+export const S = {
+  card: { background: 'var(--s1)', border: '1px solid var(--s2)', borderRadius: 12, padding: '11px 13px', marginBottom: 7 },
+  row: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
+  tag: (c) => ({ background: `${c}22`, color: c, borderRadius: 5, padding: '2px 7px', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', whiteSpace: 'nowrap' }),
+  iconBtn: (c='var(--muted)') => ({ background: 'none', border: 'none', color: c, cursor: 'pointer', fontSize: 15, padding: '3px 7px', borderRadius: 5, transition: 'color .2s', fontFamily: 'inherit' }),
+  input: { width: '100%', background: 'var(--s2)', border: '1px solid var(--s3)', borderRadius: 9, padding: '9px 12px', color: 'var(--text)', fontFamily: 'Josefin Sans, sans-serif', fontSize: 12, outline: 'none' },
+  select: { width: '100%', background: 'var(--s2)', border: '1px solid var(--s3)', borderRadius: 9, padding: '9px 12px', color: 'var(--text)', fontFamily: 'Josefin Sans, sans-serif', fontSize: 12, outline: 'none' },
+  label: { fontSize: 11, color: 'var(--muted)', fontWeight: 500, marginBottom: 4, display: 'block' },
+  grid2: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 10 },
+  confirm: { background: 'rgba(255,77,77,.08)', border: '1px solid rgba(255,77,77,.3)', borderRadius: 10, padding: 12, marginTop: 8 },
+  divider: { borderTop: '1px solid var(--s2)', margin: '16px 0' },
+  secLabel: { fontSize: 11, fontWeight: 600, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.08em', margin: '14px 0 8px' },
+  chip: (active) => ({
+    padding: '4px 10px', borderRadius: 20, fontSize: 11, fontWeight: 600, cursor: 'pointer', border: 'none',
+    background: active ? 'var(--purple)' : 'var(--s2)', color: active ? '#fff' : 'var(--muted)',
+    transition: 'all .15s',
+  }),
+  checkbox: (active) => ({
+    width: 18, height: 18, borderRadius: 4,
+    border: `2px solid ${active ? 'var(--purple)' : 'var(--s3)'}`,
+    background: active ? 'var(--purple)' : 'transparent',
+    flexShrink: 0, cursor: 'pointer',
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    fontSize: 10, color: '#fff', transition: 'all .15s',
+  }),
+};

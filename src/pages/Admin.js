@@ -4,56 +4,13 @@ import { db } from '../firebase';
 import { useAuth } from '../context/AuthContext';
 import { CATEGORIES, DIFF_LABELS } from '../data/quizData';
 import AuthModal from '../components/AuthModal';
+import { S } from '../components/adminStyles';
+import { QuestionForm, QuizForm, InlineEdit } from '../components/AdminForms';
+import AdminReports from '../components/AdminReports';
+import { parseCSV, normText } from '../utils/csv';
 
-const S = {
-  card: { background: 'var(--s1)', border: '1px solid var(--s2)', borderRadius: 12, padding: '11px 13px', marginBottom: 7 },
-  row: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
-  tag: (c) => ({ background: `${c}22`, color: c, borderRadius: 5, padding: '2px 7px', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', whiteSpace: 'nowrap' }),
-  iconBtn: (c='var(--muted)') => ({ background: 'none', border: 'none', color: c, cursor: 'pointer', fontSize: 15, padding: '3px 7px', borderRadius: 5, transition: 'color .2s', fontFamily: 'inherit' }),
-  input: { width: '100%', background: 'var(--s2)', border: '1px solid var(--s3)', borderRadius: 9, padding: '9px 12px', color: 'var(--text)', fontFamily: 'Josefin Sans, sans-serif', fontSize: 12, outline: 'none' },
-  select: { width: '100%', background: 'var(--s2)', border: '1px solid var(--s3)', borderRadius: 9, padding: '9px 12px', color: 'var(--text)', fontFamily: 'Josefin Sans, sans-serif', fontSize: 12, outline: 'none' },
-  label: { fontSize: 11, color: 'var(--muted)', fontWeight: 500, marginBottom: 4, display: 'block' },
-  grid2: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 10 },
-  confirm: { background: 'rgba(255,77,77,.08)', border: '1px solid rgba(255,77,77,.3)', borderRadius: 10, padding: 12, marginTop: 8 },
-  divider: { borderTop: '1px solid var(--s2)', margin: '16px 0' },
-  secLabel: { fontSize: 11, fontWeight: 600, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.08em', margin: '14px 0 8px' },
-  chip: (active) => ({
-    padding: '4px 10px', borderRadius: 20, fontSize: 11, fontWeight: 600, cursor: 'pointer', border: 'none',
-    background: active ? 'var(--purple)' : 'var(--s2)', color: active ? '#fff' : 'var(--muted)',
-    transition: 'all .15s',
-  }),
-  checkbox: (active) => ({
-    width: 18, height: 18, borderRadius: 4,
-    border: `2px solid ${active ? 'var(--purple)' : 'var(--s3)'}`,
-    background: active ? 'var(--purple)' : 'transparent',
-    flexShrink: 0, cursor: 'pointer',
-    display: 'flex', alignItems: 'center', justifyContent: 'center',
-    fontSize: 10, color: '#fff', transition: 'all .15s',
-  }),
-};
 
 // Parseur CSV robuste : gère les guillemets, les virgules dans les champs et les "" échappés
-function parseCSV(text) {
-  const rows = []; let row = [], cur = '', inQ = false;
-  const t = text.replace(/^\uFEFF/, '');
-  for (let i = 0; i < t.length; i++) {
-    const c = t[i];
-    if (inQ) {
-      if (c === '"') { if (t[i + 1] === '"') { cur += '"'; i++; } else inQ = false; }
-      else cur += c;
-    } else if (c === '"') inQ = true;
-    else if (c === ',') { row.push(cur); cur = ''; }
-    else if (c === '\n' || c === '\r') {
-      if (c === '\r' && t[i + 1] === '\n') i++;
-      row.push(cur); cur = '';
-      if (row.some(x => x.trim())) rows.push(row);
-      row = [];
-    } else cur += c;
-  }
-  row.push(cur);
-  if (row.some(x => x.trim())) rows.push(row);
-  return rows;
-}
 
 export default function Admin() {
   const { user, isAdmin } = useAuth();
@@ -66,6 +23,7 @@ export default function Admin() {
   const [quizzes,   setQuizzes]   = useState([]);
   const [cats,      setCats]      = useState([]);
   const [themes,    setThemes]    = useState([]);
+  const [reports,   setReports]   = useState([]);
   const [loading,   setLoading]   = useState(true);
 
   // UI questions
@@ -121,6 +79,10 @@ export default function Admin() {
       setQuizzes(quizS.docs.map(d => ({ id: d.id, ...d.data() })));
       setCats(catS.docs.map(d => ({ id: d.id, ...d.data() })));
       setThemes(thS.docs.map(d => ({ id: d.id, ...d.data() })));
+      try {
+        const rS = await getDocs(collection(db, 'reports'));
+        setReports(rS.docs.map(d => ({ id: d.id, ...d.data() })));
+      } catch (e) { console.warn('Signalements indisponibles (règles Firestore à publier ?)', e); }
       setLoading(false);
     })();
   }, [user, isAdmin]);
@@ -179,7 +141,12 @@ export default function Admin() {
   async function importCSVQuestions() {
     let n = 0; let linked = 0; let created = 0; const notFound = [];
     const known = [...quizzes]; // quiz connus, enrichis au fil des créations
+    const seen = new Set(questions.map(q => normText(q.text)));
+    let dups = 0;
     for (const { quizName, ...row } of csvRows) {
+      const key = normText(row.text);
+      if (seen.has(key)) { dups++; continue; } // doublon : déjà en base ou déjà vu dans ce CSV
+      seen.add(key);
       let matchingQuiz = known.find(q =>
         q.catId === row.category && q.themeId === row.theme && q.diff === row.diff &&
         (!quizName || q.name === quizName)
@@ -205,10 +172,11 @@ export default function Admin() {
         notFound.push({ category: row.category, theme: row.theme, diff: row.diff });
     }
     setCsvRows([]);
+    const dupTxt = dups ? ` · ${dups} doublon${dups > 1 ? 's' : ''} ignoré${dups > 1 ? 's' : ''}` : '';
     if (notFound.length > 0)
-      ok(`✓ ${n} importées · ${linked} liées · ⚠️ ${n - linked} sans quiz (${notFound.map(x => x.category + '/' + x.theme).join(', ')})`);
+      ok(`✓ ${n} importées · ${linked} liées · ⚠️ ${n - linked} sans quiz (${notFound.map(x => x.category + '/' + x.theme).join(', ')})${dupTxt}`);
     else
-      ok(`✓ ${n} questions importées et liées${created ? ` · ${created} quiz créé${created > 1 ? 's' : ''}` : ''} !`);
+      ok(`✓ ${n} questions importées et liées${created ? ` · ${created} quiz créé${created > 1 ? 's' : ''}` : ''}${dupTxt} !`);
   }
 
   function parseCSVQuestions(e) {
@@ -303,6 +271,33 @@ export default function Admin() {
     ));
     setLinkSelected([]);
     ok(`✓ ${linkSelected.length} questions liées au quiz "${quiz.name}"`);
+  }
+
+  async function duplicateQuiz(quiz) {
+    const qs = questions.filter(q => q.quizId === quiz.id);
+    const qd = { catId: quiz.catId, themeId: quiz.themeId, diff: quiz.diff, name: `${quiz.name} (copie)` };
+    const ref = await addDoc(collection(db, 'quizzes'), { ...qd, createdAt: serverTimestamp() });
+    const batch = writeBatch(db);
+    const copies = qs.map(q => {
+      const { id, ...data } = q;
+      const nd = { ...data, quizId: ref.id, createdAt: serverTimestamp(), createdBy: user.uid };
+      const r = doc(collection(db, 'questions'));
+      batch.set(r, nd);
+      return { id: r.id, ...nd };
+    });
+    if (copies.length) await batch.commit();
+    setQuizzes(p => [...p, { id: ref.id, ...qd }]);
+    setQuestions(p => [...p, ...copies]);
+    ok(`✓ Quiz dupliqué (${copies.length} questions)`);
+  }
+
+  async function moveQuestion(q, quizId) {
+    const quiz = quizzes.find(x => x.id === quizId);
+    if (!quiz) return;
+    const data = { quizId, category: quiz.catId, theme: quiz.themeId };
+    await updateDoc(doc(db, 'questions', q.id), data);
+    setQuestions(p => p.map(x => x.id === q.id ? { ...x, ...data } : x));
+    ok(`✓ Question déplacée vers "${quiz.name}"`);
   }
 
   async function unlinkQuestion(q) {
@@ -420,6 +415,7 @@ export default function Admin() {
     { id: 'lier',       label: `Lier questions${unlinkedCount > 0 ? ` (${unlinkedCount} sans quiz)` : ''}` },
     { id: 'questions',  label: `Questions (${questions.length})` },
     { id: 'ajouter',    label: 'Ajouter' },
+    { id: 'reports',    label: `🚩 Signalements${reports.length ? ` (${reports.length})` : ''}` },
     { id: 'categories', label: 'Catégories' },
     { id: 'themes',     label: 'Thèmes' },
   ];
@@ -514,6 +510,7 @@ export default function Admin() {
                               </div>
                               <div style={{ display: 'flex', gap: 2, flexShrink: 0 }}>
                                 <button style={S.iconBtn('var(--cyan)')} onClick={() => setEditQuiz(quiz)}>✏️</button>
+                                <button style={S.iconBtn('var(--muted)')} title="Dupliquer ce quiz" onClick={() => duplicateQuiz(quiz)}>📑</button>
                                 <button style={{ ...S.iconBtn('var(--muted)'), fontSize: 13 }} onClick={() => setExpandedQuiz(expandedQuiz === quiz.id ? null : quiz.id)}>
                                   {expandedQuiz === quiz.id ? '▲' : '▼'}
                                 </button>
@@ -556,6 +553,12 @@ export default function Admin() {
                                       </div>
                                       <div style={{ display: 'flex', gap: 2 }}>
                                         <button style={S.iconBtn('var(--cyan)')} onClick={() => setEditQ(q)}>✏️</button>
+                                        <select title="Déplacer vers un autre quiz" value="" onChange={e => e.target.value && moveQuestion(q, e.target.value)}
+                                          style={{ ...S.select, width: 34, padding: '2px 0', fontSize: 11 }}>
+                                          <option value="">➡️</option>
+                                          {quizzes.filter(x => x.id !== quiz.id).sort((a, b) => (a.catId + a.themeId + a.name).localeCompare(b.catId + b.themeId + b.name))
+                                            .map(x => <option key={x.id} value={x.id}>[{x.catId}/{x.themeId}] {x.name}</option>)}
+                                        </select>
                                         <button style={S.iconBtn('var(--muted)')} title="Délier" onClick={() => unlinkQuestion(q)}>⛓️</button>
                                       </div>
                                     </div>
@@ -920,6 +923,11 @@ export default function Admin() {
           {csvRows.length > 0 && (
             <div style={{ background: 'var(--s2)', borderRadius: 10, padding: 12 }}>
               <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--cyan)', marginBottom: 8 }}>{csvRows.length} questions détectées</div>
+              {(() => {
+                const ex = new Set(questions.map(q => normText(q.text)));
+                const n = csvRows.filter(r => ex.has(normText(r.text))).length;
+                return n > 0 ? <div style={{ fontSize: 11, color: 'var(--yellow)', marginBottom: 8 }}>⚠️ {n} déjà en base : elles seront ignorées à l'import</div> : null;
+              })()}
               {csvRows.slice(0, 3).map((q, i) => <div key={i} style={{ fontSize: 11, color: 'var(--muted)', marginBottom: 3 }}>• {q.text?.slice(0, 60)}…</div>)}
               {csvRows.length > 3 && <div style={{ fontSize: 11, color: 'var(--muted)' }}>+{csvRows.length - 3} autres</div>}
               <button className="btn btn-primary btn-full" style={{ marginTop: 10, fontFamily: "'Raleway'", fontWeight: 700 }} onClick={importCSVQuestions}>
@@ -931,6 +939,11 @@ export default function Admin() {
       )}
 
       {/* ══ CATÉGORIES ══ */}
+      {!loading && tab === 'reports' && (
+        <AdminReports reports={reports} setReports={setReports} questions={questions}
+          onSaveQuestion={saveQuestion} onDeleteQuestion={deleteQuestion} ok={ok} />
+      )}
+
       {!loading && tab === 'categories' && (
         <div>
           <div style={S.secLabel}>Catégories intégrées</div>
@@ -1041,84 +1054,6 @@ export default function Admin() {
           </form>
         </div>
       )}
-    </div>
-  );
-}
-
-// ── Formulaire édition question ───────────────────────────────────────────────
-function QuestionForm({ q, onSave, onCancel }) {
-  const [text, setText] = useState(q.text);
-  const [opts, setOpts] = useState([...q.options]);
-  const [ans, setAns]   = useState(q.answer);
-  const [expl, setExpl] = useState(q.explanation || '');
-  const [diff, setDiff] = useState(q.diff);
-  const inp = { width: '100%', background: 'var(--s2)', border: '1px solid var(--purple)', borderRadius: 8, padding: '7px 10px', color: 'var(--text)', fontFamily: 'Josefin Sans', fontSize: 12, outline: 'none', marginBottom: 7 };
-  return (
-    <div>
-      <textarea style={{ ...inp, minHeight: 56, resize: 'vertical' }} value={text} onChange={e => setText(e.target.value)} />
-      <select style={inp} value={diff} onChange={e => setDiff(e.target.value)}>
-        <option value="easy">Facile</option><option value="medium">Moyen</option><option value="hard">Expert</option>
-      </select>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, marginBottom: 7 }}>
-        {opts.map((o, i) => (
-          <div key={i} style={{ position: 'relative' }}>
-            <input value={o} onChange={e => { const a = [...opts]; a[i] = e.target.value; setOpts(a); }}
-              style={{ ...inp, marginBottom: 0, paddingRight: 28, borderColor: ans === i ? 'var(--cyan)' : 'var(--purple)' }} />
-            <button type="button" onClick={() => setAns(i)} style={{ position: 'absolute', right: 6, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', fontSize: 11, cursor: 'pointer', color: 'var(--cyan)', opacity: ans === i ? 1 : 0.3 }}>✓</button>
-          </div>
-        ))}
-      </div>
-      <label style={{ fontSize:10, color:'var(--muted)', marginBottom:3, display:'block' }}>Explication</label>
-      <textarea style={{ ...inp, minHeight:60, resize:'vertical' }} value={expl} onChange={e => setExpl(e.target.value)} placeholder="Explication de la bonne réponse..." />
-      <div style={{ display: 'flex', gap: 6 }}>
-        <button className="btn btn-primary" style={{ padding: '6px 14px', fontSize: 12 }} onClick={() => onSave({ text, options: opts, answer: ans, explanation: expl, diff })}>Enregistrer</button>
-        <button className="btn btn-secondary" style={{ padding: '6px 14px', fontSize: 12 }} onClick={onCancel}>Annuler</button>
-      </div>
-    </div>
-  );
-}
-
-// ── Formulaire édition quiz ───────────────────────────────────────────────────
-function QuizForm({ quiz, cats, themes, onSave, onCancel }) {
-  const [name,    setName]    = useState(quiz.name);
-  const [diff,    setDiff]    = useState(quiz.diff);
-  const [catId,   setCatId]   = useState(quiz.catId);
-  const [themeId, setThemeId] = useState(quiz.themeId);
-  const inp = { width: '100%', background: 'var(--s2)', border: '1px solid var(--purple)', borderRadius: 8, padding: '7px 10px', color: 'var(--text)', fontFamily: 'Josefin Sans', fontSize: 12, outline: 'none', marginBottom: 7 };
-  return (
-    <div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
-        <select style={inp} value={catId} onChange={e => { setCatId(e.target.value); setThemeId(''); }}>
-          {cats.map(c => <option key={c.id} value={c.id}>{c.icon} {c.label}</option>)}
-        </select>
-        <select style={inp} value={themeId} onChange={e => setThemeId(e.target.value)}>
-          <option value="">Thème</option>
-          {themes.filter(t => t.catId === catId).map(t => <option key={t.id} value={t.id}>{t.label}</option>)}
-        </select>
-      </div>
-      <input style={inp} value={name} onChange={e => setName(e.target.value)} placeholder="Nom du quiz" />
-      <select style={inp} value={diff} onChange={e => setDiff(e.target.value)}>
-        <option value="easy">Facile</option><option value="medium">Moyen</option><option value="hard">Expert</option>
-      </select>
-      <div style={{ display: 'flex', gap: 6 }}>
-        <button className="btn btn-primary" style={{ padding: '6px 14px', fontSize: 12 }} onClick={() => onSave({ name, diff, catId, themeId })}>Enregistrer</button>
-        <button className="btn btn-secondary" style={{ padding: '6px 14px', fontSize: 12 }} onClick={onCancel}>Annuler</button>
-      </div>
-    </div>
-  );
-}
-
-// ── Édition inline ────────────────────────────────────────────────────────────
-function InlineEdit({ data, fields, onSave, onCancel }) {
-  const [form, setForm] = useState({ ...data });
-  const inp = { width: '100%', background: 'var(--s2)', border: '1px solid var(--purple)', borderRadius: 8, padding: '7px 10px', color: 'var(--text)', fontFamily: 'Josefin Sans', fontSize: 12, outline: 'none', marginBottom: 6 };
-  return (
-    <div>
-      {fields.map(f => <input key={f} style={inp} value={form[f] || ''} onChange={e => setForm({ ...form, [f]: e.target.value })} placeholder={f} />)}
-      <div style={{ display: 'flex', gap: 6 }}>
-        <button className="btn btn-primary" style={{ padding: '5px 12px', fontSize: 11 }} onClick={() => onSave(form)}>Enregistrer</button>
-        <button className="btn btn-secondary" style={{ padding: '5px 12px', fontSize: 11 }} onClick={onCancel}>Annuler</button>
-      </div>
     </div>
   );
 }
