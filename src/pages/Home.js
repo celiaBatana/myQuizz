@@ -64,10 +64,15 @@ export default function Home() {
         // Quiz du jour : premier quiz avec des questions
         const quizzes = quizSnap.docs.map(d => ({ id: d.id, ...d.data() }));
         const questions = qSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-        const withQ = quizzes.filter(q => questions.some(qu => qu.quizId === q.id));
+        const withQ = quizzes
+          .filter(q => questions.some(qu => qu.quizId === q.id))
+          .sort((a, b) => a.id.localeCompare(b.id)); // ordre stable
         if (withQ.length > 0) {
           // Choisir un quiz du jour basé sur le jour de l'année
-          const dayIndex = Math.floor(Date.now() / 86400000) % withQ.length;
+          // Jour local (Paris) et non UTC : change bien à minuit
+          const now = new Date();
+          const dayNum = Math.floor(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()) / 86400000);
+          const dayIndex = dayNum % withQ.length;
           setFeaturedQuiz(withQ[dayIndex]);
         }
       } catch (e) {
