@@ -2,7 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { collection, getDocs, query, where, orderBy, limit } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import { dayKey } from '../hooks/useQuiz';
+import { LEAGUES, PROMOTE_XP, DEMOTE_XP, weekKey } from '../utils/league';
 
 const MEDALS = ['🥇', '🥈', '🥉'];
 
@@ -59,9 +61,47 @@ export function DuelBoard({ duelId }) {
   ));
 }
 
+function LeagueBoard() {
+  const { user, profile } = useAuth();
+  const [rows, setRows] = useState(null);
+  const wk = weekKey();
+  const myLeague = profile?.weekKey === wk || profile?.league ? (profile?.league || 0) : 0;
+  useEffect(() => {
+    (async () => {
+      try {
+        const snap = await getDocs(query(collection(db, 'leaderboard'), where('weekKey', '==', wk), limit(300)));
+        setRows(snap.docs.map(d => d.data()));
+      } catch (e) { console.error(e); setRows([]); }
+    })();
+  }, [wk]);
+  const nextMonday = new Date(wk + 'T00:00:00'); nextMonday.setDate(nextMonday.getDate() + 7);
+  const days = Math.max(1, Math.ceil((nextMonday - new Date()) / 86400000));
+  const L = LEAGUES[myLeague];
+  const list = (rows || []).filter(r => (r.league || 0) === myLeague).sort((a, b) => (b.weekXP || 0) - (a.weekXP || 0)).slice(0, 50);
+  const inList = list.some(r => r.uid === user?.uid);
+  return (
+    <div>
+      <div style={{ background: 'var(--s1)', border: '1px solid var(--purple)', borderRadius: 14, padding: '12px 14px', marginBottom: 10 }}>
+        <div style={{ fontFamily: "'Raleway',sans-serif", fontWeight: 800, fontSize: 16 }}>{L.icon} Ligue {L.name}</div>
+        <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 4, lineHeight: 1.6 }}>
+          Remise à zéro dans {days} jour{days > 1 ? 's' : ''} (lundi). Fais au moins <strong>{PROMOTE_XP} XP</strong> dans la semaine pour monter d'une ligue ; moins de {DEMOTE_XP} XP et tu descends.
+        </div>
+      </div>
+      {!user && <Empty text="Connecte-toi pour rejoindre une ligue." />}
+      {user && !rows && <Empty text="Chargement…" />}
+      {user && rows && list.length === 0 && <Empty text="Personne dans ta ligue cette semaine. Lance un quiz pour ouvrir le classement !" />}
+      {user && list.map((r, i) => (
+        <Row key={r.uid} rank={i} name={r.name} me={r.uid === user.uid} right={`${r.weekXP || 0} XP`} sub={`Niveau ${r.level}`} />
+      ))}
+      {user && rows && !inList && list.length > 0 && <Empty text="Joue un quiz cette semaine pour apparaître dans le classement." />}
+    </div>
+  );
+}
+
 export default function Leaderboard() {
   const { user } = useAuth();
-  const [tab, setTab] = useState('xp');
+  const navigate = useNavigate();
+  const [tab, setTab] = useState('week');
   const [rows, setRows] = useState(null);
 
   useEffect(() => {
@@ -78,7 +118,7 @@ export default function Leaderboard() {
     <div className="page">
       <div className="page-title">🏆 Classement</div>
       <div style={{ display: 'flex', gap: 4, background: 'var(--s2)', borderRadius: 10, padding: 3, margin: '12px 0' }}>
-        {[['xp', '⚡ Général'], ['daily', '📅 Défi du jour']].map(([id, label]) => (
+        {[['week', '🏅 Ligue'], ['xp', '⚡ Général'], ['daily', '📅 Défi']].map(([id, label]) => (
           <div key={id} onClick={() => setTab(id)} style={{
             flex: 1, textAlign: 'center', padding: '8px 0', borderRadius: 8, cursor: 'pointer', fontSize: 12, fontWeight: 600,
             background: tab === id ? 'linear-gradient(135deg, var(--purple), var(--pink))' : 'transparent',
@@ -86,7 +126,8 @@ export default function Leaderboard() {
           }}>{label}</div>
         ))}
       </div>
-      {tab === 'xp' ? (
+      <div onClick={() => navigate('/groupes')} style={{ textAlign: 'center', fontSize: 12, fontWeight: 600, color: 'var(--cyan)', cursor: 'pointer', marginBottom: 10 }}>👥 Mes groupes privés ›</div>
+      {tab === 'week' ? <LeagueBoard /> : tab === 'xp' ? (
         !rows ? <Empty text="Chargement…" /> :
         rows.length === 0 ? <Empty text="Le classement se remplit dès qu'un joueur termine un quiz." /> :
         rows.map((r, i) => (

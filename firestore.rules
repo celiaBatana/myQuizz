@@ -51,6 +51,20 @@ service cloud.firestore {
         && id == request.resource.data.duelId + '_' + request.auth.uid;
     }
 
+    // Groupes privés : lecture d'un groupe par son code (pas de liste), membres = leur propre ligne
+    match /groups/{code} {
+      allow get: if signedIn();
+      allow create: if signedIn() && request.resource.data.ownerUid == request.auth.uid;
+      allow update, delete: if signedIn() && resource.data.ownerUid == request.auth.uid;
+    }
+    match /group_members/{id} {
+      allow read: if signedIn();
+      allow create, update: if signedIn()
+        && request.resource.data.uid == request.auth.uid
+        && id == request.resource.data.code + '_' + request.auth.uid;
+      allow delete: if signedIn() && resource.data.uid == request.auth.uid;
+    }
+
     // Stats par question : lecture admin, incrément par tout joueur connecté
     match /question_stats/{id} {
       allow create, update: if signedIn();
