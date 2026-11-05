@@ -39,9 +39,10 @@ export default function Profile() {
   const correctAnswers= profile?.correctAnswers || 0;
   const totalAnswers  = profile?.totalAnswers   || 0;
   const perfect       = profile?.perfectQuizzes || 0;
-  const today = (() => { const d = new Date(), p = n => String(n).padStart(2, '0'); return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`; })();
-  const yest  = (() => { const d = new Date(Date.now() - 86400000), p = n => String(n).padStart(2, '0'); return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`; })();
-  const streak = (profile?.lastStreakDate === today || profile?.lastStreakDate === yest) ? (profile?.streak || 0) : 0;
+  const lk = profile?.lastStreakDate;
+  const dk = (o) => { const d = new Date(); d.setDate(d.getDate() + o); const p = n => String(n).padStart(2, '0'); return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`; };
+  const freezes = profile?.freezes || 0;
+  const streak = (lk === dk(0) || lk === dk(-1) || (lk === dk(-2) && freezes > 0)) ? (profile?.streak || 0) : 0;
   const BADGES = [
     { icon: '🎯', name: 'Premier quiz',   ok: quizzesPlayed >= 1,  hint: 'Joue 1 quiz' },
     { icon: '🔟', name: 'Habitué',        ok: quizzesPlayed >= 10, hint: 'Joue 10 quiz' },
@@ -137,7 +138,7 @@ export default function Profile() {
       {/* ── Série + badges ── */}
       <div style={{ background: 'var(--s1)', border: '1px solid var(--s2)', borderRadius: 14, padding: '12px 14px', marginBottom: 14 }}>
         <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 8 }}>
-          🔥 Série : {streak} jour{streak > 1 ? 's' : ''}
+          🔥 Série : {streak} jour{streak > 1 ? 's' : ''} · 🧊 {freezes} gel{freezes > 1 ? 's' : ''}
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6 }}>
           {BADGES.map(b => (
