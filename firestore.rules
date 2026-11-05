@@ -8,13 +8,14 @@ service cloud.firestore {
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
     }
 
-    // Contenu des quiz : lecture libre, écriture réservée aux admins
+    // ── Quizly ────────────────────────────────────────────────
+    // Contenu : lecture libre, écriture réservée aux admins
     match /questions/{id}  { allow read: if true; allow write: if isAdmin(); }
     match /quizzes/{id}    { allow read: if true; allow write: if isAdmin(); }
     match /categories/{id} { allow read: if true; allow write: if isAdmin(); }
     match /themes/{id}     { allow read: if true; allow write: if isAdmin(); }
 
-    // Profils : chacun lit/écrit son document, sans pouvoir se donner isAdmin/isPremium
+    // Profils : chacun son document, sans pouvoir se donner isAdmin/isPremium
     match /users/{uid} {
       allow read: if signedIn() && (request.auth.uid == uid || isAdmin());
       allow create: if signedIn() && request.auth.uid == uid
@@ -24,8 +25,19 @@ service cloud.firestore {
         && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['isAdmin', 'isPremium']);
     }
 
-    // Calendrier partagé : ouvert à tous (lecture et écriture sans connexion)
+    // ── Calendrier partagé (ouvert) ───────────────────────────
     match /calendar_users/{id}  { allow read, write: if true; }
     match /calendar_events/{id} { allow read, write: if true; }
+
+    // ── Autres projets de la même base (inchangé) ─────────────
+    match /boutique_produits/{id}        { allow read, write: if true; }
+    match /boutique_ventes/{id}          { allow read, write: if true; }
+    match /boutique_depenses/{id}        { allow read, write: if true; }
+    match /boutique_caisse/{id}          { allow read, write: if true; }
+    match /boutique_marges/{id}          { allow read, write: if true; }
+    match /boutique_notes/{id}           { allow read, write: if true; }
+    match /boutique_reappros/{id}        { allow read, write: if true; }
+    match /boutique_investissements/{id} { allow read, write: if true; }
+    match /hotelbar/{id}                 { allow read, write: if true; }
   }
 }
