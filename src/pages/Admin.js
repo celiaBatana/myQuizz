@@ -32,6 +32,29 @@ const S = {
   }),
 };
 
+// Parseur CSV robuste : gère les guillemets, les virgules dans les champs et les "" échappés
+function parseCSV(text) {
+  const rows = []; let row = [], cur = '', inQ = false;
+  const t = text.replace(/^\uFEFF/, '');
+  for (let i = 0; i < t.length; i++) {
+    const c = t[i];
+    if (inQ) {
+      if (c === '"') { if (t[i + 1] === '"') { cur += '"'; i++; } else inQ = false; }
+      else cur += c;
+    } else if (c === '"') inQ = true;
+    else if (c === ',') { row.push(cur); cur = ''; }
+    else if (c === '\n' || c === '\r') {
+      if (c === '\r' && t[i + 1] === '\n') i++;
+      row.push(cur); cur = '';
+      if (row.some(x => x.trim())) rows.push(row);
+      row = [];
+    } else cur += c;
+  }
+  row.push(cur);
+  if (row.some(x => x.trim())) rows.push(row);
+  return rows;
+}
+
 export default function Admin() {
   const { user, isAdmin } = useAuth();
   const [showAuth, setShowAuth] = useState(false);
@@ -155,9 +178,10 @@ export default function Admin() {
 
   async function importCSVQuestions() {
     let n = 0; let linked = 0; const notFound = [];
-    for (const row of csvRows) {
+    for (const { quizName, ...row } of csvRows) {
       const matchingQuiz = quizzes.find(q =>
-        q.catId === row.category && q.themeId === row.theme && q.diff === row.diff
+        q.catId === row.category && q.themeId === row.theme && q.diff === row.diff &&
+        (!quizName || q.name === quizName)
       );
       const data = {
         ...row,
@@ -181,18 +205,16 @@ export default function Admin() {
     const file = e.target.files[0]; if (!file) return;
     const r = new FileReader();
     r.onload = ev => {
-      const rows = ev.target.result.split('\n')
-        .filter(l => l.trim() && !l.startsWith('categorie'))
-        .map(line => {
-          const p = line.split(','); if (p.length < 8) return null;
-          return {
-            category: p[0].trim(), theme: p[1].trim(), diff: p[2].trim(),
-            text: p[3].replace(/"/g, '').trim(),
-            options: [p[4], p[5], p[6], p[7]].map(s => s?.trim() || ''),
-            answer: parseInt(p[8]) || 0,
-            explanation: (p[9] || '').replace(/"/g, '').trim(),
-          };
-        }).filter(Boolean);
+      const rows = parseCSV(ev.target.result)
+        .filter(p => !p[0].trim().toLowerCase().startsWith('categorie') && p.length >= 8)
+        .map(p => ({
+          category: p[0].trim(), theme: p[1].trim(), diff: p[2].trim(),
+          text: p[3].trim(),
+          options: [p[4], p[5], p[6], p[7]].map(x => x?.trim() || ''),
+          answer: parseInt(p[8]) || 0,
+          explanation: (p[9] || '').trim(),
+          quizName: (p[10] || '').trim(), // optionnel : nom du quiz cible
+        }));
       setCsvRows(rows);
     };
     r.readAsText(file);
@@ -226,12 +248,9 @@ export default function Admin() {
     const file = e.target.files[0]; if (!file) return;
     const r = new FileReader();
     r.onload = ev => {
-      const rows = ev.target.result.split('\n')
-        .filter(l => l.trim() && !l.startsWith('catId'))
-        .map(line => {
-          const p = line.split(','); if (p.length < 4) return null;
-          return { catId: p[0].trim(), themeId: p[1].trim(), name: p[2].replace(/"/g, '').trim(), diff: p[3].trim() };
-        }).filter(Boolean);
+      const rows = parseCSV(ev.target.result)
+        .filter(p => !p[0].trim().toLowerCase().startsWith('catid') && p.length >= 4)
+        .map(p => ({ catId: p[0].trim(), themeId: p[1].trim(), name: p[2].trim(), diff: p[3].trim() }));
       setCsvQuizRows(rows);
     };
     r.readAsText(file);
@@ -877,7 +896,7 @@ export default function Admin() {
           <div style={S.divider} />
           <div style={{ fontFamily: "'Raleway', sans-serif", fontWeight: 700, fontSize: 14, marginBottom: 6 }}>Import CSV questions</div>
           <div style={{ fontSize: 11, color: 'var(--muted)', marginBottom: 12, fontFamily: 'monospace', background: 'var(--s2)', borderRadius: 8, padding: '8px 10px' }}>
-            categorie,theme,difficulte,question,optA,optB,optC,optD,reponse(0-3),explication
+            categorie,theme,difficulte,question,optA,optB,optC,optD,reponse(0-3),explication,quiz (optionnel : nom du quiz cible)
           </div>
           <div onClick={() => document.getElementById('csv-q-in').click()}
             style={{ border: '2px dashed var(--s3)', borderRadius: 12, padding: 24, textAlign: 'center', cursor: 'pointer', marginBottom: 10 }}
