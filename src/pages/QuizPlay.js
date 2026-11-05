@@ -224,7 +224,7 @@ export function QuizPlay() {
     questions,
   };
 
-  return <QuizPlayInner quizData={quizData} cat={cat} theme={theme} catId={catId} themeId={themeId} navigate={navigate} />;
+  return <QuizPlayInner quizData={quizData} cat={cat} theme={theme} catId={catId} themeId={themeId} navigate={navigate} onReplay={quiz.restart} />;
 }
 
 // ── QuizPlayInner — logique de jeu ────────────────────────────────────────────
@@ -359,7 +359,7 @@ function QuizPlayInner({ quizData, cat, theme, catId, themeId, navigate }) {
 }
 
 // ── ResultScreen ──────────────────────────────────────────────────────────────
-function ResultScreen({ quiz, quizData, catId, themeId, navigate }) {
+function ResultScreen({ quiz, quizData, catId, themeId, navigate, onReplay }) {
   const pct   = quiz.score / quiz.totalQuestions;
   const emoji = pct === 1 ? '🏆' : pct >= 0.8 ? '⭐' : pct >= 0.6 ? '👍' : pct >= 0.4 ? '🤔' : '💪';
   const title = pct === 1 ? 'Parfait !' : pct >= 0.8 ? 'Excellent !' : pct >= 0.6 ? 'Bien joué !' : pct >= 0.4 ? 'Pas mal !' : 'Continue !';
@@ -409,7 +409,7 @@ function ResultScreen({ quiz, quizData, catId, themeId, navigate }) {
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 8 }}>
         <button className="btn btn-primary btn-full" style={{ fontFamily: "'Raleway', sans-serif", fontWeight: 700 }}
-          onClick={() => navigate(`/quiz/${catId}/${themeId}/${quizData.id}`)}>
+          onClick={onReplay}>
           Rejouer ce quiz
         </button>
         <button className="btn btn-secondary btn-full" style={{ fontFamily: "'Raleway', sans-serif", fontWeight: 700 }}
