@@ -3,6 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../firebase';
 import { getCategoryList } from '../data/quizData';
+import { useAuth } from '../context/AuthContext';
+import { dayKey } from '../hooks/useQuiz';
+import { dueReviewIds } from '../utils/league';
 
 const styles = {
   hero: { textAlign: 'center', padding: '28px 0 20px' },
@@ -43,6 +46,8 @@ const CAT_STYLES = {
 
 export default function Home() {
   const navigate = useNavigate();
+  const { profile } = useAuth();
+  const dueCount = dueReviewIds(profile?.review, dayKey()).length;
   const categories = getCategoryList();
 
   const [totalQuizzes, setTotalQuizzes] = useState('...');
@@ -126,6 +131,20 @@ export default function Home() {
         </div>
         <div style={{ color: 'var(--purple)', fontWeight: 800 }}>›</div>
       </div>
+
+      {dueCount > 0 && (
+        <div
+          onClick={() => navigate('/revision')}
+          style={{ background: 'var(--s1)', border: '2px solid var(--cyan)', borderRadius: 16, padding: '14px 16px', marginBottom: 14, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 12 }}
+        >
+          <div style={{ fontSize: 28 }}>🧠</div>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontFamily: "'Raleway', sans-serif", fontWeight: 800, fontSize: 15 }}>Révision du jour</div>
+            <div style={{ fontSize: 11, color: 'var(--muted)' }}>{dueCount} question{dueCount > 1 ? 's' : ''} à revoir pour mieux les retenir</div>
+          </div>
+          <div style={{ color: 'var(--cyan)', fontWeight: 800 }}>›</div>
+        </div>
+      )}
 
       {/* Quiz du jour */}
       <div className="section-label">Quiz du jour</div>

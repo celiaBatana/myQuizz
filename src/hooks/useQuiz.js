@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { doc, updateDoc, setDoc, writeBatch, increment, serverTimestamp } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useAuth } from '../context/AuthContext';
+import { nextLeagueState, updateReview } from '../utils/league';
 
 const XP_MAP         = { easy: 5,  medium: 10, hard: 20 };
 const XP_TIMER_BONUS = { easy: 10, medium: 20, hard: 30 };
@@ -199,6 +200,8 @@ export function useQuiz(quiz) {
       const chestXP   = profile?.lastChestDate === todayKey ? 0 : 10 + 5 * Math.floor(Math.random() * 9);
       const xpToAdd   = finalXP + chestXP;
       const newTotalXP = (profile?.totalXP || 0) + xpToAdd;
+      const lg = nextLeagueState(profile, xpToAdd);
+      const newReview = updateReview(profile?.review, results, dayKey);
 
       let lvl = 1, remaining = newTotalXP;
       while (remaining >= XP_PER_LEVEL) { remaining -= XP_PER_LEVEL; lvl++; }
@@ -249,12 +252,16 @@ export function useQuiz(quiz) {
         freezes,
         lastChestDate:  todayKey,
         suddenBest:     newSudden,
+        weekKey:        lg.weekKey,
+        weekXP:         lg.weekXP,
+        league:         lg.league,
+        review:         newReview,
         updatedAt:      serverTimestamp(),
         ...(isBest ? { [`bestScores.${quiz.id}`]: pctScore } : {}),
         ...(perfect ? { perfectQuizzes: increment(1) } : {}),
       });
 
-      setRewards({ chestXP, freezeUsed, freezeGained, streak: newStreak });
+      setRewards({ chestXP, freezeUsed, freezeGained, streak: newStreak, leagueMoved: lg.moved, league: lg.league });
 
       await updateProfile({
         totalXP:        newTotalXP,
@@ -271,6 +278,10 @@ export function useQuiz(quiz) {
         freezes,
         lastChestDate:  todayKey,
         suddenBest:     newSudden,
+        weekKey:        lg.weekKey,
+        weekXP:         lg.weekXP,
+        league:         lg.league,
+        review:         newReview,
         perfectQuizzes: (profile?.perfectQuizzes || 0) + (perfect ? 1 : 0),
         bestScores:     isBest ? { ...(profile?.bestScores || {}), [quiz.id]: pctScore } : (profile?.bestScores || {}),
       });
@@ -279,8 +290,16 @@ export function useQuiz(quiz) {
       const name = profile?.displayName || user.displayName || 'Joueur';
       try {
         await setDoc(doc(db, 'leaderboard', user.uid), {
-          uid: user.uid, name, totalXP: newTotalXP, level: lvl, streak: newStreak, updatedAt: serverTimestamp(),
+          uid: user.uid, name, totalXP: newTotalXP, level: lvl, streak: newStreak,
+          weekKey: lg.weekKey, weekXP: lg.weekXP, league: lg.league, updatedAt: serverTimestamp(),
         }, { merge: true });
+        // Classements de groupes privés
+        for (const code of (profile?.groups || [])) {
+          await setDoc(doc(db, 'group_members', `${code}_${user.uid}`), {
+            code, uid: user.uid, name, totalXP: newTotalXP, level: lvl,
+            weekKey: lg.weekKey, weekXP: lg.weekXP, updatedAt: serverTimestamp(),
+          }, { merge: true });
+        }
         if (mode === 'daily' && quiz.dailyDate) {
           await setDoc(doc(db, 'daily_scores', `${quiz.dailyDate}_${user.uid}`), {
             uid: user.uid, name, date: quiz.dailyDate, score: finalScore, total: finalTotal, xp: finalXP, createdAt: serverTimestamp(),

@@ -6,6 +6,8 @@ import { db } from '../firebase';
 import { CATEGORIES, DIFF_LABELS, DIFF_COLORS, XP_MAP, XP_TIMER_BONUS } from '../data/quizData';
 import { useAuth } from '../context/AuthContext';
 import { useQuiz } from '../hooks/useQuiz';
+import { LEAGUES } from '../utils/league';
+import { shareScore } from '../utils/share';
 
 // ── Themes ───────────────────────────────────────────────────────────────────
 export function Themes() {
@@ -86,6 +88,8 @@ export function Themes() {
 }
 
 // ── Quizzes ───────────────────────────────────────────────────────────────────
+const PASS = 60; // % à atteindre pour débloquer l'étape suivante
+
 export function Quizzes() {
   const { catId, themeId } = useParams();
   const navigate = useNavigate();
@@ -94,8 +98,9 @@ export function Quizzes() {
   const [quizzes, setQuizzes]   = useState([]);
   const [qCounts, setQCounts]   = useState({});
   const [loading, setLoading]   = useState(true);
-  const { profile } = useAuth();
+  const { user, profile, isAdmin } = useAuth();
   const bestScores = profile?.bestScores || {};
+  const [lockMsg, setLockMsg] = useState('');
 
   const DIFF_ORDER = { easy: 0, medium: 1, hard: 2 };
 
@@ -146,32 +151,55 @@ export function Quizzes() {
         </div>
       )}
 
-      {quizzes.map(quiz => {
+      {lockMsg && <div style={{ background: 'rgba(255,200,87,.12)', border: '1px solid var(--yellow)', borderRadius: 12, padding: '9px 12px', fontSize: 12, marginBottom: 10 }}>🔒 {lockMsg}</div>}
+
+      {!loading && quizzes.length > 1 && user && (
+        <div style={{ fontSize: 11, color: 'var(--muted)', marginBottom: 10 }}>
+          🗺️ Parcours : {quizzes.filter(z => (bestScores[z.id] ?? -1) >= PASS).length}/{quizzes.length} étapes validées (≥ {PASS} %)
+        </div>
+      )}
+
+      {quizzes.map((quiz, idx) => {
         const xpBase = XP_MAP[quiz.diff] || 10;
         const xpMax  = xpBase + (XP_TIMER_BONUS[quiz.diff] || 20);
+        const best   = bestScores[quiz.id];
+        const prev   = quizzes[idx - 1];
+        const laterPlayed = quizzes.slice(idx + 1).some(z => bestScores[z.id] !== undefined);
+        const unlocked = !user || isAdmin || idx === 0 || (bestScores[prev.id] ?? -1) >= PASS || best !== undefined || laterPlayed;
+        const stars = best === undefined ? 0 : best === 100 ? 3 : best >= 80 ? 2 : best >= PASS ? 1 : 0;
         return (
-          <div
-            key={quiz.id}
-            onClick={() => navigate(`/quiz/${catId}/${themeId}/${quiz.id}`)}
-            style={{
-              background: 'var(--s1)', border: '1px solid var(--s2)', borderRadius: 16,
-              padding: '14px 15px', marginBottom: 8, cursor: 'pointer', transition: 'all .2s',
-            }}
-            onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--purple)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
-            onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--s2)'; e.currentTarget.style.transform = 'translateY(0)'; }}
-          >
-            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 8 }}>
-              <div style={{ fontFamily: "'Raleway', sans-serif", fontWeight: 700, fontSize: 15 }}>{quiz.name}</div>
-              <span className={`diff-badge diff-${quiz.diff}`}>{DIFF_LABELS[quiz.diff]}</span>
+          <div key={quiz.id} style={{ display: 'flex', gap: 10 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: 34, flexShrink: 0 }}>
+              <div style={{
+                width: 34, height: 34, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, fontWeight: 800,
+                background: !unlocked ? 'var(--s2)' : stars > 0 ? 'linear-gradient(135deg, var(--purple), var(--pink))' : 'var(--s1)',
+                border: `2px solid ${unlocked ? 'var(--purple)' : 'var(--s3)'}`, color: '#fff',
+              }}>{!unlocked ? '🔒' : stars > 0 ? '✓' : idx + 1}</div>
+              {idx < quizzes.length - 1 && <div style={{ flex: 1, width: 3, background: unlocked && stars > 0 ? 'var(--purple)' : 'var(--s2)', margin: '2px 0' }} />}
             </div>
-            <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', fontSize: 11, color: 'var(--muted)' }}>
-              <span>📋 {qCounts[quiz.id] ?? '…'} questions</span>
-              <span style={{ fontWeight: 600, color: 'var(--yellow)' }}>⚡ {xpBase}–{xpMax} XP/question</span>
-              {bestScores[quiz.id] !== undefined && (
-                <span style={{ fontWeight: 700, color: bestScores[quiz.id] === 100 ? 'var(--cyan)' : 'var(--purple)' }}>
-                  {bestScores[quiz.id] === 100 ? '🏆' : '✓'} Meilleur : {bestScores[quiz.id]}%
-                </span>
-              )}
+            <div
+              onClick={() => {
+                if (!unlocked) { setLockMsg(`Valide « ${prev.name} » avec au moins ${PASS} % pour débloquer cette étape.`); return; }
+                setLockMsg(''); navigate(`/quiz/${catId}/${themeId}/${quiz.id}`);
+              }}
+              style={{
+                flex: 1, background: 'var(--s1)', border: '1px solid var(--s2)', borderRadius: 16, opacity: unlocked ? 1 : 0.55,
+                padding: '14px 15px', marginBottom: 8, cursor: 'pointer', transition: 'all .2s',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 8, gap: 6 }}>
+                <div style={{ fontFamily: "'Raleway', sans-serif", fontWeight: 700, fontSize: 15 }}>{quiz.name}</div>
+                <span className={`diff-badge diff-${quiz.diff}`}>{DIFF_LABELS[quiz.diff]}</span>
+              </div>
+              <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', fontSize: 11, color: 'var(--muted)' }}>
+                <span>📋 {qCounts[quiz.id] ?? '…'} questions</span>
+                <span style={{ fontWeight: 600, color: 'var(--yellow)' }}>⚡ {xpBase}–{xpMax} XP/question</span>
+                {best !== undefined && (
+                  <span style={{ fontWeight: 700, color: best === 100 ? 'var(--cyan)' : 'var(--purple)' }}>
+                    {'★'.repeat(stars)}{'☆'.repeat(3 - stars)} Meilleur : {best}%
+                  </span>
+                )}
+              </div>
             </div>
           </div>
         );
@@ -443,6 +471,7 @@ function ResultScreen({ quiz, quizData, catId, themeId, navigate, onReplay, onPr
   const emoji = pct === 1 ? '🏆' : pct >= 0.8 ? '⭐' : pct >= 0.6 ? '👍' : pct >= 0.4 ? '🤔' : '💪';
   const title = pct === 1 ? 'Parfait !' : pct >= 0.8 ? 'Excellent !' : pct >= 0.6 ? 'Bien joué !' : pct >= 0.4 ? 'Pas mal !' : 'Continue !';
   const [xpBarWidth, setXpBarWidth] = React.useState(0);
+  const [shareMsg, setShareMsg] = React.useState('');
   const { profile } = useAuth();
   const xpInLevel = profile?.xpInLevel || 0;
   const level     = profile?.level || 1;
@@ -486,12 +515,14 @@ function ResultScreen({ quiz, quizData, catId, themeId, navigate, onReplay, onPr
         </div>
       </div>
 
-      {quiz.rewards && (quiz.rewards.chestXP > 0 || quiz.rewards.freezeUsed || quiz.rewards.freezeGained || quiz.rewards.streak > 1) && (
+      {quiz.rewards && (quiz.rewards.leagueMoved || quiz.rewards.chestXP > 0 || quiz.rewards.freezeUsed || quiz.rewards.freezeGained || quiz.rewards.streak > 1) && (
         <div style={{ background: 'var(--s1)', border: '1px solid var(--s2)', borderRadius: 14, padding: '11px 14px', marginTop: 10, fontSize: 13, lineHeight: 1.7 }}>
           {quiz.rewards.chestXP > 0 && <div>🎁 Coffre du jour : <strong style={{ color: 'var(--yellow)' }}>+{quiz.rewards.chestXP} XP</strong></div>}
           {quiz.rewards.streak > 1 && <div>🔥 Série : <strong>{quiz.rewards.streak} jours</strong></div>}
           {quiz.rewards.freezeUsed && <div>🧊 Un gel de série a sauvé ta série d'hier !</div>}
           {quiz.rewards.freezeGained && <div>🧊 Nouveau gel de série gagné (7 jours d'affilée) !</div>}
+          {quiz.rewards.leagueMoved === 'up' && <div>🏅 Tu montes en ligue <strong>{LEAGUES[quiz.rewards.league].name}</strong> {LEAGUES[quiz.rewards.league].icon}</div>}
+          {quiz.rewards.leagueMoved === 'down' && <div>📉 Tu redescends en ligue <strong>{LEAGUES[quiz.rewards.league].name}</strong>. Rejoue pour remonter !</div>}
         </div>
       )}
 
@@ -504,6 +535,13 @@ function ResultScreen({ quiz, quizData, catId, themeId, navigate, onReplay, onPr
             🔁 Rejouer mes {quiz.wrongCount} erreur{quiz.wrongCount > 1 ? 's' : ''} (sans XP)
           </button>
         )}
+        <button className="btn btn-secondary btn-full" style={{ fontFamily: "'Raleway', sans-serif", fontWeight: 700 }}
+          onClick={async () => {
+            const r = await shareScore({ score: quiz.score, total: quiz.totalQuestions, name: quizData?.name || 'Quiz', url: window.location.href });
+            setShareMsg(r === 'copied' ? 'Lien copié ✓' : r === 'downloaded' ? 'Image téléchargée ✓' : r === 'shared' ? 'Partagé ✓' : '');
+          }}>
+          📣 Partager mon score{shareMsg ? ` · ${shareMsg}` : ''}
+        </button>
         {!noReplay && (
           <button className={`btn ${quiz.wrongCount > 0 ? 'btn-secondary' : 'btn-primary'} btn-full`} style={{ fontFamily: "'Raleway', sans-serif", fontWeight: 700 }}
             onClick={onReplay}>
