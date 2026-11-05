@@ -3,6 +3,7 @@ import { doc, updateDoc, setDoc, writeBatch, increment, serverTimestamp } from '
 import { db } from '../firebase';
 import { useAuth } from '../context/AuthContext';
 import { nextLeagueState, updateReview } from '../utils/league';
+import { computeUnlocks } from '../data/cosmetics';
 
 const XP_MAP         = { easy: 5,  medium: 10, hard: 20 };
 const XP_TIMER_BONUS = { easy: 10, medium: 20, hard: 30 };
@@ -237,6 +238,13 @@ export function useQuiz(quiz) {
       const perfect  = finalScore === finalTotal && finalTotal > 0 && mode !== 'sudden';
       const newSudden = mode === 'sudden' ? Math.max(profile?.suddenBest || 0, finalScore) : (profile?.suddenBest || 0);
 
+      const gainedCosmetics = computeUnlocks(profile, {
+        level: lvl, streak: newStreak,
+        quizzesPlayed: (profile?.quizzesPlayed || 0) + 1,
+        perfectQuizzes: (profile?.perfectQuizzes || 0) + (perfect ? 1 : 0),
+      }, chestXP > 0);
+      const newUnlocked = gainedCosmetics.length ? [...(profile?.unlocked || []), ...gainedCosmetics] : (profile?.unlocked || []);
+
       await updateDoc(doc(db, 'users', user.uid), {
         totalXP:        increment(xpToAdd),
         level:          lvl,
@@ -256,12 +264,13 @@ export function useQuiz(quiz) {
         weekXP:         lg.weekXP,
         league:         lg.league,
         review:         newReview,
+        unlocked:       newUnlocked,
         updatedAt:      serverTimestamp(),
         ...(isBest ? { [`bestScores.${quiz.id}`]: pctScore } : {}),
         ...(perfect ? { perfectQuizzes: increment(1) } : {}),
       });
 
-      setRewards({ chestXP, freezeUsed, freezeGained, streak: newStreak, leagueMoved: lg.moved, league: lg.league });
+      setRewards({ chestXP, freezeUsed, freezeGained, streak: newStreak, leagueMoved: lg.moved, league: lg.league, newCosmetics: gainedCosmetics });
 
       await updateProfile({
         totalXP:        newTotalXP,
@@ -282,6 +291,7 @@ export function useQuiz(quiz) {
         weekXP:         lg.weekXP,
         league:         lg.league,
         review:         newReview,
+        unlocked:       newUnlocked,
         perfectQuizzes: (profile?.perfectQuizzes || 0) + (perfect ? 1 : 0),
         bestScores:     isBest ? { ...(profile?.bestScores || {}), [quiz.id]: pctScore } : (profile?.bestScores || {}),
       });
@@ -291,13 +301,14 @@ export function useQuiz(quiz) {
       try {
         await setDoc(doc(db, 'leaderboard', user.uid), {
           uid: user.uid, name, totalXP: newTotalXP, level: lvl, streak: newStreak,
-          weekKey: lg.weekKey, weekXP: lg.weekXP, league: lg.league, updatedAt: serverTimestamp(),
+          weekKey: lg.weekKey, weekXP: lg.weekXP, league: lg.league,
+          avatar: profile?.avatar || '', title: profile?.title || '', updatedAt: serverTimestamp(),
         }, { merge: true });
         // Classements de groupes privés
         for (const code of (profile?.groups || [])) {
           await setDoc(doc(db, 'group_members', `${code}_${user.uid}`), {
             code, uid: user.uid, name, totalXP: newTotalXP, level: lvl,
-            weekKey: lg.weekKey, weekXP: lg.weekXP, updatedAt: serverTimestamp(),
+            weekKey: lg.weekKey, weekXP: lg.weekXP, avatar: profile?.avatar || '', title: profile?.title || '', updatedAt: serverTimestamp(),
           }, { merge: true });
         }
         if (mode === 'daily' && quiz.dailyDate) {
