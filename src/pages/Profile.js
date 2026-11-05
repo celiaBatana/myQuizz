@@ -3,11 +3,15 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import AuthModal from '../components/AuthModal';
 import { DIFF_LABELS, DIFF_COLORS } from '../data/quizData';
+import { doc, setDoc } from 'firebase/firestore';
+import { db } from '../firebase';
+import { AVATARS, TITLES, ownedIds, avatarIcon, titleName } from '../data/cosmetics';
 
 const XP_PER_LEVEL = 200;
 
 export default function Profile() {
-  const { user, profile, logout, isAdmin } = useAuth();
+  const { user, profile, logout, isAdmin, updateProfile } = useAuth();
+  const [showCosm, setShowCosm] = useState(false);
   const navigate = useNavigate();
   const [showAuth, setShowAuth] = useState(false);
   const [activeTab, setActiveTab] = useState('stats'); // stats | history
@@ -83,16 +87,29 @@ export default function Profile() {
     navigate('/');
   }
 
+  const owned = ownedIds(profile);
+  async function equip(field, id) {
+    try {
+      await updateProfile({ [field]: id });
+      // Visible dans les classements ; échec non bloquant
+      await setDoc(doc(db, 'leaderboard', user.uid), { [field]: id }, { merge: true });
+      for (const code of (profile?.groups || [])) {
+        await setDoc(doc(db, 'group_members', `${code}_${user.uid}`), { [field]: id }, { merge: true });
+      }
+    } catch (e) { console.warn('Personnalisation non enregistrée partout', e); }
+  }
+
   // ── Render ────────────────────────────────────────────────────────────────
   return (
     <div className="page">
 
       {/* ── Hero profil ── */}
       <div style={{ background: 'linear-gradient(135deg, #1a1040, #2d1a5e)', border: '1px solid #4a3580', borderRadius: 20, padding: '20px 16px', marginBottom: 14, textAlign: 'center' }}>
-        <div style={{ fontSize: 48, marginBottom: 6 }}>{levelEmoji(level)}</div>
+        <div style={{ fontSize: 48, marginBottom: 6 }}>{profile?.avatar ? avatarIcon(profile.avatar) : levelEmoji(level)}</div>
         <div style={{ fontFamily: "'Raleway', sans-serif", fontSize: 20, fontWeight: 800, marginBottom: 2 }}>
           {displayName}
         </div>
+        {profile?.title && <div style={{ fontSize: 12, color: 'var(--yellow)', fontWeight: 700, marginBottom: 4 }}>{titleName(profile.title)}</div>}
         <div style={{ fontSize: 12, color: 'var(--muted)', marginBottom: 14 }}>
           {user.email}
           {isAdmin && <span style={{ marginLeft: 8, background: 'rgba(155,109,255,.2)', color: 'var(--purple)', borderRadius: 6, padding: '1px 7px', fontSize: 10, fontWeight: 700 }}>ADMIN</span>}
@@ -133,6 +150,45 @@ export default function Profile() {
             <div style={{ fontSize: 10, color: 'var(--muted)', marginTop: 2 }}>{s.label}</div>
           </div>
         ))}
+      </div>
+
+      {/* ── Personnalisation ── */}
+      <div style={{ background: 'var(--s1)', border: '1px solid var(--s2)', borderRadius: 14, padding: '12px 14px', marginBottom: 14 }}>
+        <div onClick={() => setShowCosm(v => !v)} style={{ fontSize: 13, fontWeight: 700, cursor: 'pointer', display: 'flex', justifyContent: 'space-between' }}>
+          <span>🎨 Avatar et titre</span><span style={{ color: 'var(--muted)' }}>{showCosm ? '▲' : '▼'}</span>
+        </div>
+        {showCosm && (
+          <div style={{ marginTop: 10 }}>
+            <div style={{ fontSize: 11, color: 'var(--muted)', marginBottom: 6 }}>Avatars — les cachés tombent des coffres quotidiens (40 % de chance).</div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 6, marginBottom: 12 }}>
+              {AVATARS.map(a => {
+                const has = owned.has(a.id);
+                return (
+                  <div key={a.id} title={has ? a.name : (a.hint || 'Coffre quotidien')}
+                    onClick={() => has && equip('avatar', a.id)}
+                    style={{ textAlign: 'center', fontSize: 24, padding: '6px 0', borderRadius: 10, cursor: has ? 'pointer' : 'default',
+                      opacity: has ? 1 : 0.3, filter: has ? 'none' : 'grayscale(1)',
+                      border: `2px solid ${profile?.avatar === a.id ? 'var(--purple)' : 'transparent'}`, background: 'var(--s2)' }}>
+                    {has ? a.icon : '🔒'}
+                  </div>
+                );
+              })}
+            </div>
+            <div style={{ fontSize: 11, color: 'var(--muted)', marginBottom: 6 }}>Titres</div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+              {TITLES.map(t => {
+                const has = owned.has(t.id);
+                return (
+                  <div key={t.id} onClick={() => has && equip('title', t.id)}
+                    style={{ fontSize: 11, fontWeight: 600, padding: '5px 10px', borderRadius: 20, cursor: has ? 'pointer' : 'default',
+                      background: profile?.title === t.id ? 'var(--purple)' : 'var(--s2)', color: has ? '#fff' : 'var(--muted)', opacity: has ? 1 : 0.5 }}>
+                    {has ? t.name : `🔒 ${t.hint || 'Coffre quotidien'}`}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* ── Série + badges ── */}

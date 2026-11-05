@@ -4,17 +4,18 @@ import { db } from '../firebase';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { dayKey } from '../hooks/useQuiz';
+import { avatarIcon, titleName } from '../data/cosmetics';
 import { LEAGUES, PROMOTE_XP, DEMOTE_XP, weekKey } from '../utils/league';
 
 const MEDALS = ['🥇', '🥈', '🥉'];
 
-function Row({ rank, name, right, sub, me }) {
+function Row({ rank, name, right, sub, me, avatar, title }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: me ? 'rgba(155,109,255,.15)' : 'var(--s1)', border: `1px solid ${me ? 'var(--purple)' : 'var(--s2)'}`, borderRadius: 12, padding: '10px 13px', marginBottom: 6 }}>
       <div style={{ width: 28, textAlign: 'center', fontWeight: 800, fontSize: rank < 3 ? 18 : 13, color: 'var(--muted)' }}>{MEDALS[rank] || rank + 1}</div>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: 14, fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{name}{me && ' (toi)'}</div>
-        {sub && <div style={{ fontSize: 10, color: 'var(--muted)' }}>{sub}</div>}
+        <div style={{ fontSize: 14, fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{avatar ? avatarIcon(avatar) + ' ' : ''}{name}{me && ' (toi)'}</div>
+        {(title || sub) && <div style={{ fontSize: 10, color: 'var(--muted)' }}>{[title && titleName(title), sub].filter(Boolean).join(' · ')}</div>}
       </div>
       <div style={{ fontFamily: "'Raleway',sans-serif", fontWeight: 800, color: 'var(--yellow)' }}>{right}</div>
     </div>
@@ -91,7 +92,7 @@ function LeagueBoard() {
       {user && !rows && <Empty text="Chargement…" />}
       {user && rows && list.length === 0 && <Empty text="Personne dans ta ligue cette semaine. Lance un quiz pour ouvrir le classement !" />}
       {user && list.map((r, i) => (
-        <Row key={r.uid} rank={i} name={r.name} me={r.uid === user.uid} right={`${r.weekXP || 0} XP`} sub={`Niveau ${r.level}`} />
+        <Row key={r.uid} rank={i} avatar={r.avatar} title={r.title} name={r.name} me={r.uid === user.uid} right={`${r.weekXP || 0} XP`} sub={`Niveau ${r.level}`} />
       ))}
       {user && rows && !inList && list.length > 0 && <Empty text="Joue un quiz cette semaine pour apparaître dans le classement." />}
     </div>
@@ -131,7 +132,7 @@ export default function Leaderboard() {
         !rows ? <Empty text="Chargement…" /> :
         rows.length === 0 ? <Empty text="Le classement se remplit dès qu'un joueur termine un quiz." /> :
         rows.map((r, i) => (
-          <Row key={r.uid} rank={i} name={r.name} me={r.uid === user?.uid} right={`${r.totalXP} XP`} sub={`Niveau ${r.level}${r.streak > 1 ? ` · 🔥 ${r.streak} j` : ''}`} />
+          <Row key={r.uid} rank={i} avatar={r.avatar} title={r.title} name={r.name} me={r.uid === user?.uid} right={`${r.totalXP} XP`} sub={`Niveau ${r.level}${r.streak > 1 ? ` · 🔥 ${r.streak} j` : ''}`} />
         ))
       ) : <DailyBoard date={dayKey()} />}
     </div>

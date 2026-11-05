@@ -8,6 +8,7 @@ import { useAuth } from '../context/AuthContext';
 import { useQuiz } from '../hooks/useQuiz';
 import { LEAGUES } from '../utils/league';
 import { shareScore } from '../utils/share';
+import { findCosmetic, isAvatar } from '../data/cosmetics';
 
 // ── Themes ───────────────────────────────────────────────────────────────────
 export function Themes() {
@@ -515,12 +516,13 @@ function ResultScreen({ quiz, quizData, catId, themeId, navigate, onReplay, onPr
         </div>
       </div>
 
-      {quiz.rewards && (quiz.rewards.leagueMoved || quiz.rewards.chestXP > 0 || quiz.rewards.freezeUsed || quiz.rewards.freezeGained || quiz.rewards.streak > 1) && (
+      {quiz.rewards && (quiz.rewards.newCosmetics?.length > 0 || quiz.rewards.leagueMoved || quiz.rewards.chestXP > 0 || quiz.rewards.freezeUsed || quiz.rewards.freezeGained || quiz.rewards.streak > 1) && (
         <div style={{ background: 'var(--s1)', border: '1px solid var(--s2)', borderRadius: 14, padding: '11px 14px', marginTop: 10, fontSize: 13, lineHeight: 1.7 }}>
           {quiz.rewards.chestXP > 0 && <div>🎁 Coffre du jour : <strong style={{ color: 'var(--yellow)' }}>+{quiz.rewards.chestXP} XP</strong></div>}
           {quiz.rewards.streak > 1 && <div>🔥 Série : <strong>{quiz.rewards.streak} jours</strong></div>}
           {quiz.rewards.freezeUsed && <div>🧊 Un gel de série a sauvé ta série d'hier !</div>}
           {quiz.rewards.freezeGained && <div>🧊 Nouveau gel de série gagné (7 jours d'affilée) !</div>}
+          {(quiz.rewards.newCosmetics || []).map(id => { const c = findCosmetic(id); return c && <div key={id}>🎨 Débloqué : {isAvatar(id) ? `avatar ${c.icon} ${c.name}` : `titre « ${c.name} »`}</div>; })}
           {quiz.rewards.leagueMoved === 'up' && <div>🏅 Tu montes en ligue <strong>{LEAGUES[quiz.rewards.league].name}</strong> {LEAGUES[quiz.rewards.league].icon}</div>}
           {quiz.rewards.leagueMoved === 'down' && <div>📉 Tu redescends en ligue <strong>{LEAGUES[quiz.rewards.league].name}</strong>. Rejoue pour remonter !</div>}
         </div>
