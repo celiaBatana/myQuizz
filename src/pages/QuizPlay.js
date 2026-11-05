@@ -1,7 +1,7 @@
 // ─── THEMES / QUIZZES / QUIZPLAY ────────────────────────────────────────────
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, Link, Navigate } from 'react-router-dom';
-import { collection, getDocs, query, where } from 'firebase/firestore';
+import { collection, getDocs, query, where, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../firebase';
 import { CATEGORIES, DIFF_LABELS, DIFF_COLORS, XP_MAP, XP_TIMER_BONUS } from '../data/quizData';
 import { useAuth } from '../context/AuthContext';
@@ -249,6 +249,8 @@ export function QuizPlay() {
 // ── QuizPlayInner — logique de jeu ────────────────────────────────────────────
 export function QuizPlayInner({ quizData, cat, theme, catId, themeId, navigate, backTo, tagLabel, extra, noReplay }) {
   const back = backTo || `/category/${catId}/theme/${themeId}`;
+  const { user } = useAuth();
+  const [report, setReport] = useState('idle'); // idle | menu | sent | login | error
   const quiz = useQuiz(quizData);
   const [xpToast, setXpToast] = useState({ show: false, msg: '' });
   const toastTimer = useRef(null);
@@ -258,6 +260,21 @@ export function QuizPlayInner({ quizData, cat, theme, catId, themeId, navigate, 
     setXpToast({ show: true, msg });
     toastTimer.current = setTimeout(() => setXpToast({ show: false, msg: '' }), 1800);
   }
+
+  async function sendReport(reason) {
+    const cq = quiz.currentQuestion;
+    if (!user) { setReport('login'); return; }
+    try {
+      await addDoc(collection(db, 'reports'), {
+        questionId: cq?.id || '', quizId: quizData.id || '', quizName: quizData.name || '',
+        text: cq?.t || '', reason, reporterUid: user.uid, createdAt: serverTimestamp(),
+      });
+      setReport('sent');
+    } catch (e) { console.error(e); setReport('error'); }
+  }
+
+  // Nouvelle question → on réinitialise le bouton de signalement
+  useEffect(() => { setReport('idle'); }, [quiz.qIndex]);
 
   function handleAnswer(i) {
     const result = quiz.answer(i);
@@ -378,6 +395,22 @@ export function QuizPlayInner({ quizData, cat, theme, catId, themeId, navigate, 
             {quiz.selectedOption === quiz.currentQuestion?.a ? '✓ Bonne réponse !' : '✗ Pas tout à fait.'}
           </strong>{' '}
           {quiz.explanation}
+        </div>
+      )}
+
+      {quiz.answered && quiz.currentQuestion?.id && (
+        <div style={{ textAlign: 'right', marginBottom: 10, fontSize: 11 }}>
+          {report === 'idle' && <span style={{ color: 'var(--muted)', cursor: 'pointer' }} onClick={() => setReport('menu')}>🚩 Signaler cette question</span>}
+          {report === 'menu' && (
+            <span style={{ display: 'inline-flex', gap: 6, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+              {['Réponse fausse', 'Question ambiguë', 'Faute / typo', 'Autre'].map(r => (
+                <span key={r} onClick={() => sendReport(r)} style={{ border: '1px solid var(--s3)', borderRadius: 14, padding: '3px 9px', cursor: 'pointer', color: 'var(--muted)' }}>{r}</span>
+              ))}
+            </span>
+          )}
+          {report === 'sent' && <span style={{ color: 'var(--cyan)' }}>Merci, signalement envoyé ✓</span>}
+          {report === 'login' && <span style={{ color: 'var(--muted)' }}>Connecte-toi pour signaler une question</span>}
+          {report === 'error' && <span style={{ color: 'var(--pink)' }}>Envoi impossible pour le moment</span>}
         </div>
       )}
 
