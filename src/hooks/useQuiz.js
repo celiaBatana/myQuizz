@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { doc, updateDoc, arrayUnion, increment, serverTimestamp } from 'firebase/firestore';
+import { doc, updateDoc, increment, serverTimestamp } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useAuth } from '../context/AuthContext';
 
@@ -7,6 +7,12 @@ const XP_MAP         = { easy: 5,  medium: 10, hard: 20 };
 const XP_TIMER_BONUS = { easy: 10, medium: 20, hard: 30 };
 const TIMER_DURATION = 15;
 const XP_PER_LEVEL   = 200;
+const HISTORY_MAX    = 50;
+
+function dayKey(d = new Date()) {
+  const p = n => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+}
 
 export function useQuiz(quiz) {
   const { user, profile, updateProfile } = useAuth();
@@ -35,6 +41,9 @@ export function useQuiz(quiz) {
   const totalXPRef   = useRef(0);
   const totalTimeRef = useRef(0);
   const timedCountRef = useRef(0);
+  const wrongRef      = useRef([]);
+  const [practice, setPractice] = useState(false);
+  const [wrongCount, setWrongCount] = useState(0);
 
   // States affichés dans l'UI
   const [scoreDisplay,   setScoreDisplay]   = useState(0);
@@ -77,6 +86,7 @@ export function useQuiz(quiz) {
   function handleTimeout() {
     totalTimeRef.current += TIMER_DURATION;
     timedCountRef.current += 1;
+    if (currentQuestion) { wrongRef.current.push(currentQuestion); setWrongCount(wrongRef.current.length); }
     setAnswered(true);
     setSelectedOption(null);
     setExplanation(currentQuestion?.e || '');
@@ -104,6 +114,9 @@ export function useQuiz(quiz) {
       totalXPRef.current += xpGained;
       setScoreDisplay(scoreRef.current);
       setTotalXPDisplay(totalXPRef.current);
+    } else if (currentQuestion) {
+      wrongRef.current.push(currentQuestion);
+      setWrongCount(wrongRef.current.length);
     }
 
     if (timerEnabled) {
@@ -136,6 +149,7 @@ export function useQuiz(quiz) {
     const finalXP    = totalXPRef.current;
     const finalTime  = totalTimeRef.current;
 
+    if (practice) return; // mode révision : rien n'est sauvegardé
     if (!user) {
       console.warn('Pas de user connecté — stats non sauvegardées');
       return;
@@ -168,6 +182,16 @@ export function useQuiz(quiz) {
         date:      new Date().toISOString(),
       };
 
+      const todayKey  = dayKey();
+      const yKey      = dayKey(new Date(Date.now() - 86400000));
+      const lastKey   = profile?.lastStreakDate;
+      const newStreak = lastKey === todayKey ? (profile?.streak || 1)
+                      : lastKey === yKey     ? (profile?.streak || 0) + 1 : 1;
+      const newHistory = [...(profile?.history || []), historyEntry].slice(-HISTORY_MAX);
+      const pctScore  = totalQuestions > 0 ? Math.round((finalScore / totalQuestions) * 100) : 0;
+      const prevBest  = profile?.bestScores?.[quiz.id];
+      const isBest    = !quiz.noBest && quiz.id && (prevBest === undefined || pctScore > prevBest);
+
       await updateDoc(doc(db, 'users', user.uid), {
         totalXP:        increment(xpToAdd),
         level:          lvl,
@@ -177,8 +201,12 @@ export function useQuiz(quiz) {
         totalAnswers:   increment(totalQuestions),
         quizzesToday:   lastPlay === today ? increment(1) : 1,
         lastPlayDate:   today,
-        history:        arrayUnion(historyEntry),
+        history:        newHistory,
+        streak:         newStreak,
+        lastStreakDate: todayKey,
         updatedAt:      serverTimestamp(),
+        ...(isBest ? { [`bestScores.${quiz.id}`]: pctScore } : {}),
+        ...(finalScore === totalQuestions && totalQuestions > 0 ? { perfectQuizzes: increment(1) } : {}),
       });
 
       // Mettre à jour le state local du contexte
@@ -191,6 +219,11 @@ export function useQuiz(quiz) {
         totalAnswers:   (profile?.totalAnswers   || 0) + totalQuestions,
         quizzesToday:   quizzesToday + 1,
         lastPlayDate:   today,
+        history:        newHistory,
+        streak:         newStreak,
+        lastStreakDate: todayKey,
+        perfectQuizzes: (profile?.perfectQuizzes || 0) + (finalScore === totalQuestions && totalQuestions > 0 ? 1 : 0),
+        bestScores:     isBest ? { ...(profile?.bestScores || {}), [quiz.id]: pctScore } : (profile?.bestScores || {}),
       });
 
     } catch (err) {
@@ -198,8 +231,10 @@ export function useQuiz(quiz) {
     }
   }
 
-  function restart() {
-    // Remettre à zéro tout le state
+  function reset(list, isPractice) {
+    wrongRef.current = [];
+    setWrongCount(0);
+    setPractice(isPractice);
     scoreRef.current     = 0;
     totalXPRef.current   = 0;
     totalTimeRef.current = 0;
@@ -213,9 +248,12 @@ export function useQuiz(quiz) {
     setExplanation('');
     setTimeLeft(TIMER_DURATION);
     // Mélanger les questions dans un nouvel ordre
-    setQuestions(shuffle(quiz?.questions || []));
+    setQuestions(shuffle(list));
     clearInterval(timerRef.current);
   }
+
+  function restart() { reset(quiz?.questions || [], false); }
+  function practiceWrong() { reset(wrongRef.current.slice(), true); }
 
   function toggleTimer() {
     setTimerEnabled(v => {
@@ -242,6 +280,9 @@ export function useQuiz(quiz) {
     timerEnabled,
     timeLeft,
     avgTime,
+    practice,
+    wrongCount,
+    practiceWrong,
     diff,
     answer,
     next,

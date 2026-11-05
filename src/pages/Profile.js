@@ -38,6 +38,20 @@ export default function Profile() {
   const quizzesPlayed = profile?.quizzesPlayed  || 0;
   const correctAnswers= profile?.correctAnswers || 0;
   const totalAnswers  = profile?.totalAnswers   || 0;
+  const perfect       = profile?.perfectQuizzes || 0;
+  const today = (() => { const d = new Date(), p = n => String(n).padStart(2, '0'); return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`; })();
+  const yest  = (() => { const d = new Date(Date.now() - 86400000), p = n => String(n).padStart(2, '0'); return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`; })();
+  const streak = (profile?.lastStreakDate === today || profile?.lastStreakDate === yest) ? (profile?.streak || 0) : 0;
+  const BADGES = [
+    { icon: '🎯', name: 'Premier quiz',   ok: quizzesPlayed >= 1,  hint: 'Joue 1 quiz' },
+    { icon: '🔟', name: 'Habitué',        ok: quizzesPlayed >= 10, hint: 'Joue 10 quiz' },
+    { icon: '💯', name: 'Sans faute',     ok: perfect >= 1,        hint: 'Fais un 100 %' },
+    { icon: '🏆', name: 'Perfectionniste',ok: perfect >= 5,        hint: '5 quiz parfaits' },
+    { icon: '🔥', name: 'Série de 3',     ok: streak >= 3,         hint: '3 jours d\'affilée' },
+    { icon: '🌋', name: 'Série de 7',     ok: streak >= 7,         hint: '7 jours d\'affilée' },
+    { icon: '⚡', name: '500 XP',         ok: totalXP >= 500,      hint: 'Atteins 500 XP' },
+    { icon: '🚀', name: 'Niveau 5',       ok: level >= 5,          hint: 'Atteins le niveau 5' },
+  ];
   const history       = profile?.history        || [];
   const displayName   = profile?.displayName    || user.displayName || user.email?.split('@')[0] || 'Joueur';
   const accuracy      = totalAnswers > 0 ? Math.round((correctAnswers / totalAnswers) * 100) : 0;
@@ -118,6 +132,21 @@ export default function Profile() {
             <div style={{ fontSize: 10, color: 'var(--muted)', marginTop: 2 }}>{s.label}</div>
           </div>
         ))}
+      </div>
+
+      {/* ── Série + badges ── */}
+      <div style={{ background: 'var(--s1)', border: '1px solid var(--s2)', borderRadius: 14, padding: '12px 14px', marginBottom: 14 }}>
+        <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 8 }}>
+          🔥 Série : {streak} jour{streak > 1 ? 's' : ''}
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6 }}>
+          {BADGES.map(b => (
+            <div key={b.name} title={b.hint} style={{ textAlign: 'center', opacity: b.ok ? 1 : 0.35, filter: b.ok ? 'none' : 'grayscale(1)' }}>
+              <div style={{ fontSize: 22 }}>{b.icon}</div>
+              <div style={{ fontSize: 9, color: 'var(--muted)', marginTop: 2 }}>{b.ok ? b.name : b.hint}</div>
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* ── Tabs ── */}

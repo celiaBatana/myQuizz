@@ -88,6 +88,8 @@ export function Quizzes() {
   const [quizzes, setQuizzes]   = useState([]);
   const [qCounts, setQCounts]   = useState({});
   const [loading, setLoading]   = useState(true);
+  const { profile } = useAuth();
+  const bestScores = profile?.bestScores || {};
 
   const DIFF_ORDER = { easy: 0, medium: 1, hard: 2 };
 
@@ -156,9 +158,14 @@ export function Quizzes() {
               <div style={{ fontFamily: "'Raleway', sans-serif", fontWeight: 700, fontSize: 15 }}>{quiz.name}</div>
               <span className={`diff-badge diff-${quiz.diff}`}>{DIFF_LABELS[quiz.diff]}</span>
             </div>
-            <div style={{ display: 'flex', gap: 14, fontSize: 11, color: 'var(--muted)' }}>
+            <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', fontSize: 11, color: 'var(--muted)' }}>
               <span>📋 {qCounts[quiz.id] ?? '…'} questions</span>
               <span style={{ fontWeight: 600, color: 'var(--yellow)' }}>⚡ {xpBase}–{xpMax} XP/question</span>
+              {bestScores[quiz.id] !== undefined && (
+                <span style={{ fontWeight: 700, color: bestScores[quiz.id] === 100 ? 'var(--cyan)' : 'var(--purple)' }}>
+                  {bestScores[quiz.id] === 100 ? '🏆' : '✓'} Meilleur : {bestScores[quiz.id]}%
+                </span>
+              )}
             </div>
           </div>
         );
@@ -257,7 +264,7 @@ function QuizPlayInner({ quizData, cat, theme, catId, themeId, navigate }) {
   }
 
   if (quiz.status === 'finished') {
-    return <ResultScreen quiz={quiz} quizData={quizData} catId={catId} themeId={themeId} navigate={navigate} onReplay={quiz.restart} />;
+    return <ResultScreen quiz={quiz} quizData={quizData} catId={catId} themeId={themeId} navigate={navigate} onReplay={quiz.restart} onPractice={quiz.practiceWrong} />;
   }
 
   const q        = quiz.currentQuestion;
@@ -375,7 +382,7 @@ function QuizPlayInner({ quizData, cat, theme, catId, themeId, navigate }) {
 }
 
 // ── ResultScreen ──────────────────────────────────────────────────────────────
-function ResultScreen({ quiz, quizData, catId, themeId, navigate, onReplay }) {
+function ResultScreen({ quiz, quizData, catId, themeId, navigate, onReplay, onPractice }) {
   const pct   = quiz.score / quiz.totalQuestions;
   const emoji = pct === 1 ? '🏆' : pct >= 0.8 ? '⭐' : pct >= 0.6 ? '👍' : pct >= 0.4 ? '🤔' : '💪';
   const title = pct === 1 ? 'Parfait !' : pct >= 0.8 ? 'Excellent !' : pct >= 0.6 ? 'Bien joué !' : pct >= 0.4 ? 'Pas mal !' : 'Continue !';
@@ -403,7 +410,7 @@ function ResultScreen({ quiz, quizData, catId, themeId, navigate, onReplay }) {
         </div>
         <div>
           <div style={{ fontFamily: "'Raleway', sans-serif", fontSize: 22, fontWeight: 800, color: 'var(--cyan)' }}>+{quiz.totalXP}</div>
-          <div style={{ fontSize: 10, color: 'var(--muted)', marginTop: 2 }}>XP gagnés</div>
+          <div style={{ fontSize: 10, color: 'var(--muted)', marginTop: 2 }}>{quiz.practice ? 'XP (révision)' : 'XP gagnés'}</div>
         </div>
         <div>
           <div style={{ fontFamily: "'Raleway', sans-serif", fontSize: 22, fontWeight: 800, color: 'var(--purple)' }}>
@@ -424,7 +431,13 @@ function ResultScreen({ quiz, quizData, catId, themeId, navigate, onReplay }) {
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 8 }}>
-        <button className="btn btn-primary btn-full" style={{ fontFamily: "'Raleway', sans-serif", fontWeight: 700 }}
+        {quiz.wrongCount > 0 && (
+          <button className="btn btn-primary btn-full" style={{ fontFamily: "'Raleway', sans-serif", fontWeight: 700 }}
+            onClick={onPractice}>
+            🔁 Rejouer mes {quiz.wrongCount} erreur{quiz.wrongCount > 1 ? 's' : ''} (sans XP)
+          </button>
+        )}
+        <button className={`btn ${quiz.wrongCount > 0 ? 'btn-secondary' : 'btn-primary'} btn-full`} style={{ fontFamily: "'Raleway', sans-serif", fontWeight: 700 }}
           onClick={onReplay}>
           Rejouer ce quiz
         </button>
