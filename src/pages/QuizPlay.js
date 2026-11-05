@@ -272,7 +272,11 @@ function QuizPlayInner({ quizData, cat, theme, catId, themeId, navigate }) {
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12, paddingTop: 4 }}>
         <button className="btn btn-secondary" style={{ padding: '6px 11px', fontSize: 12 }}
-          onClick={() => navigate(`/category/${catId}/theme/${themeId}`)}>← Retour</button>
+          onClick={() => {
+            const inProgress = quiz.qIndex > 0 || quiz.answered;
+            if (inProgress && !window.confirm('Quitter le quiz en cours ? Ta progression sera perdue.')) return;
+            navigate(`/category/${catId}/theme/${themeId}`);
+          }}>← Retour</button>
         <div style={{ fontSize: 13, color: 'var(--muted)', fontWeight: 500 }}>
           {quiz.qIndex + 1} / {quiz.totalQuestions}
         </div>
