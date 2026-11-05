@@ -1,6 +1,6 @@
 // ─── THEMES / QUIZZES / QUIZPLAY ────────────────────────────────────────────
 import React, { useState, useEffect, useRef } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate, Link, Navigate } from 'react-router-dom';
 import { collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from '../firebase';
 import { CATEGORIES, DIFF_LABELS, DIFF_COLORS, XP_MAP, XP_TIMER_BONUS } from '../data/quizData';
@@ -12,12 +12,11 @@ export function Themes() {
   const { catId } = useParams();
   const navigate = useNavigate();
   const cat = CATEGORIES[catId];
-  if (!cat) { navigate('/'); return null; }
-
-  const themes = Object.values(cat.themes);
+  const themes = cat ? Object.values(cat.themes) : [];
   const [quizCounts, setQuizCounts] = useState({}); // themeId → nb quiz
 
   useEffect(() => {
+    if (!cat) return;
     (async () => {
       const snap = await getDocs(query(collection(db, 'quizzes'), where('catId', '==', catId)));
       const counts = {};
@@ -28,6 +27,8 @@ export function Themes() {
       setQuizCounts(counts);
     })();
   }, [catId]);
+
+  if (!cat) return <Navigate to="/" replace />;
 
   return (
     <div className="page">
@@ -84,14 +85,13 @@ export function Quizzes() {
   const navigate = useNavigate();
   const cat = CATEGORIES[catId];
   const theme = cat?.themes[themeId];
-  if (!cat || !theme) { navigate('/'); return null; }
-
   const [quizzes, setQuizzes]   = useState([]);
   const [loading, setLoading]   = useState(true);
 
   const DIFF_ORDER = { easy: 0, medium: 1, hard: 2 };
 
   useEffect(() => {
+    if (!cat || !theme) return;
     (async () => {
       const snap = await getDocs(
         query(collection(db, 'quizzes'),
@@ -106,6 +106,8 @@ export function Quizzes() {
       setLoading(false);
     })();
   }, [catId, themeId]);
+
+  if (!cat || !theme) return <Navigate to="/" replace />;
 
   return (
     <div className="page">
