@@ -12,8 +12,8 @@ export function Themes() {
   const { catId } = useParams();
   const navigate = useNavigate();
   const cat = CATEGORIES[catId];
-  const themes = cat ? Object.values(cat.themes) : [];
   const [quizCounts, setQuizCounts] = useState({}); // themeId → nb quiz
+  const [countsLoaded, setCountsLoaded] = useState(false);
 
   useEffect(() => {
     if (!cat) return;
@@ -25,10 +25,15 @@ export function Themes() {
         counts[tid] = (counts[tid] || 0) + 1;
       });
       setQuizCounts(counts);
+      setCountsLoaded(true);
     })();
   }, [catId]);
 
   if (!cat) return <Navigate to="/" replace />;
+
+  // Thèmes avec quiz d'abord, thèmes encore vides en dernier (grisés, « bientôt »)
+  const themes = Object.values(cat.themes).sort((a, b) => (quizCounts[b.id] ? 1 : 0) - (quizCounts[a.id] ? 1 : 0));
+  const isEmpty = (t) => countsLoaded && !quizCounts[t.id];
 
   return (
     <div className="page">
@@ -38,7 +43,7 @@ export function Themes() {
         <span className="current">{cat.icon} {cat.label}</span>
       </div>
       <div className="page-title">{cat.icon} {cat.label}</div>
-      <div className="page-sub">{themes.length} thèmes disponibles</div>
+      <div className="page-sub">{themes.length} thèmes</div>
 
       <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 16 }}>
         {Object.entries(DIFF_LABELS).map(([k, v]) => (
@@ -52,13 +57,14 @@ export function Themes() {
       {themes.map(theme => (
         <div
           key={theme.id}
-          onClick={() => navigate(`/category/${catId}/theme/${theme.id}`)}
+          onClick={() => !isEmpty(theme) && navigate(`/category/${catId}/theme/${theme.id}`)}
           style={{
             background: 'var(--s1)', border: '1px solid var(--s2)', borderRadius: 16,
-            padding: '14px 15px', marginBottom: 8, cursor: 'pointer', transition: 'all .2s',
+            padding: '14px 15px', marginBottom: 8, cursor: isEmpty(theme) ? 'default' : 'pointer', transition: 'all .2s',
+            opacity: isEmpty(theme) ? 0.45 : 1,
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           }}
-          onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--purple)'; e.currentTarget.style.background = 'rgba(155,109,255,.07)'; }}
+          onMouseEnter={e => { if (isEmpty(theme)) return; e.currentTarget.style.borderColor = 'var(--purple)'; e.currentTarget.style.background = 'rgba(155,109,255,.07)'; }}
           onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--s2)'; e.currentTarget.style.background = 'var(--s1)'; }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -68,7 +74,7 @@ export function Themes() {
             <div>
               <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 3 }}>{theme.label}</div>
               <div style={{ fontSize: 11, color: 'var(--muted)' }}>
-                {quizCounts[theme.id] ?? '…'} quiz disponibles
+                {!countsLoaded ? '…' : isEmpty(theme) ? 'Bientôt disponible' : `${quizCounts[theme.id]} quiz disponibles`}
               </div>
             </div>
           </div>
