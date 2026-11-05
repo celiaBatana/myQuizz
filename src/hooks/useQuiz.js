@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { doc, updateDoc, setDoc, increment, serverTimestamp } from 'firebase/firestore';
+import { doc, updateDoc, setDoc, writeBatch, increment, serverTimestamp } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useAuth } from '../context/AuthContext';
 
@@ -47,6 +47,7 @@ export function useQuiz(quiz) {
   const totalTimeRef = useRef(0);
   const timedCountRef = useRef(0);
   const wrongRef      = useRef([]);
+  const resultsRef    = useRef([]); // [{id, ok}] pour les stats par question
   const comboRef      = useRef(0);
   const mode          = quiz?.mode || 'normal';
   const [combo, setCombo] = useState(0);
@@ -101,7 +102,7 @@ export function useQuiz(quiz) {
     timedCountRef.current += 1;
     comboRef.current = 0; setCombo(0);
     if (mode === 'sudden') setOver(true);
-    if (currentQuestion) { wrongRef.current.push(currentQuestion); setWrongCount(wrongRef.current.length); }
+    if (currentQuestion) { wrongRef.current.push(currentQuestion); setWrongCount(wrongRef.current.length); resultsRef.current.push({ id: currentQuestion.id, ok: false }); }
     setAnswered(true);
     setSelectedOption(null);
     setExplanation(currentQuestion?.e || '');
@@ -116,6 +117,7 @@ export function useQuiz(quiz) {
     setSelectedOption(optionIndex);
 
     const correct = optionIndex === currentQuestion?.a;
+    if (currentQuestion?.id) resultsRef.current.push({ id: currentQuestion.id, ok: correct });
     let xpGained = 0;
 
     let mult = 1;
@@ -174,6 +176,19 @@ export function useQuiz(quiz) {
     if (!user) {
       console.warn('Pas de user connecté — stats non sauvegardées');
       return;
+    }
+
+    // Stats par question (taux de réussite, vues dans l'admin) : échec non bloquant
+    const results = resultsRef.current.slice();
+    if (results.length) {
+      (async () => {
+        try {
+          const batch = writeBatch(db);
+          results.forEach(r => batch.set(doc(db, 'question_stats', r.id),
+            { plays: increment(1), correct: increment(r.ok ? 1 : 0) }, { merge: true }));
+          await batch.commit();
+        } catch (e) { console.warn('Stats de question non enregistrées (règles Firestore à publier ?)', e); }
+      })();
     }
 
     try {
@@ -287,6 +302,7 @@ export function useQuiz(quiz) {
 
   function reset(list, isPractice) {
     wrongRef.current = [];
+    resultsRef.current = [];
     comboRef.current = 0; setCombo(0); setOver(false); setRewards(null); setSaved(false);
     setWrongCount(0);
     setPractice(isPractice);

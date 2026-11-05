@@ -51,6 +51,13 @@ service cloud.firestore {
         && id == request.resource.data.duelId + '_' + request.auth.uid;
     }
 
+    // Stats par question : lecture admin, incrément par tout joueur connecté
+    match /question_stats/{id} {
+      allow create, update: if signedIn();
+      allow read: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
     // Signalements de questions : création par tout joueur connecté, gestion par l'admin
     match /reports/{id} {
       allow create: if signedIn();
