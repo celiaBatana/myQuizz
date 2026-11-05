@@ -35,13 +35,18 @@ export function AuthProvider({ children }) {
 
   // Charge le profil Firestore, ou le crée s'il n'existe pas
   async function loadProfile(fbUser) {
-    const ref = doc(db, 'users', fbUser.uid);
-    const snap = await getDoc(ref);
-    if (snap.exists()) {
-      setProfile(snap.data());
-    } else if (!registeringRef.current) {
-      const name = fbUser.displayName || fbUser.email?.split('@')[0] || 'Joueur';
-      await createProfile(fbUser.uid, name, fbUser.email);
+    try {
+      const ref = doc(db, 'users', fbUser.uid);
+      const snap = await getDoc(ref);
+      if (snap.exists()) {
+        setProfile(snap.data());
+      } else if (!registeringRef.current) {
+        const name = fbUser.displayName || fbUser.email?.split('@')[0] || 'Joueur';
+        await createProfile(fbUser.uid, name, fbUser.email);
+      }
+    } catch (err) {
+      // Ne jamais bloquer la connexion à cause du profil
+      console.error('Erreur chargement/création du profil:', err);
     }
   }
 
