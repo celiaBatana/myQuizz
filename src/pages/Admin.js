@@ -507,8 +507,8 @@ export default function Admin() {
                                   <span style={{ fontWeight: 700, fontSize: 13 }}>{quiz.name}</span>
                                 </div>
                                 <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-                                  <span style={{ fontSize: 11, color: quizQ.length === 0 ? 'var(--pink)' : 'var(--muted)' }}>
-                                    {quizQ.length === 0 ? '⚠️ 0 question' : `${quizQ.length} questions`}
+                                  <span style={{ fontSize: 11, color: quizQ.length === 0 ? 'var(--pink)' : quizQ.length < 10 ? 'var(--yellow)' : 'var(--cyan)' }}>
+                                    {quizQ.length === 0 ? '⚠️ 0 question' : quizQ.length < 10 ? `⚠️ ${quizQ.length}/10 questions` : `✓ ${quizQ.length} questions`}
                                   </span>
                                 </div>
                               </div>
