@@ -177,12 +177,22 @@ export default function Admin() {
   }
 
   async function importCSVQuestions() {
-    let n = 0; let linked = 0; const notFound = [];
+    let n = 0; let linked = 0; let created = 0; const notFound = [];
+    const known = [...quizzes]; // quiz connus, enrichis au fil des créations
     for (const { quizName, ...row } of csvRows) {
-      const matchingQuiz = quizzes.find(q =>
+      let matchingQuiz = known.find(q =>
         q.catId === row.category && q.themeId === row.theme && q.diff === row.diff &&
         (!quizName || q.name === quizName)
       );
+      // Quiz nommé dans le CSV mais inexistant : on le crée
+      if (!matchingQuiz && quizName) {
+        const qd = { catId: row.category, themeId: row.theme, name: quizName, diff: row.diff };
+        const qref = await addDoc(collection(db, 'quizzes'), { ...qd, createdAt: serverTimestamp() });
+        matchingQuiz = { id: qref.id, ...qd };
+        known.push(matchingQuiz);
+        setQuizzes(p => [...p, matchingQuiz]);
+        created++;
+      }
       const data = {
         ...row,
         quizId: matchingQuiz ? matchingQuiz.id : null,
@@ -198,7 +208,7 @@ export default function Admin() {
     if (notFound.length > 0)
       ok(`✓ ${n} importées · ${linked} liées · ⚠️ ${n - linked} sans quiz (${notFound.map(x => x.category + '/' + x.theme).join(', ')})`);
     else
-      ok(`✓ ${n} questions importées et liées automatiquement !`);
+      ok(`✓ ${n} questions importées et liées${created ? ` · ${created} quiz créé${created > 1 ? 's' : ''}` : ''} !`);
   }
 
   function parseCSVQuestions(e) {
@@ -896,7 +906,7 @@ export default function Admin() {
           <div style={S.divider} />
           <div style={{ fontFamily: "'Raleway', sans-serif", fontWeight: 700, fontSize: 14, marginBottom: 6 }}>Import CSV questions</div>
           <div style={{ fontSize: 11, color: 'var(--muted)', marginBottom: 12, fontFamily: 'monospace', background: 'var(--s2)', borderRadius: 8, padding: '8px 10px' }}>
-            categorie,theme,difficulte,question,optA,optB,optC,optD,reponse(0-3),explication,quiz (optionnel : nom du quiz cible)
+            categorie,theme,difficulte,question,optA,optB,optC,optD,reponse(0-3),explication,quiz (optionnel : nom du quiz, créé automatiquement s'il n'existe pas)
           </div>
           <div onClick={() => document.getElementById('csv-q-in').click()}
             style={{ border: '2px dashed var(--s3)', borderRadius: 12, padding: 24, textAlign: 'center', cursor: 'pointer', marginBottom: 10 }}
