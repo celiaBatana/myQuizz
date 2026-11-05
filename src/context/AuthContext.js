@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
 import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
@@ -16,13 +16,14 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
+  const registeringRef = useRef(false);
 
   // Écoute les changements d'état d'auth Firebase
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
         setUser(firebaseUser);
-        await loadProfile(firebaseUser.uid);
+        await loadProfile(firebaseUser);
       } else {
         setUser(null);
         setProfile(null);
@@ -32,12 +33,15 @@ export function AuthProvider({ children }) {
     return unsub;
   }, []);
 
-  // Charge ou crée le profil Firestore
-  async function loadProfile(uid) {
-    const ref = doc(db, 'users', uid);
+  // Charge le profil Firestore, ou le crée s'il n'existe pas
+  async function loadProfile(fbUser) {
+    const ref = doc(db, 'users', fbUser.uid);
     const snap = await getDoc(ref);
     if (snap.exists()) {
       setProfile(snap.data());
+    } else if (!registeringRef.current) {
+      const name = fbUser.displayName || fbUser.email?.split('@')[0] || 'Joueur';
+      await createProfile(fbUser.uid, name, fbUser.email);
     }
   }
 
@@ -67,16 +71,21 @@ export function AuthProvider({ children }) {
 
   // Inscription email/password
   async function register(email, password, displayName) {
-    const cred = await createUserWithEmailAndPassword(auth, email, password);
-    await updateProfile(cred.user, { displayName });
-    await createProfile(cred.user.uid, displayName, email);
-    return cred.user;
+    registeringRef.current = true;
+    try {
+      const cred = await createUserWithEmailAndPassword(auth, email, password);
+      await updateProfile(cred.user, { displayName });
+      await createProfile(cred.user.uid, displayName, email);
+      return cred.user;
+    } finally {
+      registeringRef.current = false;
+    }
   }
 
   // Connexion email/password
   async function login(email, password) {
     const cred = await signInWithEmailAndPassword(auth, email, password);
-    await loadProfile(cred.user.uid);
+    await loadProfile(cred.user);
     return cred.user;
   }
 

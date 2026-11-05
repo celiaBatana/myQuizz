@@ -7,7 +7,6 @@ const XP_MAP         = { easy: 5,  medium: 10, hard: 20 };
 const XP_TIMER_BONUS = { easy: 10, medium: 20, hard: 30 };
 const TIMER_DURATION = 15;
 const XP_PER_LEVEL   = 200;
-const FREE_DAILY_LIMIT = 3;
 
 export function useQuiz(quiz) {
   const { user, profile, updateProfile } = useAuth();
@@ -221,15 +220,6 @@ export function useQuiz(quiz) {
     clearInterval(timerRef.current);
   }
 
-  function canPlay() {
-    if (!user) return { allowed: true };
-    if (profile?.isPremium) return { allowed: true };
-    const today = new Date().toDateString();
-    const quizzesToday = profile?.lastPlayDate === today ? (profile.quizzesToday || 0) : 0;
-    if (quizzesToday >= FREE_DAILY_LIMIT) return { allowed: false, reason: 'limit', remaining: 0 };
-    return { allowed: true, remaining: FREE_DAILY_LIMIT - quizzesToday };
-  }
-
   function toggleTimer() {
     setTimerEnabled(v => {
       if (!v) startTimer();
@@ -260,7 +250,6 @@ export function useQuiz(quiz) {
     next,
     restart,
     toggleTimer,
-    canPlay,
     XP_MAP,
     XP_TIMER_BONUS,
     TIMER_DURATION,
