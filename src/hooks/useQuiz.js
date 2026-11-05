@@ -34,6 +34,7 @@ export function useQuiz(quiz) {
   const scoreRef     = useRef(0);
   const totalXPRef   = useRef(0);
   const totalTimeRef = useRef(0);
+  const timedCountRef = useRef(0);
 
   // States affichés dans l'UI
   const [scoreDisplay,   setScoreDisplay]   = useState(0);
@@ -74,6 +75,8 @@ export function useQuiz(quiz) {
   }, [qIndex, timerEnabled, status]);
 
   function handleTimeout() {
+    totalTimeRef.current += TIMER_DURATION;
+    timedCountRef.current += 1;
     setAnswered(true);
     setSelectedOption(null);
     setExplanation(currentQuestion?.e || '');
@@ -105,6 +108,7 @@ export function useQuiz(quiz) {
 
     if (timerEnabled) {
       totalTimeRef.current += elapsed;
+      timedCountRef.current += 1;
     }
 
     setExplanation(currentQuestion?.e || '');
@@ -131,8 +135,6 @@ export function useQuiz(quiz) {
     const finalScore = scoreRef.current;
     const finalXP    = totalXPRef.current;
     const finalTime  = totalTimeRef.current;
-
-    console.log('Quiz terminé — score:', finalScore, 'XP:', finalXP, 'user:', user?.uid);
 
     if (!user) {
       console.warn('Pas de user connecté — stats non sauvegardées');
@@ -166,8 +168,6 @@ export function useQuiz(quiz) {
         date:      new Date().toISOString(),
       };
 
-      console.log('Sauvegarde Firestore...', { xpToAdd, finalScore, lvl, remaining });
-
       await updateDoc(doc(db, 'users', user.uid), {
         totalXP:        increment(xpToAdd),
         level:          lvl,
@@ -181,8 +181,6 @@ export function useQuiz(quiz) {
         updatedAt:      serverTimestamp(),
       });
 
-      console.log('✅ Firestore OK');
-
       // Mettre à jour le state local du contexte
       await updateProfile({
         totalXP:        newTotalXP,
@@ -195,8 +193,6 @@ export function useQuiz(quiz) {
         lastPlayDate:   today,
       });
 
-      console.log('✅ Profile local mis à jour');
-
     } catch (err) {
       console.error('❌ Erreur sauvegarde quiz:', err);
     }
@@ -207,6 +203,7 @@ export function useQuiz(quiz) {
     scoreRef.current     = 0;
     totalXPRef.current   = 0;
     totalTimeRef.current = 0;
+    timedCountRef.current = 0;
     setScoreDisplay(0);
     setTotalXPDisplay(0);
     setQIndex(0);
@@ -228,8 +225,8 @@ export function useQuiz(quiz) {
     });
   }
 
-  const avgTime = timerEnabled && scoreRef.current > 0
-    ? Math.round(totalTimeRef.current / totalQuestions)
+  const avgTime = timedCountRef.current > 0
+    ? Math.round(totalTimeRef.current / timedCountRef.current)
     : null;
 
   return {

@@ -86,6 +86,7 @@ export function Quizzes() {
   const cat = CATEGORIES[catId];
   const theme = cat?.themes[themeId];
   const [quizzes, setQuizzes]   = useState([]);
+  const [qCounts, setQCounts]   = useState({});
   const [loading, setLoading]   = useState(true);
 
   const DIFF_ORDER = { easy: 0, medium: 1, hard: 2 };
@@ -104,6 +105,14 @@ export function Quizzes() {
         .sort((a, b) => (DIFF_ORDER[a.diff] ?? 3) - (DIFF_ORDER[b.diff] ?? 3));
       setQuizzes(list);
       setLoading(false);
+      // Nombre de questions par quiz (requêtes par paquets de 10 ids)
+      const counts = {};
+      for (let i = 0; i < list.length; i += 10) {
+        const ids = list.slice(i, i + 10).map(q => q.id);
+        const qs = await getDocs(query(collection(db, 'questions'), where('quizId', 'in', ids)));
+        qs.docs.forEach(d => { const id = d.data().quizId; counts[id] = (counts[id] || 0) + 1; });
+      }
+      setQCounts(counts);
     })();
   }, [catId, themeId]);
 
@@ -148,6 +157,7 @@ export function Quizzes() {
               <span className={`diff-badge diff-${quiz.diff}`}>{DIFF_LABELS[quiz.diff]}</span>
             </div>
             <div style={{ display: 'flex', gap: 14, fontSize: 11, color: 'var(--muted)' }}>
+              <span>📋 {qCounts[quiz.id] ?? '…'} questions</span>
               <span style={{ fontWeight: 600, color: 'var(--yellow)' }}>⚡ {xpBase}–{xpMax} XP/question</span>
             </div>
           </div>
