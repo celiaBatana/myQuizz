@@ -7,6 +7,7 @@ import AuthModal from '../components/AuthModal';
 import { S } from '../components/adminStyles';
 import { QuestionForm, QuizForm, InlineEdit } from '../components/AdminForms';
 import AdminReports from '../components/AdminReports';
+import AdminSante from '../components/AdminSante';
 import { parseCSV, normText } from '../utils/csv';
 
 
@@ -61,6 +62,8 @@ export default function Admin() {
 
   // CSV
   const [csvRows,     setCsvRows]     = useState([]);
+  const [qStats,      setQStats]      = useState({});
+  const [statsOk,     setStatsOk]     = useState(false);
   const [csvQuizRows, setCsvQuizRows] = useState([]);
 
   function ok(msg) { setToast(msg); setTimeout(() => setToast(''), 2500); }
@@ -83,6 +86,11 @@ export default function Admin() {
         const rS = await getDocs(collection(db, 'reports'));
         setReports(rS.docs.map(d => ({ id: d.id, ...d.data() })));
       } catch (e) { console.warn('Signalements indisponibles (règles Firestore à publier ?)', e); }
+      try {
+        const stS = await getDocs(collection(db, 'question_stats'));
+        const m = {}; stS.docs.forEach(d => { m[d.id] = d.data(); });
+        setQStats(m); setStatsOk(true);
+      } catch (e) { console.warn('Stats indisponibles (règles Firestore à publier ?)', e); }
       setLoading(false);
     })();
   }, [user, isAdmin]);
@@ -415,6 +423,7 @@ export default function Admin() {
     { id: 'lier',       label: `Lier questions${unlinkedCount > 0 ? ` (${unlinkedCount} sans quiz)` : ''}` },
     { id: 'questions',  label: `Questions (${questions.length})` },
     { id: 'ajouter',    label: 'Ajouter' },
+    { id: 'sante',      label: '🩺 Santé' },
     { id: 'reports',    label: `🚩 Signalements${reports.length ? ` (${reports.length})` : ''}` },
     { id: 'categories', label: 'Catégories' },
     { id: 'themes',     label: 'Thèmes' },
@@ -939,6 +948,11 @@ export default function Admin() {
       )}
 
       {/* ══ CATÉGORIES ══ */}
+      {!loading && tab === 'sante' && (
+        <AdminSante questions={questions} quizzes={quizzes} cats={cats} themes={themes} reports={reports}
+          stats={qStats} statsOk={statsOk} onSaveQuestion={saveQuestion} setTab={setTab} ok={ok} />
+      )}
+
       {!loading && tab === 'reports' && (
         <AdminReports reports={reports} setReports={setReports} questions={questions}
           onSaveQuestion={saveQuestion} onDeleteQuestion={deleteQuestion} ok={ok} />
