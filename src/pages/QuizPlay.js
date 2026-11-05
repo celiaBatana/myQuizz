@@ -224,7 +224,7 @@ export function QuizPlay() {
     questions,
   };
 
-  return <QuizPlayInner quizData={quizData} cat={cat} theme={theme} catId={catId} themeId={themeId} navigate={navigate} onReplay={quiz.restart} />;
+  return <QuizPlayInner quizData={quizData} cat={cat} theme={theme} catId={catId} themeId={themeId} navigate={navigate} />;
 }
 
 // ── QuizPlayInner — logique de jeu ────────────────────────────────────────────
@@ -245,7 +245,7 @@ function QuizPlayInner({ quizData, cat, theme, catId, themeId, navigate }) {
   }
 
   if (quiz.status === 'finished') {
-    return <ResultScreen quiz={quiz} quizData={quizData} catId={catId} themeId={themeId} navigate={navigate} />;
+    return <ResultScreen quiz={quiz} quizData={quizData} catId={catId} themeId={themeId} navigate={navigate} onReplay={quiz.restart} />;
   }
 
   const q        = quiz.currentQuestion;
