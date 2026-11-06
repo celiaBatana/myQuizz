@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { CATEGORIES } from '../data/quizData';
-import { fetchByCatDiff, shuffle } from '../utils/questions';
+import { fetchVaried } from '../utils/questions';
 import { QuizPlayInner } from './QuizPlay';
 
 // Quiz mixte (10 questions au hasard) et mort subite (jusqu'à la première erreur)
@@ -16,8 +16,7 @@ export default function Play() {
   useEffect(() => {
     (async () => {
       try {
-        const all = shuffle(await fetchByCatDiff(cat, diff));
-        setQuestions(mode === 'mix' ? all.slice(0, 10) : all.slice(0, 60));
+        setQuestions(await fetchVaried(cat, diff, mode === 'mix' ? 10 : 60));
       } catch (e) { console.error(e); setQuestions([]); }
     })();
   }, [mode, cat, diff]);
@@ -31,7 +30,7 @@ export default function Play() {
     </div>
   );
 
-  const label = CATEGORIES[cat]?.label || cat;
+  const label = cat === 'all' ? 'Toutes catégories' : (CATEGORIES[cat]?.label || cat);
   const quizData = {
     id: `${mode}_${cat}_${diff}`,
     name: `${mode === 'sudden' ? 'Mort subite' : 'Quiz mixte'} – ${label}`,
