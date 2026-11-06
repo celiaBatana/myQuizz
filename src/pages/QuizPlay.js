@@ -8,6 +8,7 @@ import { useAuth } from '../context/AuthContext';
 import { useQuiz } from '../hooks/useQuiz';
 import { LEAGUES } from '../utils/league';
 import { shareScore } from '../utils/share';
+import { pickResultMessage } from '../utils/resultMessages';
 import { findCosmetic, isAvatar } from '../data/cosmetics';
 
 // ── Themes ───────────────────────────────────────────────────────────────────
@@ -469,8 +470,8 @@ export function QuizPlayInner({ quizData, cat, theme, catId, themeId, navigate, 
 // ── ResultScreen ──────────────────────────────────────────────────────────────
 function ResultScreen({ quiz, quizData, catId, themeId, navigate, onReplay, onPractice, backTo, extra, noReplay }) {
   const pct   = quiz.score / quiz.totalQuestions;
-  const emoji = pct === 1 ? '🏆' : pct >= 0.8 ? '⭐' : pct >= 0.6 ? '👍' : pct >= 0.4 ? '🤔' : '💪';
-  const title = pct === 1 ? 'Parfait !' : pct >= 0.8 ? 'Excellent !' : pct >= 0.6 ? 'Bien joué !' : pct >= 0.4 ? 'Pas mal !' : 'Continue !';
+  const msg = React.useMemo(() => pickResultMessage(pct), []);
+  const { emoji, title } = msg;
   const [xpBarWidth, setXpBarWidth] = React.useState(0);
   const [shareMsg, setShareMsg] = React.useState('');
   const { profile } = useAuth();
@@ -486,7 +487,7 @@ function ResultScreen({ quiz, quizData, catId, themeId, navigate, onReplay, onPr
       <div style={{ textAlign: 'center', padding: '20px 0' }}>
         <div style={{ fontSize: 50, marginBottom: 10, animation: 'popIn .5s cubic-bezier(.175,.885,.32,1.275)' }}>{emoji}</div>
         <div style={{ fontFamily: "'Raleway', sans-serif", fontSize: 26, fontWeight: 800, marginBottom: 4 }}>{title}</div>
-        <div style={{ color: 'var(--muted)', fontSize: 13 }}>{pct >= 0.6 ? 'Tu maîtrises le sujet !' : "Reviens t'entraîner !"}</div>
+        <div style={{ color: 'var(--muted)', fontSize: 13 }}>{msg.sub}</div>
       </div>
 
       <div style={{ background: 'var(--s1)', border: '1px solid var(--s2)', borderRadius: 16, padding: 16, margin: '14px 0', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6, textAlign: 'center' }}>
