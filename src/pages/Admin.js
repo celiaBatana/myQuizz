@@ -130,6 +130,17 @@ export default function Admin() {
     setConfirmDel(null); setSelectedQ([]); ok('✓ Question supprimée');
   }
 
+  // Mise à jour groupée de plusieurs questions (par paquets de 400)
+  async function bulkUpdateQuestions(list) {
+    for (let i = 0; i < list.length; i += 400) {
+      const batch = writeBatch(db);
+      list.slice(i, i + 400).forEach(({ id, data }) => batch.update(doc(db, 'questions', id), data));
+      await batch.commit();
+    }
+    const map = Object.fromEntries(list.map(x => [x.id, x.data]));
+    setQuestions(p => p.map(q => map[q.id] ? { ...q, ...map[q.id] } : q));
+  }
+
   async function deleteBulk() {
     const batch = writeBatch(db);
     selectedQ.forEach(id => batch.delete(doc(db, 'questions', id)));
@@ -950,7 +961,7 @@ export default function Admin() {
       {/* ══ CATÉGORIES ══ */}
       {!loading && tab === 'sante' && (
         <AdminSante questions={questions} quizzes={quizzes} cats={cats} themes={themes} reports={reports}
-          stats={qStats} statsOk={statsOk} onSaveQuestion={saveQuestion} onDeleteQuestion={deleteQuestion} setTab={setTab} ok={ok} />
+          stats={qStats} statsOk={statsOk} onSaveQuestion={saveQuestion} onDeleteQuestion={deleteQuestion} onBulkUpdate={bulkUpdateQuestions} setTab={setTab} ok={ok} />
       )}
 
       {!loading && tab === 'reports' && (
