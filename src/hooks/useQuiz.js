@@ -34,7 +34,18 @@ export function useQuiz(quiz) {
     return a;
   }
 
-  const [questions,      setQuestions]      = useState(() => shuffle(quiz?.questions || []));
+  // Mélange l'ordre des réponses (la bonne réponse n'est plus toujours au même endroit).
+  // Les questions du type « Toutes les réponses… » gardent leur ordre.
+  function shuffleOptions(q) {
+    const opts = q?.o;
+    if (!Array.isArray(opts) || opts.length < 2) return q;
+    if (opts.some(o => /^\s*(toutes|tous|aucun|aucune|les deux|a et b|b et c|a, b)/i.test(String(o)))) return q;
+    const order = shuffle(opts.map((_, i) => i));
+    return { ...q, o: order.map(i => opts[i]), a: order.indexOf(q.a) };
+  }
+  const prepare = list => shuffle(list).map(shuffleOptions);
+
+  const [questions,      setQuestions]      = useState(() => prepare(quiz?.questions || []));
   const [qIndex,         setQIndex]         = useState(0);
   const [status,         setStatus]         = useState('playing');
   const [answered,       setAnswered]       = useState(false);
@@ -349,7 +360,7 @@ export function useQuiz(quiz) {
     setExplanation('');
     setTimeLeft(TIMER_DURATION);
     // Mélanger les questions dans un nouvel ordre
-    setQuestions(shuffle(list));
+    setQuestions(prepare(list));
     clearInterval(timerRef.current);
   }
 
