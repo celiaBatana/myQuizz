@@ -950,7 +950,7 @@ export default function Admin() {
       {/* ══ CATÉGORIES ══ */}
       {!loading && tab === 'sante' && (
         <AdminSante questions={questions} quizzes={quizzes} cats={cats} themes={themes} reports={reports}
-          stats={qStats} statsOk={statsOk} onSaveQuestion={saveQuestion} setTab={setTab} ok={ok} />
+          stats={qStats} statsOk={statsOk} onSaveQuestion={saveQuestion} onDeleteQuestion={deleteQuestion} setTab={setTab} ok={ok} />
       )}
 
       {!loading && tab === 'reports' && (

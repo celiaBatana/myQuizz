@@ -17,7 +17,7 @@ function download(name, content, type) {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
-export default function AdminSante({ questions, quizzes, cats, themes, reports, stats, statsOk, onSaveQuestion, setTab, ok }) {
+export default function AdminSante({ questions, quizzes, cats, themes, reports, stats, statsOk, onSaveQuestion, onDeleteQuestion, setTab, ok }) {
   const [editId, setEditId] = useState(null);
 
   const data = useMemo(() => {
@@ -72,10 +72,10 @@ export default function AdminSante({ questions, quizzes, cats, themes, reports, 
 
     const unlinked = questions.filter(q => !q.quizId).length;
     const tracked = questions.filter(q => stats[q.id]?.plays >= MIN_PLAYS).length;
-    return { smallQuizzes, emptyThemes, dups, reported, anomalies, broken, unlinked, tracked, catLabel, themeLabel };
+    return { countByQuiz, smallQuizzes, emptyThemes, dups, reported, anomalies, broken, unlinked, tracked, catLabel, themeLabel };
   }, [questions, quizzes, cats, themes, reports, stats]);
 
-  const { smallQuizzes, emptyThemes, dups, reported, anomalies, broken, unlinked, tracked, catLabel, themeLabel } = data;
+  const { countByQuiz, smallQuizzes, emptyThemes, dups, reported, anomalies, broken, unlinked, tracked, catLabel, themeLabel } = data;
   const problems = smallQuizzes.length + emptyThemes.length + dups.length + anomalies.length + broken.length + (unlinked ? 1 : 0);
 
   function exportCSV() {
@@ -170,15 +170,48 @@ export default function AdminSante({ questions, quizzes, cats, themes, reports, 
       </Section>
 
       <Section title="Questions en double dans la base" count={dups.length} good="Aucun doublon.">
+        <div style={{ fontSize: 11, color: 'var(--muted)', marginBottom: 8, lineHeight: 1.6 }}>
+          Pour ne pas laisser un quiz à 9 questions : <strong>✏️ Modifie</strong> un des exemplaires pour en faire une nouvelle question du même thème et du même niveau.
+          Ne supprime que si le quiz garde ses 10 questions.
+        </div>
         {dups.slice(0, 15).map((g, i) => (
-          <div key={i} style={S.card}>
-            <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 3 }}>{g[0].text}</div>
-            <div style={{ fontSize: 10, color: 'var(--muted)' }}>
-              {g.length} exemplaires · {g.map(q => q.theme + '/' + q.diff).join(' · ')}
-            </div>
+          <div key={i} style={{ ...S.card, borderColor: 'var(--yellow)' }}>
+            <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 6 }}>{g[0].text} <span style={{ color: 'var(--yellow)' }}>· {g.length} exemplaires</span></div>
+            {g.map((q, k) => {
+              const nQuiz = q.quizId ? (countByQuiz[q.quizId] || 0) : null;
+              const sameQuiz = q.quizId && g.filter(x => x.quizId === q.quizId).length > 1;
+              return (
+                <div key={q.id} style={{ background: 'var(--s2)', borderRadius: 9, padding: '8px 10px', marginTop: 6 }}>
+                  <div style={{ fontSize: 10, color: 'var(--cyan)' }}>
+                    Exemplaire {k + 1} · 📍 {questionOrigin(q, null, cats, themes, quizzes)}
+                  </div>
+                  <div style={{ fontSize: 10, color: nQuiz !== null && nQuiz <= MIN_QUIZ ? 'var(--yellow)' : 'var(--muted)', margin: '2px 0 4px' }}>
+                    {nQuiz === null ? 'Dans aucun quiz (jamais jouée)' : `Son quiz compte ${nQuiz} question${nQuiz > 1 ? 's' : ''}${nQuiz <= MIN_QUIZ ? ` → ${nQuiz - 1} si tu la supprimes` : ''}`}
+                    {sameQuiz && <strong style={{ color: '#FF4D4D' }}> · doublon dans le MÊME quiz</strong>}
+                  </div>
+                  {editId === q.id ? (
+                    <QuestionForm q={q} onSave={async d => { await onSaveQuestion(q, d); setEditId(null); }} onCancel={() => setEditId(null)} />
+                  ) : (
+                    <div>
+                      <div style={{ fontSize: 11, color: 'var(--muted)', marginBottom: 6 }}>
+                        {q.options?.map((o, n) => <div key={n} style={{ color: n === q.answer ? 'var(--cyan)' : undefined }}>{['A', 'B', 'C', 'D'][n]}. {o}{n === q.answer ? ' ✓' : ''}</div>)}
+                      </div>
+                      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                        <button className="btn btn-primary" style={{ padding: '5px 12px', fontSize: 11 }} onClick={() => setEditId(q.id)}>✏️ Modifier (en faire une autre)</button>
+                        <button className="btn btn-secondary" style={{ padding: '5px 12px', fontSize: 11, color: '#FF4D4D' }} onClick={async () => {
+                          const warn = nQuiz !== null && nQuiz <= MIN_QUIZ ? `\n\nAttention : son quiz passera à ${nQuiz - 1} question(s).` : '';
+                          if (!window.confirm(`Supprimer cet exemplaire ?${warn}`)) return;
+                          await onDeleteQuestion(q);
+                        }}>🗑 Supprimer</button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
         ))}
-        {dups.length > 15 && <div style={{ fontSize: 11, color: 'var(--muted)' }}>+{dups.length - 15} autres</div>}
+        {dups.length > 15 && <div style={{ fontSize: 11, color: 'var(--muted)' }}>+{dups.length - 15} autres (corrige ceux-ci, la liste se met à jour)</div>}
       </Section>
 
       <Section title="Questions les plus signalées" count={reported.length} good="Aucun signalement en attente.">
