@@ -7,6 +7,24 @@ import { normText } from '../utils/csv';
 const MIN_QUIZ = 10;      // nombre de questions attendu par quiz
 const MIN_PLAYS = 10;     // vues minimum avant de juger une question
 
+// Retire les guillemets droits ou courbes qui entourent un texte (pas les « » français)
+const EDGE_Q = /^[\s"“”]+|[\s"“”]+$/g;
+function cleanText(t) {
+  const x = String(t ?? '');
+  // On ne retire que si le texte est entouré de guillemets des deux côtés
+  return /^\s*["“].*["”]\s*$/.test(x) ? x.replace(EDGE_Q, '') : t;
+}
+function cleanedFields(q) {
+  const data = {};
+  const opts = (q.options || []).map(cleanText);
+  if (opts.some((o, i) => o !== q.options[i])) data.options = opts;
+  const t = cleanText(q.text);
+  if (t !== q.text) data.text = t;
+  const e = cleanText(q.explanation);
+  if (e !== q.explanation) data.explanation = e;
+  return data;
+}
+
 function csvCell(v) { return `"${String(v ?? '').replace(/"/g, '""')}"`; }
 
 function download(name, content, type) {
@@ -17,8 +35,9 @@ function download(name, content, type) {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
-export default function AdminSante({ questions, quizzes, cats, themes, reports, stats, statsOk, onSaveQuestion, onDeleteQuestion, setTab, ok }) {
+export default function AdminSante({ questions, quizzes, cats, themes, reports, stats, statsOk, onSaveQuestion, onDeleteQuestion, onBulkUpdate, setTab, ok }) {
   const [editId, setEditId] = useState(null);
+  const [cleaning, setCleaning] = useState(false);
 
   const data = useMemo(() => {
     const countByQuiz = {};
@@ -70,12 +89,14 @@ export default function AdminSante({ questions, quizzes, cats, themes, reports, 
       return why.length ? { q, why: why.join(' · ') } : null;
     }).filter(Boolean);
 
+    const cleanable = questions.map(q => ({ q, data: cleanedFields(q) })).filter(x => Object.keys(x.data).length);
+
     const unlinked = questions.filter(q => !q.quizId).length;
     const tracked = questions.filter(q => stats[q.id]?.plays >= MIN_PLAYS).length;
-    return { countByQuiz, smallQuizzes, emptyThemes, dups, reported, anomalies, broken, unlinked, tracked, catLabel, themeLabel };
+    return { cleanable, countByQuiz, smallQuizzes, emptyThemes, dups, reported, anomalies, broken, unlinked, tracked, catLabel, themeLabel };
   }, [questions, quizzes, cats, themes, reports, stats]);
 
-  const { countByQuiz, smallQuizzes, emptyThemes, dups, reported, anomalies, broken, unlinked, tracked, catLabel, themeLabel } = data;
+  const { cleanable, countByQuiz, smallQuizzes, emptyThemes, dups, reported, anomalies, broken, unlinked, tracked, catLabel, themeLabel } = data;
   const problems = smallQuizzes.length + emptyThemes.length + dups.length + anomalies.length + broken.length + (unlinked ? 1 : 0);
 
   function exportCSV() {
@@ -147,7 +168,26 @@ export default function AdminSante({ questions, quizzes, cats, themes, reports, 
         </div>
       </Section>
 
-      <Section title="Questions mal importées (texte coupé, guillemets…)" count={broken.length} good="Aucune anomalie de format détectée.">
+      <Section title="Questions mal importées (texte coupé, guillemets…)" count={broken.length || (cleanable.length ? 1 : 0)} good="Aucune anomalie de format détectée.">
+        {cleanable.length > 0 && (
+          <div style={{ ...S.card, borderColor: 'var(--cyan)' }}>
+            <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 4 }}>🧹 {cleanable.length} question(s) ont des guillemets en trop</div>
+            <div style={{ fontSize: 11, color: 'var(--muted)', marginBottom: 6 }}>
+              Aperçu : {cleanable.slice(0, 3).map(({ q, data }) => {
+                const before = (q.options || []).find((o, i) => data.options && o !== data.options[i]) ?? q.text;
+                const after = data.options ? data.options[(q.options || []).findIndex((o, i) => o !== data.options[i])] : data.text;
+                return `${before} → ${after}`;
+              }).join(' · ')}
+            </div>
+            <button className="btn btn-primary" disabled={cleaning} style={{ padding: '6px 14px', fontSize: 12 }} onClick={async () => {
+              if (!window.confirm(`Retirer les guillemets en trop sur ${cleanable.length} question(s) ?`)) return;
+              setCleaning(true);
+              try { await onBulkUpdate(cleanable.map(({ q, data }) => ({ id: q.id, data }))); ok(`✓ ${cleanable.length} questions nettoyées`); }
+              catch (e) { console.error(e); ok('⚠️ Nettoyage impossible'); }
+              setCleaning(false);
+            }}>{cleaning ? '…' : `🧹 Tout nettoyer (${cleanable.length})`}</button>
+          </div>
+        )}
         {broken.slice(0, 40).map(({ q, why }) => (
           <div key={q.id} style={S.card}>
             <div style={{ fontSize: 12, fontWeight: 600 }}>{q.text}</div>
