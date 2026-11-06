@@ -5,7 +5,7 @@ import { db } from '../firebase';
 import { useAuth } from '../context/AuthContext';
 import AuthModal from '../components/AuthModal';
 import { getCategoryList, DIFF_LABELS } from '../data/quizData';
-import { fetchByCatDiff, shuffle } from '../utils/questions';
+import { fetchVaried } from '../utils/questions';
 
 const MODES = [
   { id: 'mix',    icon: '🎲', name: 'Quiz mixte',   desc: '10 questions au hasard' },
@@ -18,7 +18,7 @@ export default function Jouer() {
   const { user, profile } = useAuth();
   const cats = getCategoryList();
   const [mode, setMode] = useState('mix');
-  const [cat, setCat]   = useState(cats[0]?.id);
+  const [cat, setCat]   = useState('all');
   const [diff, setDiff] = useState('all');
   const [busy, setBusy] = useState(false);
   const [err, setErr]   = useState('');
@@ -36,7 +36,7 @@ export default function Jouer() {
       if (!user) { setShowAuth(true); return; }
       setBusy(true);
       try {
-        const qs = shuffle(await fetchByCatDiff(cat, diff)).slice(0, 10);
+        const qs = await fetchVaried(cat, diff, 10);
         if (qs.length < 5) { setErr('Pas assez de questions pour cette sélection.'); setBusy(false); return; }
         const ref = await addDoc(collection(db, 'duels'), {
           questionIds: qs.map(q => q.id), cat, diff,
@@ -82,6 +82,7 @@ export default function Jouer() {
 
       <div className="section-label">Catégorie</div>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 14 }}>
+        <div style={chip(cat === 'all')} onClick={() => setCat('all')}>🌍 Toutes (varié)</div>
         {cats.map(c => <div key={c.id} style={chip(cat === c.id)} onClick={() => setCat(c.id)}>{c.icon} {c.label}</div>)}
       </div>
 
