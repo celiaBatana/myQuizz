@@ -59,13 +59,24 @@ export default function AdminSante({ questions, quizzes, cats, themes, reports, 
       return why ? { q, rate, plays: s.plays, why } : null;
     }).filter(Boolean).sort((a, b) => a.rate - b.rate);
 
+    // Questions mal importées : explication coupée (virgule dans un champ non guillemeté), guillemets parasites dans les options
+    const broken = questions.map(q => {
+      const why = [];
+      const e = (q.explanation || '').trim();
+      if (e && !/[.!?)»"…]$/.test(e)) why.push(/[\d,;:]$/.test(e) ? 'explication coupée' : 'explication sans point final');
+      if ((q.options || []).some(o => /^["“«]|["”»]$/.test(String(o).trim()))) why.push('guillemets dans les options');
+      if ((q.options || []).some(o => !String(o).trim())) why.push('option vide');
+      if (!Number.isInteger(q.answer) || q.answer < 0 || q.answer >= (q.options || []).length) why.push('bonne réponse invalide');
+      return why.length ? { q, why: why.join(' · ') } : null;
+    }).filter(Boolean);
+
     const unlinked = questions.filter(q => !q.quizId).length;
     const tracked = questions.filter(q => stats[q.id]?.plays >= MIN_PLAYS).length;
-    return { smallQuizzes, emptyThemes, dups, reported, anomalies, unlinked, tracked, catLabel, themeLabel };
+    return { smallQuizzes, emptyThemes, dups, reported, anomalies, broken, unlinked, tracked, catLabel, themeLabel };
   }, [questions, quizzes, cats, themes, reports, stats]);
 
-  const { smallQuizzes, emptyThemes, dups, reported, anomalies, unlinked, tracked, catLabel, themeLabel } = data;
-  const problems = smallQuizzes.length + emptyThemes.length + dups.length + anomalies.length + (unlinked ? 1 : 0);
+  const { smallQuizzes, emptyThemes, dups, reported, anomalies, broken, unlinked, tracked, catLabel, themeLabel } = data;
+  const problems = smallQuizzes.length + emptyThemes.length + dups.length + anomalies.length + broken.length + (unlinked ? 1 : 0);
 
   function exportCSV() {
     const header = ['categorie', 'theme', 'difficulte', 'question', 'optionA', 'optionB', 'optionC', 'optionD', 'reponse_correcte', 'explication', 'quiz'];
@@ -134,6 +145,28 @@ export default function AdminSante({ questions, quizzes, cats, themes, reports, 
           <span style={{ fontSize: 12 }}>{unlinked} question(s) ne sont dans aucun quiz (jamais jouées). </span>
           <span style={{ fontSize: 12, color: 'var(--cyan)', cursor: 'pointer', textDecoration: 'underline' }} onClick={() => setTab('lier')}>Les lier</span>
         </div>
+      </Section>
+
+      <Section title="Questions mal importées (texte coupé, guillemets…)" count={broken.length} good="Aucune anomalie de format détectée.">
+        {broken.slice(0, 40).map(({ q, why }) => (
+          <div key={q.id} style={S.card}>
+            <div style={{ fontSize: 12, fontWeight: 600 }}>{q.text}</div>
+            <div style={{ fontSize: 10, color: 'var(--cyan)', marginTop: 3 }}>📍 {questionOrigin(q, null, cats, themes, quizzes)}</div>
+            <div style={{ fontSize: 10, color: 'var(--yellow)', margin: '3px 0 6px' }}>⚠️ {why}</div>
+            {editId === q.id ? (
+              <QuestionForm q={q} onSave={async d => { await onSaveQuestion(q, d); setEditId(null); }} onCancel={() => setEditId(null)} />
+            ) : (
+              <div>
+                <div style={{ fontSize: 11, color: 'var(--muted)', marginBottom: 6 }}>
+                  {q.options?.map((o, i) => <div key={i} style={{ color: i === q.answer ? 'var(--cyan)' : undefined }}>{['A', 'B', 'C', 'D'][i]}. {o}{i === q.answer ? ' ✓' : ''}</div>)}
+                  {q.explanation && <div style={{ marginTop: 4 }}>💡 {q.explanation}</div>}
+                </div>
+                <button className="btn btn-secondary" style={{ padding: '5px 12px', fontSize: 11 }} onClick={() => setEditId(q.id)}>✏️ Corriger</button>
+              </div>
+            )}
+          </div>
+        ))}
+        {broken.length > 40 && <div style={{ fontSize: 11, color: 'var(--muted)' }}>+{broken.length - 40} autres</div>}
       </Section>
 
       <Section title="Questions en double dans la base" count={dups.length} good="Aucun doublon.">
