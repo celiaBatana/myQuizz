@@ -954,7 +954,7 @@ export default function Admin() {
       )}
 
       {!loading && tab === 'reports' && (
-        <AdminReports reports={reports} setReports={setReports} questions={questions}
+        <AdminReports reports={reports} setReports={setReports} questions={questions} cats={cats} themes={themes} quizzes={quizzes}
           onSaveQuestion={saveQuestion} onDeleteQuestion={deleteQuestion} ok={ok} />
       )}
 

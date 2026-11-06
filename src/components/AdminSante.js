@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { S } from './adminStyles';
 import { QuestionForm } from './AdminForms';
+import { questionOrigin } from './AdminReports';
 import { normText } from '../utils/csv';
 
 const MIN_QUIZ = 10;      // nombre de questions attendu par quiz
@@ -154,6 +155,7 @@ export default function AdminSante({ questions, quizzes, cats, themes, reports, 
               <div style={{ fontSize: 12, fontWeight: 600 }}>{q.text}</div>
               <span style={S.tag('#FF4D4D')}>🚩 {n}</span>
             </div>
+            <div style={{ fontSize: 10, color: 'var(--cyan)', marginTop: 3 }}>📍 {questionOrigin(q, null, cats, themes, quizzes)}</div>
           </div>
         ))}
         <div style={{ fontSize: 11, color: 'var(--cyan)', cursor: 'pointer', textDecoration: 'underline' }} onClick={() => setTab('reports')}>Voir les signalements</div>
@@ -167,8 +169,9 @@ export default function AdminSante({ questions, quizzes, cats, themes, reports, 
               <div style={{ fontSize: 12, fontWeight: 600 }}>{q.text}</div>
               <span style={S.tag(rate < 20 ? '#FF4D4D' : '#FFC857')}>{rate} %</span>
             </div>
+            <div style={{ fontSize: 10, color: 'var(--cyan)', marginTop: 3 }}>📍 {questionOrigin(q, null, cats, themes, quizzes)}</div>
             <div style={{ fontSize: 10, color: 'var(--muted)', margin: '3px 0 6px' }}>
-              {q.diff} · {plays} parties · {why}
+              {plays} parties · {why}
             </div>
             {editId === q.id ? (
               <QuestionForm q={q} onSave={async d => { await onSaveQuestion(q, d); setEditId(null); }} onCancel={() => setEditId(null)} />
