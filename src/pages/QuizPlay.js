@@ -9,6 +9,7 @@ import { useQuiz } from '../hooks/useQuiz';
 import { LEAGUES } from '../utils/league';
 import { shareScore } from '../utils/share';
 import { pickResultMessage } from '../utils/resultMessages';
+import Confetti from '../components/Confetti';
 import { findCosmetic, isAvatar } from '../data/cosmetics';
 
 // ── Themes ───────────────────────────────────────────────────────────────────
@@ -474,6 +475,7 @@ function ResultScreen({ quiz, quizData, catId, themeId, navigate, onReplay, onPr
   const { emoji, title } = msg;
   const [xpBarWidth, setXpBarWidth] = React.useState(0);
   const [shareMsg, setShareMsg] = React.useState('');
+  const [celebrate, setCelebrate] = React.useState(true);
   const { profile } = useAuth();
   const xpInLevel = profile?.xpInLevel || 0;
   const level     = profile?.level || 1;
@@ -483,6 +485,16 @@ function ResultScreen({ quiz, quizData, catId, themeId, navigate, onReplay, onPr
   }, [xpInLevel]);
 
   return (
+    <div>
+      {quiz.rewards?.milestone > 0 && celebrate && (
+        <div onClick={() => setCelebrate(false)} style={{ position: 'fixed', inset: 0, zIndex: 1100, background: 'rgba(10,5,30,.88)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: 24 }}>
+          <Confetti />
+          <div style={{ fontSize: 84 }}>🔥</div>
+          <div style={{ fontFamily: "'Raleway',sans-serif", fontWeight: 900, fontSize: 34, margin: '6px 0' }}>{quiz.rewards.milestone} jours de série !</div>
+          <div style={{ fontSize: 15, color: 'var(--muted)', marginBottom: 14 }}>Tu joues sans interruption, bravo. Bonus : <strong style={{ color: 'var(--yellow)' }}>+{quiz.rewards.milestoneBonus} XP</strong></div>
+          <button className="btn btn-primary" onClick={() => setCelebrate(false)}>Continuer</button>
+        </div>
+      )}
     <div className="page">
       <div style={{ textAlign: 'center', padding: '20px 0' }}>
         <div style={{ fontSize: 50, marginBottom: 10, animation: 'popIn .5s cubic-bezier(.175,.885,.32,1.275)' }}>{emoji}</div>
@@ -517,9 +529,12 @@ function ResultScreen({ quiz, quizData, catId, themeId, navigate, onReplay, onPr
         </div>
       </div>
 
-      {quiz.rewards && (quiz.rewards.newCosmetics?.length > 0 || quiz.rewards.leagueMoved || quiz.rewards.chestXP > 0 || quiz.rewards.freezeUsed || quiz.rewards.freezeGained || quiz.rewards.streak > 1) && (
+      {quiz.rewards && (quiz.rewards.missionBonus > 0 || quiz.rewards.goalReached || quiz.rewards.milestone > 0 || quiz.rewards.newCosmetics?.length > 0 || quiz.rewards.leagueMoved || quiz.rewards.chestXP > 0 || quiz.rewards.freezeUsed || quiz.rewards.freezeGained || quiz.rewards.streak > 1) && (
         <div style={{ background: 'var(--s1)', border: '1px solid var(--s2)', borderRadius: 14, padding: '11px 14px', marginTop: 10, fontSize: 13, lineHeight: 1.7 }}>
           {quiz.rewards.chestXP > 0 && <div>🎁 Coffre du jour : <strong style={{ color: 'var(--yellow)' }}>+{quiz.rewards.chestXP} XP</strong></div>}
+          {quiz.rewards.goalReached && <div>🎯 Objectif du jour atteint : <strong style={{ color: 'var(--yellow)' }}>+{quiz.rewards.goalBonus} XP</strong></div>}
+          {(quiz.rewards.missions || []).map(l => <div key={l}>✅ Mission : {l} <strong style={{ color: 'var(--yellow)' }}>+15 XP</strong></div>)}
+          {quiz.rewards.weeklyNew && <div>🏆 Mission de la semaine accomplie <strong style={{ color: 'var(--yellow)' }}>+60 XP</strong></div>}
           {quiz.rewards.streak > 1 && <div>🔥 Série : <strong>{quiz.rewards.streak} jours</strong></div>}
           {quiz.rewards.freezeUsed && <div>🧊 Un gel de série a sauvé ta série d'hier !</div>}
           {quiz.rewards.freezeGained && <div>🧊 Nouveau gel de série gagné (7 jours d'affilée) !</div>}
@@ -561,6 +576,7 @@ function ResultScreen({ quiz, quizData, catId, themeId, navigate, onReplay, onPr
         </button>
       </div>
       <style>{`@keyframes popIn { from { transform: scale(0); } to { transform: scale(1); } }`}</style>
+    </div>
     </div>
   );
 }
