@@ -3,6 +3,7 @@ import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import AuthModal from './AuthModal';
 import Toast from './Toast';
+import { streakInfo } from '../utils/retention';
 
 export default function Layout() {
   const { user, profile } = useAuth();
@@ -11,6 +12,7 @@ export default function Layout() {
 
   const xp = profile?.totalXP || 0;
   const level = profile?.level || 1;
+  const st = streakInfo(profile);
 
   return (
     <div className="app">
@@ -25,6 +27,15 @@ export default function Layout() {
       <nav className="navbar">
         <span className="navbar-logo" onClick={() => navigate('/')}>Quizly</span>
         <div className="navbar-right">
+          {user && (
+            <div title={st.danger ? 'Joue avant minuit pour garder ta série !' : 'Série de jours'}
+              onClick={() => navigate('/')}
+              style={{ cursor: 'pointer', fontSize: 12, fontWeight: 800, padding: '4px 9px', borderRadius: 20, background: 'var(--s1)',
+                border: `1px solid ${st.danger ? 'var(--yellow)' : 'var(--s2)'}`, color: st.danger ? 'var(--yellow)' : 'inherit',
+                opacity: st.count ? 1 : 0.6 }}>
+              🔥 {st.count}{st.danger ? ' ⚠️' : ''}
+            </div>
+          )}
           <div className="xp-badge">⚡ {xp} XP</div>
           <div className="level-pill">Niv. {level}</div>
           {user ? (

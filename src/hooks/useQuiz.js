@@ -4,6 +4,7 @@ import { db } from '../firebase';
 import { useAuth } from '../context/AuthContext';
 import { nextLeagueState, updateReview } from '../utils/league';
 import { computeUnlocks } from '../data/cosmetics';
+import { MILESTONES, GOAL_BONUS, addActiveDay, updateDayStats, newlyCompleted } from '../utils/retention';
 
 const XP_MAP         = { easy: 5,  medium: 10, hard: 20 };
 const XP_TIMER_BONUS = { easy: 10, medium: 20, hard: 30 };
@@ -62,6 +63,7 @@ export function useQuiz(quiz) {
   const wrongRef      = useRef([]);
   const resultsRef    = useRef([]); // [{id, ok}] pour les stats par question
   const comboRef      = useRef(0);
+  const maxComboRef   = useRef(0);
   const mode          = quiz?.mode || 'normal';
   const [combo, setCombo] = useState(0);
   const [over, setOver]   = useState(false);
@@ -141,6 +143,7 @@ export function useQuiz(quiz) {
         xpGained += Math.floor(speedRatio * XP_TIMER_BONUS[qDiff]);
       }
       comboRef.current += 1; setCombo(comboRef.current);
+      if (comboRef.current > maxComboRef.current) maxComboRef.current = comboRef.current;
       mult = comboMult(comboRef.current);
       xpGained = Math.round(xpGained * mult);
       // Mettre à jour les refs immédiatement (pas de problème async)
@@ -208,16 +211,6 @@ export function useQuiz(quiz) {
       const todayKey  = dayKey();
       const lastKey   = profile?.lastStreakDate;
 
-      // Coffre quotidien : bonus à la première partie du jour
-      const chestXP   = profile?.lastChestDate === todayKey ? 0 : 10 + 5 * Math.floor(Math.random() * 9);
-      const xpToAdd   = finalXP + chestXP;
-      const newTotalXP = (profile?.totalXP || 0) + xpToAdd;
-      const lg = nextLeagueState(profile, xpToAdd);
-      const newReview = updateReview(profile?.review, results, dayKey);
-
-      let lvl = 1, remaining = newTotalXP;
-      while (remaining >= XP_PER_LEVEL) { remaining -= XP_PER_LEVEL; lvl++; }
-
       // Série + gel de série
       let freezes = profile?.freezes || 0;
       let freezeUsed = false, freezeGained = false, newStreak;
@@ -227,6 +220,31 @@ export function useQuiz(quiz) {
         newStreak = profile.streak + 1; freezes -= 1; freezeUsed = true;
       } else newStreak = 1;
       if (lastKey !== todayKey && newStreak % 7 === 0 && freezes < 2) { freezes += 1; freezeGained = true; }
+
+      // Coffre quotidien : bonus à la première partie du jour
+      const chestXP   = profile?.lastChestDate === todayKey ? 0 : 10 + 5 * Math.floor(Math.random() * 9);
+
+      // Paliers de série, missions du jour / semaine, objectif quotidien
+      const streakUp = lastKey !== todayKey;
+      const milestone = streakUp && MILESTONES[newStreak] ? newStreak : 0;
+      const milestoneBonus = milestone ? MILESTONES[milestone] : 0;
+      const perfectNow = finalScore === finalTotal && finalTotal > 0 && mode !== 'sudden';
+      const newDayStats = updateDayStats(profile, { perfect: perfectNow, correct: finalScore, xp: finalXP, maxCombo: maxComboRef.current, mode: quiz.id === 'review' ? 'review' : mode });
+      const newActiveDays = addActiveDay(profile?.activeDays, todayKey);
+      const mis = newlyCompleted(profile, newDayStats, newActiveDays);
+      const baseXP = finalXP + chestXP + milestoneBonus + mis.bonus;
+      const goal = profile?.dailyGoal || 50;
+      const prevGoalXP = profile?.goalDate === todayKey ? (profile?.goalXP || 0) : 0;
+      const goalReached = prevGoalXP < goal && prevGoalXP + baseXP >= goal;
+      const goalBonus = goalReached ? GOAL_BONUS : 0;
+      const xpToAdd   = baseXP + goalBonus;
+      const newGoalXP = prevGoalXP + xpToAdd;
+      const newTotalXP = (profile?.totalXP || 0) + xpToAdd;
+      const lg = nextLeagueState(profile, xpToAdd);
+      const newReview = updateReview(profile?.review, results, dayKey);
+
+      let lvl = 1, remaining = newTotalXP;
+      while (remaining >= XP_PER_LEVEL) { remaining -= XP_PER_LEVEL; lvl++; }
 
       const today        = new Date().toDateString();
       const lastPlay     = profile?.lastPlayDate;
@@ -276,12 +294,19 @@ export function useQuiz(quiz) {
         league:         lg.league,
         review:         newReview,
         unlocked:       newUnlocked,
+        dayStats:       newDayStats,
+        activeDays:     newActiveDays,
+        missionsDone:   { date: todayKey, ids: mis.ids },
+        goalDate:       todayKey,
+        goalXP:         newGoalXP,
+        ...(mis.weeklyNew ? { weeklyDone: mis.wk } : {}),
         updatedAt:      serverTimestamp(),
         ...(isBest ? { [`bestScores.${quiz.id}`]: pctScore } : {}),
         ...(perfect ? { perfectQuizzes: increment(1) } : {}),
       });
 
-      setRewards({ chestXP, freezeUsed, freezeGained, streak: newStreak, leagueMoved: lg.moved, league: lg.league, newCosmetics: gainedCosmetics });
+      setRewards({ chestXP, freezeUsed, freezeGained, streak: newStreak, leagueMoved: lg.moved, league: lg.league, newCosmetics: gainedCosmetics,
+        milestone, milestoneBonus, missions: mis.missions.map(m => m.label), weeklyNew: mis.weeklyNew, missionBonus: mis.bonus, goalReached, goalBonus });
 
       await updateProfile({
         totalXP:        newTotalXP,
@@ -303,6 +328,12 @@ export function useQuiz(quiz) {
         league:         lg.league,
         review:         newReview,
         unlocked:       newUnlocked,
+        dayStats:       newDayStats,
+        activeDays:     newActiveDays,
+        missionsDone:   { date: todayKey, ids: mis.ids },
+        goalDate:       todayKey,
+        goalXP:         newGoalXP,
+        ...(mis.weeklyNew ? { weeklyDone: mis.wk } : {}),
         perfectQuizzes: (profile?.perfectQuizzes || 0) + (perfect ? 1 : 0),
         bestScores:     isBest ? { ...(profile?.bestScores || {}), [quiz.id]: pctScore } : (profile?.bestScores || {}),
       });
@@ -344,7 +375,7 @@ export function useQuiz(quiz) {
   function reset(list, isPractice) {
     wrongRef.current = [];
     resultsRef.current = [];
-    comboRef.current = 0; setCombo(0); setOver(false); setRewards(null); setSaved(false);
+    comboRef.current = 0; maxComboRef.current = 0; setCombo(0); setOver(false); setRewards(null); setSaved(false);
     setWrongCount(0);
     setPractice(isPractice);
     scoreRef.current     = 0;

@@ -6,6 +6,7 @@ import { getCategoryList } from '../data/quizData';
 import { useAuth } from '../context/AuthContext';
 import { dayKey } from '../hooks/useQuiz';
 import { dueReviewIds } from '../utils/league';
+import DailyPanel from '../components/DailyPanel';
 
 const styles = {
   hero: { textAlign: 'center', padding: '28px 0 20px' },
@@ -131,6 +132,8 @@ export default function Home() {
         </div>
         <div style={{ color: 'var(--purple)', fontWeight: 800 }}>›</div>
       </div>
+
+      <DailyPanel />
 
       {dueCount > 0 && (
         <div
