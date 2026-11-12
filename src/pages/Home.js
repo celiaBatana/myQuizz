@@ -7,6 +7,7 @@ import { useAuth } from '../context/AuthContext';
 import { dayKey } from '../hooks/useQuiz';
 import { dueReviewIds } from '../utils/league';
 import DailyPanel from '../components/DailyPanel';
+import Onboarding from '../components/Onboarding';
 
 const styles = {
   hero: { textAlign: 'center', padding: '28px 0 20px' },
@@ -133,6 +134,7 @@ export default function Home() {
         <div style={{ color: 'var(--purple)', fontWeight: 800 }}>›</div>
       </div>
 
+      {profile && !profile.onboarded && !(profile.quizzesPlayed > 0) && <Onboarding />}
       <DailyPanel />
 
       <div onClick={() => navigate('/progression')} style={{ background: 'var(--s1)', border: '1px solid var(--s2)', borderRadius: 14, padding: '12px 16px', marginBottom: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 10 }}>
