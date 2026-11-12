@@ -8,9 +8,9 @@ function baseSeed(extra = {}) {
     quizzes[qid] = { catId: cat, themeId: th, name, diff };
     for (let i = 0; i < n; i++) questions[`${qid}_q${i}`] = { text: `Question ${name} ${i + 1} ?`, options: ['Bonne', 'Fausse 1', 'Fausse 2', 'Fausse 3'], answer: 0, explanation: `Explication ${i + 1}.`, diff, category: cat, theme: th, quizId: qid, active: true };
   };
-  mk('z1', 'culture', 'geographie', 'easy', 'Quiz #1 Relief', 10);
-  mk('z2', 'culture', 'geographie', 'medium', 'Quiz #2 Capitales', 10);
-  mk('z3', 'cinema', 'classiques', 'hard', 'Quiz #1 Cine', 10);
+  mk('z1', 'culture', 'geographie', 'easy', 'Quiz #1 — Relief', 10);
+  mk('z2', 'culture', 'geographie', 'medium', 'Quiz #2 — Capitales', 10);
+  mk('z3', 'cinema', 'classiques', 'hard', 'Quiz #1 — Cine', 10);
   return { quizzes: { ...quizzes, ...(extra.quizzes || {}) }, questions: { ...questions, ...(extra.questions || {}) }, ...Object.fromEntries(Object.entries(extra).filter(([k]) => !['quizzes', 'questions'].includes(k))) };
 }
 
