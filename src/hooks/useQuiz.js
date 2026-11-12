@@ -292,6 +292,7 @@ export function useQuiz(quiz) {
         weekKey:        lg.weekKey,
         weekXP:         lg.weekXP,
         league:         lg.league,
+        xpAt:           serverTimestamp(),
         review:         newReview,
         unlocked:       newUnlocked,
         dayStats:       newDayStats,
