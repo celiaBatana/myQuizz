@@ -230,10 +230,23 @@ export function useQuiz(quiz) {
       const milestone = streakUp && MILESTONES[newStreak] ? newStreak : 0;
       const milestoneBonus = milestone ? MILESTONES[milestone] : 0;
       const perfectNow = finalScore === finalTotal && finalTotal > 0 && mode !== 'sudden';
-      const newDayStats = updateDayStats(profile, { perfect: perfectNow, correct: finalScore, xp: finalXP, maxCombo: maxComboRef.current, mode: quiz.id === 'review' ? 'review' : mode });
+      // Rejouer un quiz déjà fait : XP réduit (anti-farm). Première réussite = plein tarif ; progression = proportionnelle.
+      const isPathQuiz = !!quiz.id && !quiz.noBest;
+      const pct0 = finalTotal > 0 ? Math.round((finalScore / finalTotal) * 100) : 0;
+      const prev0 = profile?.bestScores?.[quiz.id];
+      const rp = profile?.replays?.date === todayKey ? (profile.replays.n || {}) : {};
+      const replayCount = rp[quiz.id] || 0;
+      let replayFactor = 1;
+      if (isPathQuiz && prev0 !== undefined) {
+        if (pct0 > prev0) replayFactor = Math.max(0.25, (pct0 - prev0) / (100 - prev0));
+        else replayFactor = replayCount < 2 ? 0.25 : 0;
+      }
+      const earnedXP = Math.round(finalXP * replayFactor);
+      const newReplays = isPathQuiz ? { date: todayKey, n: { ...rp, [quiz.id]: replayCount + 1 } } : (profile?.replays || null);
+      const newDayStats = updateDayStats(profile, { perfect: perfectNow, correct: finalScore, xp: earnedXP, maxCombo: maxComboRef.current, mode: quiz.id === 'review' ? 'review' : mode });
       const newActiveDays = addActiveDay(profile?.activeDays, todayKey);
       const mis = newlyCompleted(profile, newDayStats, newActiveDays);
-      const baseXP = finalXP + chestXP + milestoneBonus + mis.bonus;
+      const baseXP = earnedXP + chestXP + milestoneBonus + mis.bonus;
       const goal = profile?.dailyGoal || 50;
       const prevGoalXP = profile?.goalDate === todayKey ? (profile?.goalXP || 0) : 0;
       const goalReached = prevGoalXP < goal && prevGoalXP + baseXP >= goal;
@@ -301,13 +314,14 @@ export function useQuiz(quiz) {
         missionsDone:   { date: todayKey, ids: mis.ids },
         goalDate:       todayKey,
         goalXP:         newGoalXP,
+        ...(newReplays ? { replays: newReplays } : {}),
         ...(mis.weeklyNew ? { weeklyDone: mis.wk } : {}),
         updatedAt:      serverTimestamp(),
         ...(isBest ? { [`bestScores.${quiz.id}`]: pctScore } : {}),
         ...(perfect ? { perfectQuizzes: increment(1) } : {}),
       }));
 
-      setRewards({ chestXP, freezeUsed, freezeGained, streak: newStreak, leagueMoved: lg.moved, league: lg.league, newCosmetics: gainedCosmetics,
+      setRewards({ replayPct: replayFactor < 1 ? Math.round(replayFactor * 100) : 0, replayed: replayFactor < 1, earnedXP, chestXP, freezeUsed, freezeGained, streak: newStreak, leagueMoved: lg.moved, league: lg.league, newCosmetics: gainedCosmetics,
         milestone, milestoneBonus, missions: mis.missions.map(m => m.label), weeklyNew: mis.weeklyNew, missionBonus: mis.bonus, goalReached, goalBonus });
 
       await updateProfile({
