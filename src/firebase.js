@@ -1,6 +1,6 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
+import { getFirestore, initializeFirestore, persistentLocalCache, persistentMultipleTabManager } from 'firebase/firestore';
 
 const firebaseConfig = {
   apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
@@ -14,7 +14,16 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 
 export const auth = getAuth(app);
-export const db = getFirestore(app);
+// Cache local persistant : les questions déjà chargées restent jouables hors-ligne,
+// et les parties jouées sans réseau sont synchronisées au retour de la connexion.
+function createDb() {
+  try {
+    return initializeFirestore(app, { localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }) });
+  } catch (e) {
+    return getFirestore(app); // navigateur sans IndexedDB (navigation privée…) : mode normal
+  }
+}
+export const db = createDb();
 export const googleProvider = new GoogleAuthProvider();
 
 export default app;
