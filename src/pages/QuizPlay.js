@@ -278,6 +278,7 @@ export function QuizPlay() {
     id:        quizMeta.id,
     name:      quizMeta.name,
     diff:      quizMeta.diff,
+    catId, themeId,
     questions,
   };
 
@@ -536,8 +537,9 @@ function ResultScreen({ quiz, quizData, catId, themeId, navigate, onReplay, onPr
         </div>
       </div>
 
-      {quiz.rewards && (quiz.rewards.replayed || quiz.rewards.missionBonus > 0 || quiz.rewards.goalReached || quiz.rewards.milestone > 0 || quiz.rewards.newCosmetics?.length > 0 || quiz.rewards.leagueMoved || quiz.rewards.chestXP > 0 || quiz.rewards.freezeUsed || quiz.rewards.freezeGained || quiz.rewards.streak > 1) && (
+      {quiz.rewards && (quiz.rewards.newCard || quiz.rewards.replayed || quiz.rewards.missionBonus > 0 || quiz.rewards.goalReached || quiz.rewards.milestone > 0 || quiz.rewards.newCosmetics?.length > 0 || quiz.rewards.leagueMoved || quiz.rewards.chestXP > 0 || quiz.rewards.freezeUsed || quiz.rewards.freezeGained || quiz.rewards.streak > 1) && (
         <div style={{ background: 'var(--s1)', border: '1px solid var(--s2)', borderRadius: 14, padding: '11px 14px', marginTop: 10, fontSize: 13, lineHeight: 1.7 }}>
+          {quiz.rewards.newCard && <div>🃏 Nouvelle carte : <strong>{quiz.rewards.newCard.icon} {quiz.rewards.newCard.name}</strong> <Link to="/collection" style={{ color: 'var(--cyan)' }}>Voir ma collection</Link></div>}
           {quiz.rewards.replayPct > 0 && <div>🔁 Quiz déjà réussi : XP de la partie réduit à {quiz.rewards.replayPct} % → <strong style={{ color: 'var(--yellow)' }}>+{quiz.rewards.earnedXP} XP</strong>. Améliore ton score pour gagner plus !</div>}
           {quiz.rewards.replayPct === 0 && quiz.rewards.earnedXP === 0 && quiz.rewards.replayed && <div>🔁 Quiz déjà rejoué plusieurs fois aujourd'hui : plus d'XP sur celui-ci. Essaie un autre quiz !</div>}
           {quiz.rewards.chestXP > 0 && <div>🎁 Coffre du jour : <strong style={{ color: 'var(--yellow)' }}>+{quiz.rewards.chestXP} XP</strong></div>}

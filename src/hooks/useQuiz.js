@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { doc, updateDoc, setDoc, writeBatch, increment, serverTimestamp } from 'firebase/firestore';
+import { doc, updateDoc, setDoc, writeBatch, increment, serverTimestamp, collection, getDocs, query, where } from 'firebase/firestore';
+import { PASS as CARD_PASS, cardKey, cardInfo, themeStatus } from '../data/cards';
 import { db } from '../firebase';
 import { useAuth } from '../context/AuthContext';
 import { settle } from '../utils/offline';
@@ -243,6 +244,19 @@ export function useQuiz(quiz) {
       }
       const earnedXP = Math.round(finalXP * replayFactor);
       const newReplays = isPathQuiz ? { date: todayKey, n: { ...rp, [quiz.id]: replayCount + 1 } } : (profile?.replays || null);
+      // Collection : carte du thème gagnée quand un quiz de chaque niveau existant est réussi
+      let newCards = profile?.cards || [];
+      let gainedCard = null;
+      if (isPathQuiz && pct0 >= CARD_PASS && quiz.catId && quiz.themeId && !newCards.includes(cardKey(quiz.catId, quiz.themeId))) {
+        try {
+          const snap = await settle(getDocs(query(collection(db, 'quizzes'), where('catId', '==', quiz.catId), where('themeId', '==', quiz.themeId))));
+          if (snap) {
+            const qs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+            const bestNow = { ...(profile?.bestScores || {}), [quiz.id]: Math.max(prev0 ?? -1, pct0) };
+            if (themeStatus(qs, bestNow).earned) { gainedCard = cardKey(quiz.catId, quiz.themeId); newCards = [...newCards, gainedCard]; }
+          }
+        } catch (e) { console.warn('Carte non évaluée', e); }
+      }
       const newDayStats = updateDayStats(profile, { perfect: perfectNow, correct: finalScore, xp: earnedXP, maxCombo: maxComboRef.current, mode: quiz.id === 'review' ? 'review' : mode });
       const newActiveDays = addActiveDay(profile?.activeDays, todayKey);
       const mis = newlyCompleted(profile, newDayStats, newActiveDays);
@@ -314,6 +328,7 @@ export function useQuiz(quiz) {
         missionsDone:   { date: todayKey, ids: mis.ids },
         goalDate:       todayKey,
         goalXP:         newGoalXP,
+        cards:          newCards,
         ...(newReplays ? { replays: newReplays } : {}),
         ...(mis.weeklyNew ? { weeklyDone: mis.wk } : {}),
         updatedAt:      serverTimestamp(),
@@ -321,7 +336,7 @@ export function useQuiz(quiz) {
         ...(perfect ? { perfectQuizzes: increment(1) } : {}),
       }));
 
-      setRewards({ replayPct: replayFactor < 1 ? Math.round(replayFactor * 100) : 0, replayed: replayFactor < 1, earnedXP, chestXP, freezeUsed, freezeGained, streak: newStreak, leagueMoved: lg.moved, league: lg.league, newCosmetics: gainedCosmetics,
+      setRewards({ replayPct: replayFactor < 1 ? Math.round(replayFactor * 100) : 0, replayed: replayFactor < 1, newCard: gainedCard ? cardInfo(gainedCard) : null, earnedXP, chestXP, freezeUsed, freezeGained, streak: newStreak, leagueMoved: lg.moved, league: lg.league, newCosmetics: gainedCosmetics,
         milestone, milestoneBonus, missions: mis.missions.map(m => m.label), weeklyNew: mis.weeklyNew, missionBonus: mis.bonus, goalReached, goalBonus });
 
       await updateProfile({
