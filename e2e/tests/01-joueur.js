@@ -41,7 +41,35 @@ t('étape 2 débloquée après 100 %', async a => {
   await a.go('/category/culture/theme/geographie'); const b = await a.body();
   a.assert.ok(/Parcours : 1\/2/.test(b), b.slice(0, 250));
 });
-for (const [n, path, re] of [['profil', '/profile', /Niveau 1/], ['progression', '/progression', /Ma progression/], ['classement', '/classement', /Ligue/], ['groupes', '/groupes', /Groupes privés/], ['révision', '/revision', /revoir|Révision/], ['jouer', '/jouer', /Quiz mixte/], ['défi du jour', '/daily', /Défi du jour/]]) {
+const playAll = async (a, name, pick = 'Bonne') => {
+  const { page } = a;
+  await page.click('text=' + name); await page.waitForTimeout(900);
+  for (let i = 0; i < 10; i++) {
+    await page.locator('text=' + pick).first().click({ timeout: 4000 }); await page.waitForTimeout(450);
+    await page.locator('button:has-text("Suivant"), button:has-text("Terminer"), button:has-text("Résultat"), button:has-text("Voir")').first().click({ timeout: 3000 }); await page.waitForTimeout(350);
+  }
+  await page.waitForTimeout(1500);
+};
+t('rejouer un quiz réussi : XP réduit à 25 %', async a => {
+  await a.go('/category/culture/theme/geographie');
+  const h0 = Object.values((await a.db()).users)[0].history; const first = h0[h0.length - 1].xp;
+  await playAll(a, 'Quiz #1 Relief');
+  const b = await a.body(); a.assert.ok(/réduit à 25 %/.test(b), b.slice(0, 400));
+  const h1 = Object.values((await a.db()).users)[0].history; const second = h1[h1.length - 1].xp;
+  a.assert.ok(second < first / 2, `XP rejoué ${second} vs première fois ${first}`);
+});
+t('3e rejeu du jour sans progression : plus d\'XP de partie', async a => {
+  await a.go('/category/culture/theme/geographie'); await playAll(a, 'Quiz #1 Relief');
+  await a.go('/category/culture/theme/geographie'); await playAll(a, 'Quiz #1 Relief');
+  const b = await a.body(); a.assert.ok(/plus d'XP sur celui-ci/.test(b), b.slice(0, 400));
+});
+t('mauvaise partie puis progression : XP proportionnel', async a => {
+  await a.go('/category/culture/theme/geographie'); await a.patchDb(d => { const u = Object.values(d.users)[0]; u.bestScores.z1 = 50; u.replays = { date: '1999-01-01', n: {} }; });
+  await a.page.reload(); await a.page.waitForTimeout(900);
+  await playAll(a, 'Quiz #1 Relief'); const b = await a.body();
+  a.assert.ok(!/déjà réussi/.test(b), 'progression 50→100 : pleine récompense attendue\n' + b.slice(0, 300));
+});
+for (const [n, path, re] of [['profil', '/profile', /Niveau \d/], ['progression', '/progression', /Ma progression/], ['classement', '/classement', /Ligue/], ['groupes', '/groupes', /Groupes privés/], ['révision', '/revision', /revoir|Révision/], ['jouer', '/jouer', /Quiz mixte/], ['défi du jour', '/daily', /Défi du jour/]]) {
   t('page ' + n, async a => { await a.go(path); const b = await a.body(); a.assert.ok(re.test(b), b.slice(0, 200)); });
 }
 t('quiz mixte démarre', async a => {
