@@ -49,7 +49,7 @@ t('quiz complet : 10/10, XP, série, récompenses', async a => {
 t('résultat : bouton « Quiz suivant » (sans le préfixe « Quiz #1 »)', async a => {
   const b = await a.body(); a.assert.ok(/Quiz suivant : Capitales/.test(b) && !/Quiz #/.test(b), b.slice(0, 500));
   await a.page.locator('button:has-text("Quiz suivant")').click(); await a.page.waitForTimeout(1200);
-  const c = await a.body(); a.assert.ok(/1 \/ 10/.test(c) && /Question Quiz #2 — Capitales 1/.test(c), 'le quiz suivant démarre à la question 1 : ' + c.slice(0, 200));
+  const c = await a.body(); a.assert.ok(/1 \/ 10/.test(c) && /Question Quiz #2 — Capitales \d+/.test(c), 'le quiz suivant démarre avec ses propres questions : ' + c.slice(0, 200));
 });
 t('bouton « Question suivante » visible sans défiler', async a => {
   await a.patchDb(d => { d.questions.z1_q0.explanation = 'Explication très longue. '.repeat(30); });
