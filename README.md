@@ -220,3 +220,7 @@ Il suffit de décommenter la vérification et d'afficher une modale Stripe.
 1. Achète `quizly.fr` sur OVH (~10€/an)
 2. Dans Vercel → ton projet → Settings → Domains
 3. Ajoute ton domaine et suis les instructions DNS
+
+## Tests de bout en bout
+
+`npm run test:e2e` compile le site avec un faux Firebase en mémoire (`e2e/fakefb/`), puis le pilote avec Chromium (Playwright) : parcours joueur et panneau Admin. Aucun accès au vrai projet Firebase. Prérequis : `npm i -D playwright && npx playwright install chromium`. Ne teste pas les règles de sécurité Firestore.
