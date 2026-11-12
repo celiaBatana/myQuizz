@@ -124,3 +124,8 @@ export function onSnapshot(q, cb) {
   const fire = () => { const docs = q.type === 'col' || q.cs ? run(q).map(r => snapOf(q.path, r.id)) : []; cb({ docs, size: docs.length, empty: !docs.length, forEach: f => docs.forEach(f), docChanges: () => [] }); };
   setTimeout(fire, 0); return () => {};
 }
+
+// Cache persistant : sans objet pour le faux Firebase (tout est déjà local)
+export const initializeFirestore = () => ({ fake: true });
+export const persistentLocalCache = () => ({});
+export const persistentMultipleTabManager = () => ({});

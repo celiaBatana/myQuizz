@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { doc, updateDoc, setDoc, writeBatch, increment, serverTimestamp } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useAuth } from '../context/AuthContext';
+import { settle } from '../utils/offline';
 import { nextLeagueState, updateReview } from '../utils/league';
 import { computeUnlocks } from '../data/cosmetics';
 import { MILESTONES, GOAL_BONUS, addActiveDay, updateDayStats, newlyCompleted } from '../utils/retention';
@@ -274,7 +275,7 @@ export function useQuiz(quiz) {
       }, chestXP > 0);
       const newUnlocked = gainedCosmetics.length ? [...(profile?.unlocked || []), ...gainedCosmetics] : (profile?.unlocked || []);
 
-      await updateDoc(doc(db, 'users', user.uid), {
+      await settle(updateDoc(doc(db, 'users', user.uid), {
         totalXP:        increment(xpToAdd),
         level:          lvl,
         xpInLevel:      remaining,
@@ -304,7 +305,7 @@ export function useQuiz(quiz) {
         updatedAt:      serverTimestamp(),
         ...(isBest ? { [`bestScores.${quiz.id}`]: pctScore } : {}),
         ...(perfect ? { perfectQuizzes: increment(1) } : {}),
-      });
+      }));
 
       setRewards({ chestXP, freezeUsed, freezeGained, streak: newStreak, leagueMoved: lg.moved, league: lg.league, newCosmetics: gainedCosmetics,
         milestone, milestoneBonus, missions: mis.missions.map(m => m.label), weeklyNew: mis.weeklyNew, missionBonus: mis.bonus, goalReached, goalBonus });
@@ -341,32 +342,31 @@ export function useQuiz(quiz) {
 
       // Données publiques (classement, défi du jour, duel) : échec non bloquant
       const name = profile?.displayName || user.displayName || 'Joueur';
-      try {
-        await setDoc(doc(db, 'leaderboard', user.uid), {
-          uid: user.uid, name, totalXP: newTotalXP, level: lvl, streak: newStreak,
-          weekKey: lg.weekKey, weekXP: lg.weekXP, league: lg.league,
-          avatar: profile?.avatar || '', title: profile?.title || '', updatedAt: serverTimestamp(),
-        }, { merge: true });
-        // Classements de groupes privés
-        for (const code of (profile?.groups || [])) {
-          await setDoc(doc(db, 'group_members', `${code}_${user.uid}`), {
-            code, uid: user.uid, name, totalXP: newTotalXP, level: lvl,
-            weekKey: lg.weekKey, weekXP: lg.weekXP, avatar: profile?.avatar || '', title: profile?.title || '', updatedAt: serverTimestamp(),
-          }, { merge: true });
-        }
-        if (mode === 'daily' && quiz.dailyDate) {
-          await setDoc(doc(db, 'daily_scores', `${quiz.dailyDate}_${user.uid}`), {
-            uid: user.uid, name, date: quiz.dailyDate, score: finalScore, total: finalTotal, xp: finalXP, createdAt: serverTimestamp(),
-          });
-        }
-        if (mode === 'duel' && quiz.duelId) {
-          await setDoc(doc(db, 'duel_results', `${quiz.duelId}_${user.uid}`), {
-            uid: user.uid, name, duelId: quiz.duelId, score: finalScore, total: finalTotal, createdAt: serverTimestamp(),
-          });
-        }
-      } catch (e) {
-        console.warn('Données publiques non enregistrées (règles Firestore à publier ?)', e);
+      // Envoyées ensemble, sans bloquer l'écran de résultat (hors-ligne : partent au retour du réseau)
+      const pub = [setDoc(doc(db, 'leaderboard', user.uid), {
+        uid: user.uid, name, totalXP: newTotalXP, level: lvl, streak: newStreak,
+        weekKey: lg.weekKey, weekXP: lg.weekXP, league: lg.league,
+        avatar: profile?.avatar || '', title: profile?.title || '', updatedAt: serverTimestamp(),
+      }, { merge: true })];
+      for (const code of (profile?.groups || [])) {
+        pub.push(setDoc(doc(db, 'group_members', `${code}_${user.uid}`), {
+          code, uid: user.uid, name, totalXP: newTotalXP, level: lvl,
+          weekKey: lg.weekKey, weekXP: lg.weekXP, avatar: profile?.avatar || '', title: profile?.title || '', updatedAt: serverTimestamp(),
+        }, { merge: true }));
       }
+      if (mode === 'daily' && quiz.dailyDate) {
+        pub.push(setDoc(doc(db, 'daily_scores', `${quiz.dailyDate}_${user.uid}`), {
+          uid: user.uid, name, date: quiz.dailyDate, score: finalScore, total: finalTotal, xp: finalXP, createdAt: serverTimestamp(),
+        }));
+      }
+      if (mode === 'duel' && quiz.duelId) {
+        pub.push(setDoc(doc(db, 'duel_results', `${quiz.duelId}_${user.uid}`), {
+          uid: user.uid, name, duelId: quiz.duelId, score: finalScore, total: finalTotal, createdAt: serverTimestamp(),
+        }));
+      }
+      Promise.allSettled(pub).then(rs => rs.forEach(r => {
+        if (r.status === 'rejected') console.warn('Données publiques non enregistrées (règles Firestore à publier ?)', r.reason);
+      }));
     } catch (err) {
       console.error('❌ Erreur sauvegarde quiz:', err);
     }

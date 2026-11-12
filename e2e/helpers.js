@@ -23,7 +23,7 @@ async function runSuite(browser, url, suite) {
   page.on('console', m => { if (m.type() === 'error' && !/ERR_|Failed to load resource/.test(m.text())) errors.push('console: ' + m.text()); });
   page.on('dialog', d => d.accept());
   const api = {
-    url, page, assert,
+    url, page, ctx, assert,
     body: async () => (await page.innerText('body')).replace(/\n+/g, ' | '),
     db: () => page.evaluate(() => window.__DB()),
     patchDb: fn => page.evaluate(f => { const d = window.__DB(); (new Function('d', 'return (' + f + ')(d)'))(d); localStorage.setItem('fakedb', JSON.stringify(d)); }, fn.toString()),

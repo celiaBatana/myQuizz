@@ -8,6 +8,7 @@ import {
   updateProfile,
 } from 'firebase/auth';
 import { doc, getDoc, setDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { settle } from '../utils/offline';
 import { auth, db, googleProvider } from '../firebase';
 
 const AuthContext = createContext(null);
@@ -118,7 +119,7 @@ export function AuthProvider({ children }) {
   async function updateProfile_(updates) {
     if (!user) return;
     const ref = doc(db, 'users', user.uid);
-    await updateDoc(ref, { ...updates, updatedAt: serverTimestamp() });
+    await settle(updateDoc(ref, { ...updates, updatedAt: serverTimestamp() }));
     setProfile((prev) => ({ ...prev, ...updates }));
   }
 

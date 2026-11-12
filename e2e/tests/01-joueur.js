@@ -59,4 +59,14 @@ t('déconnexion puis reconnexion', async a => {
   await page.click('button[type=submit]'); await page.waitForTimeout(1300);
   a.assert.ok(/XP/.test(await a.body()) && !/^Quizly \| .*Connexion/.test(await a.body()), (await a.body()).slice(0, 120));
 });
+t('bandeau hors-ligne affiché puis retiré', async a => {
+  await a.go('/'); await a.ctx.setOffline(true); await a.page.evaluate(() => window.dispatchEvent(new Event('offline'))); await a.page.waitForTimeout(300);
+  a.assert.ok(/Hors-ligne/.test(await a.body()), 'bandeau attendu');
+  await a.ctx.setOffline(false); await a.page.evaluate(() => window.dispatchEvent(new Event('online'))); await a.page.waitForTimeout(300);
+  a.assert.ok(!/Hors-ligne/.test(await a.body()), 'bandeau retiré');
+});
+t('manifest et service worker servis', async a => {
+  for (const f of ['/manifest.json', '/sw.js', '/icon-192.png']) { const r = await a.page.request.get(a.url + f); a.assert.ok(r.ok(), f); }
+  const m = await (await a.page.request.get(a.url + '/manifest.json')).json(); a.assert.strictEqual(m.short_name, 'Quizly');
+});
 module.exports = { tests };

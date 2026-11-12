@@ -10,6 +10,12 @@ export default function Layout() {
   const { user, profile, isAdmin } = useAuth();
   const navigate = useNavigate();
   const [showAuth, setShowAuth] = useState(false);
+  const [online, setOnline] = useState(typeof navigator === 'undefined' ? true : navigator.onLine);
+  useEffect(() => {
+    const on = () => setOnline(true), off = () => setOnline(false);
+    window.addEventListener('online', on); window.addEventListener('offline', off);
+    return () => { window.removeEventListener('online', on); window.removeEventListener('offline', off); };
+  }, []);
 
   const xp = profile?.totalXP || 0;
   const level = profile?.level || 1;
@@ -64,6 +70,12 @@ export default function Layout() {
           )}
         </div>
       </nav>
+
+      {!online && (
+        <div role="status" style={{ position: 'relative', zIndex: 1, background: '#3a2a10', color: '#FFD84D', fontSize: 12, textAlign: 'center', padding: '6px 12px' }}>
+          📡 Hors-ligne : tu peux jouer les quiz déjà ouverts, ta progression sera envoyée au retour du réseau.
+        </div>
+      )}
 
       {/* Main content */}
       <main style={{ position: 'relative', zIndex: 1 }}>
