@@ -1,6 +1,15 @@
 // Parcours joueur : inscription, onboarding, quiz complet, récompenses, pages principales, reconnexion
 const tests = [];
 const t = (n, f) => tests.push([n, f]);
+const playAll = async (a, name, pick = 'Bonne') => {
+  const { page } = a;
+  await page.click('text=' + name); await page.waitForTimeout(900);
+  for (let i = 0; i < 10; i++) {
+    await page.locator('text=' + pick).first().click({ timeout: 4000 }); await page.waitForTimeout(450);
+    await page.locator('button:has-text("Suivant"), button:has-text("Terminer"), button:has-text("Résultat"), button:has-text("Voir")').first().click({ timeout: 3000 }); await page.waitForTimeout(350);
+  }
+  await page.waitForTimeout(1500);
+};
 
 t('inscription crée le profil', async a => {
   await a.signup();
@@ -41,15 +50,28 @@ t('étape 2 débloquée après 100 %', async a => {
   await a.go('/category/culture/theme/geographie'); const b = await a.body();
   a.assert.ok(/Parcours : 1\/2/.test(b), b.slice(0, 250));
 });
-const playAll = async (a, name, pick = 'Bonne') => {
-  const { page } = a;
-  await page.click('text=' + name); await page.waitForTimeout(900);
-  for (let i = 0; i < 10; i++) {
-    await page.locator('text=' + pick).first().click({ timeout: 4000 }); await page.waitForTimeout(450);
-    await page.locator('button:has-text("Suivant"), button:has-text("Terminer"), button:has-text("Résultat"), button:has-text("Voir")').first().click({ timeout: 3000 }); await page.waitForTimeout(350);
-  }
-  await page.waitForTimeout(1500);
-};
+t('carte du thème gagnée après un quiz de chaque niveau', async a => {
+  await a.go('/category/culture/theme/geographie'); await playAll(a, 'Quiz #2 Capitales');
+  const b = await a.body(); a.assert.ok(/Nouvelle carte/.test(b), b.slice(0, 400));
+  a.assert.ok((Object.values((await a.db()).users)[0].cards || []).includes('culture:geographie'));
+});
+t('collection : carte possédée, anecdote, cartes verrouillées', async a => {
+  await a.go('/collection'); const b = await a.body();
+  a.assert.ok(/1 \/ 2 cartes/.test(b), b.slice(0, 200));
+  a.assert.strictEqual(await a.page.locator('[data-card="culture:geographie"][data-owned="1"]').count(), 1);
+  a.assert.strictEqual(await a.page.locator('[data-owned="0"]').count(), 1);
+  await a.page.locator('[data-card="culture:geographie"]').click(); await a.page.waitForTimeout(300);
+  a.assert.ok(/Vatican/.test(await a.body()), 'anecdote');
+});
+t('une carte gagnée n\'est pas retirée quand on ajoute un quiz', async a => {
+  await a.patchDb(d => { d.quizzes.zNew = { catId: 'culture', themeId: 'geographie', name: 'Quiz #3 Difficile', diff: 'hard' }; });
+  await a.go('/collection'); a.assert.strictEqual(await a.page.locator('[data-card="culture:geographie"][data-owned="1"]').count(), 1);
+});
+t('collection : cartes méritées avant la fonctionnalité récupérées', async a => {
+  await a.patchDb(d => { const u = Object.values(d.users)[0]; u.cards = []; delete d.quizzes.zNew; });
+  await a.go('/collection'); await a.page.waitForTimeout(500);
+  a.assert.ok((Object.values((await a.db()).users)[0].cards || []).includes('culture:geographie'), 'carte restaurée dans le profil');
+});
 t('rejouer un quiz réussi : XP réduit à 25 %', async a => {
   await a.go('/category/culture/theme/geographie');
   const h0 = Object.values((await a.db()).users)[0].history; const first = h0[h0.length - 1].xp;

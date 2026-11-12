@@ -143,6 +143,12 @@ export default function Home() {
         <div style={{ color: 'var(--cyan)', fontWeight: 800 }}>›</div>
       </div>
 
+      <div onClick={() => navigate('/collection')} style={{ background: 'var(--s1)', border: '1px solid var(--s2)', borderRadius: 14, padding: '12px 16px', marginBottom: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 10 }}>
+        <div style={{ fontSize: 22 }}>🃏</div>
+        <div style={{ flex: 1, fontSize: 13, fontWeight: 700 }}>Ma collection de cartes{(profile?.cards || []).length ? ` · ${(profile.cards || []).length}` : ''}</div>
+        <div style={{ color: 'var(--cyan)', fontWeight: 800 }}>›</div>
+      </div>
+
       {dueCount > 0 && (
         <div
           onClick={() => navigate('/revision')}
