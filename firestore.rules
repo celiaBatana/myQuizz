@@ -27,7 +27,7 @@ service cloud.firestore {
       let n = request.resource.data;
       let o = resource.data;
       let dXP = n.get('totalXP', 0) - o.get('totalXP', 0);
-      return dXP >= 0 && dXP <= 5000
+      return dXP >= 0 && dXP <= 7000
         && (dXP == 0 || (n.get('xpAt', null) == request.time
               && request.time >= o.get('xpAt', timestamp.value(0)) + duration.value(8, 's')))
         && n.get('streak', 0) <= o.get('streak', 0) + 1

@@ -135,6 +135,12 @@ export default function Home() {
 
       <DailyPanel />
 
+      <div onClick={() => navigate('/progression')} style={{ background: 'var(--s1)', border: '1px solid var(--s2)', borderRadius: 14, padding: '12px 16px', marginBottom: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 10 }}>
+        <div style={{ fontSize: 22 }}>📊</div>
+        <div style={{ flex: 1, fontSize: 13, fontWeight: 700 }}>Ma progression par thème</div>
+        <div style={{ color: 'var(--cyan)', fontWeight: 800 }}>›</div>
+      </div>
+
       {dueCount > 0 && (
         <div
           onClick={() => navigate('/revision')}

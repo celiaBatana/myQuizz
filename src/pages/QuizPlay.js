@@ -10,6 +10,7 @@ import { LEAGUES } from '../utils/league';
 import { shareScore } from '../utils/share';
 import { pickResultMessage } from '../utils/resultMessages';
 import Confetti from '../components/Confetti';
+import { playCorrect, playWrong, playWin, playLose } from '../utils/sound';
 import { findCosmetic, isAvatar } from '../data/cosmetics';
 
 // ── Themes ───────────────────────────────────────────────────────────────────
@@ -310,11 +311,15 @@ export function QuizPlayInner({ quizData, cat, theme, catId, themeId, navigate, 
     } catch (e) { console.error(e); setReport('error'); }
   }
 
+  // Temps écoulé sans réponse : même son qu'une erreur
+  useEffect(() => { if (quiz.answered && quiz.selectedOption === null) playWrong(); }, [quiz.answered]); // eslint-disable-line
+
   // Nouvelle question → on réinitialise le bouton de signalement
   useEffect(() => { setReport('idle'); }, [quiz.qIndex]);
 
   function handleAnswer(i) {
     const result = quiz.answer(i);
+    if (result?.correct) playCorrect(); else playWrong();
     if (result?.correct) showXPToast(`+${result.xpGained} XP ⚡${result.mult > 1 ? ` · combo ×${result.mult} 🔥` : ''}`);
   }
 
@@ -330,6 +335,7 @@ export function QuizPlayInner({ quizData, cat, theme, catId, themeId, navigate, 
   return (
     <div className="page">
       <div className={`toast ${xpToast.show ? 'show' : ''}`}>{xpToast.msg}</div>
+      <style>{`@keyframes qz-shake { 0%,100% { transform: translateX(0) } 20% { transform: translateX(-7px) } 40% { transform: translateX(7px) } 60% { transform: translateX(-5px) } 80% { transform: translateX(5px) } } @keyframes qz-pulse { 0% { transform: scale(1) } 50% { transform: scale(1.03); box-shadow: 0 0 14px rgba(61,255,208,.5) } 100% { transform: scale(1) } }`}</style>
 
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12, paddingTop: 4 }}>
@@ -412,7 +418,7 @@ export function QuizPlayInner({ quizData, cat, theme, catId, themeId, navigate, 
           }
           return (
             <div key={i} onClick={() => !quiz.answered && handleAnswer(i)}
-              style={{ background: bg, border: `2px solid ${borderColor}`, borderRadius: 10, padding: '12px 13px', cursor: quiz.answered ? 'default' : 'pointer', transition: 'all .2s', display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, fontWeight: 500 }}
+              style={{ animation: quiz.answered ? (i === q.a ? 'qz-pulse .5s ease' : i === quiz.selectedOption ? 'qz-shake .4s ease' : undefined) : undefined, background: bg, border: `2px solid ${borderColor}`, borderRadius: 10, padding: '12px 13px', cursor: quiz.answered ? 'default' : 'pointer', transition: 'all .2s', display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, fontWeight: 500 }}
               onMouseEnter={e => { if (!quiz.answered) { e.currentTarget.style.borderColor = 'var(--purple)'; e.currentTarget.style.background = 'rgba(155,109,255,.08)'; } }}
               onMouseLeave={e => { if (!quiz.answered) { e.currentTarget.style.borderColor = 'var(--s2)'; e.currentTarget.style.background = 'var(--s1)'; } }}
             >
@@ -476,6 +482,7 @@ function ResultScreen({ quiz, quizData, catId, themeId, navigate, onReplay, onPr
   const [xpBarWidth, setXpBarWidth] = React.useState(0);
   const [shareMsg, setShareMsg] = React.useState('');
   const [celebrate, setCelebrate] = React.useState(true);
+  React.useEffect(() => { if (pct >= 0.6) playWin(); else playLose(); }, []); // eslint-disable-line
   const { profile } = useAuth();
   const xpInLevel = profile?.xpInLevel || 0;
   const level     = profile?.level || 1;

@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import AuthModal from './AuthModal';
 import Toast from './Toast';
 import { streakInfo } from '../utils/retention';
+import SoundToggle from './SoundToggle';
 
 export default function Layout() {
   const { user, profile } = useAuth();
@@ -13,6 +14,12 @@ export default function Layout() {
   const xp = profile?.totalXP || 0;
   const level = profile?.level || 1;
   const st = streakInfo(profile);
+  const prevXp = useRef(xp);
+  const [bump, setBump] = useState(false);
+  useEffect(() => {
+    if (xp > prevXp.current) { setBump(true); const t = setTimeout(() => setBump(false), 900); prevXp.current = xp; return () => clearTimeout(t); }
+    prevXp.current = xp;
+  }, [xp]);
 
   return (
     <div className="app">
@@ -36,7 +43,9 @@ export default function Layout() {
               🔥 {st.count}{st.danger ? ' ⚠️' : ''}
             </div>
           )}
-          <div className="xp-badge">⚡ {xp} XP</div>
+          <div className="xp-badge" style={bump ? { animation: 'qz-bump .9s ease' } : undefined}>⚡ {xp} XP</div>
+          <style>{`@media (max-width: 420px) { .navbar-right .level-pill { display: none } .navbar-right { gap: 6px !important } } @keyframes qz-bump { 0% { transform: scale(1) } 30% { transform: scale(1.25); box-shadow: 0 0 14px var(--yellow) } 100% { transform: scale(1) } }`}</style>
+          <SoundToggle />
           <div className="level-pill">Niv. {level}</div>
           {user ? (
             <NavLink to="/profile">

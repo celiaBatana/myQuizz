@@ -1,6 +1,7 @@
 import React from 'react';
 import { GroupsList, GroupDetail } from './pages/Groups';
 import Review from './pages/Review';
+import Progress from './pages/Progress';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import Layout from './components/Layout';
@@ -36,6 +37,7 @@ export default function App() {
             <Route path="/duel/:id" element={<Duel />} />
             <Route path="/groupes" element={<GroupsList />} />
             <Route path="/groupes/:code" element={<GroupDetail />} />
+            <Route path="/progression" element={<Progress />} />
             <Route path="/revision" element={<Review />} />
             <Route path="/classement" element={<Leaderboard />} />
             <Route path="/profile" element={<Profile />} />
