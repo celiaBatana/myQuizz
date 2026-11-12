@@ -6,6 +6,7 @@ import { DIFF_LABELS, DIFF_COLORS } from '../data/quizData';
 import { doc, setDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import { AVATARS, TITLES, ownedIds, avatarIcon, titleName } from '../data/cosmetics';
+import { cleanQuizName } from '../utils/quizName';
 
 const XP_PER_LEVEL = 200;
 
@@ -285,7 +286,7 @@ export default function Profile() {
                   <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 6 }}>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontSize: 13, fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                        {emoji} {h.quizName || 'Quiz'}
+                        {emoji} {cleanQuizName(h.quizName) || 'Quiz'}
                       </div>
                       <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 2 }}>{date}</div>
                     </div>

@@ -12,6 +12,7 @@ import { pickResultMessage } from '../utils/resultMessages';
 import Confetti from '../components/Confetti';
 import { playCorrect, playWrong, playWin, playLose } from '../utils/sound';
 import { findCosmetic, isAvatar } from '../data/cosmetics';
+import { cleanQuizName } from '../utils/quizName';
 
 // ── Themes ───────────────────────────────────────────────────────────────────
 export function Themes() {
@@ -183,7 +184,7 @@ export function Quizzes() {
             </div>
             <div
               onClick={() => {
-                if (!unlocked) { setLockMsg(`Valide « ${prev.name} » avec au moins ${PASS} % pour débloquer cette étape.`); return; }
+                if (!unlocked) { setLockMsg(`Valide « ${cleanQuizName(prev.name)} » avec au moins ${PASS} % pour débloquer cette étape.`); return; }
                 setLockMsg(''); navigate(`/quiz/${catId}/${themeId}/${quiz.id}`);
               }}
               style={{
@@ -192,7 +193,7 @@ export function Quizzes() {
               }}
             >
               <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 8, gap: 6 }}>
-                <div style={{ fontFamily: "'Raleway', sans-serif", fontWeight: 700, fontSize: 15 }}>{quiz.name}</div>
+                <div style={{ fontFamily: "'Raleway', sans-serif", fontWeight: 700, fontSize: 15 }}>{cleanQuizName(quiz.name)}</div>
                 <span className={`diff-badge diff-${quiz.diff}`}>{DIFF_LABELS[quiz.diff]}</span>
               </div>
               <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', fontSize: 11, color: 'var(--muted)' }}>
@@ -225,6 +226,7 @@ export function QuizPlay() {
   const [notFound,   setNotFound]   = useState(false);
 
   useEffect(() => {
+    setLoading(true); setNotFound(false);
     (async () => {
       try {
         // Charger le quiz + ses questions depuis Firestore
@@ -257,7 +259,7 @@ export function QuizPlay() {
     })();
   }, [quizId]);
 
-  if (loading) return (
+  if (loading || (!notFound && quizMeta && quizMeta.id !== quizId)) return (
     <div className="page" style={{ textAlign: 'center', paddingTop: 60 }}>
       <div style={{ fontSize: 36, marginBottom: 12 }}>⏳</div>
       <div style={{ color: 'var(--muted)' }}>Chargement du quiz…</div>
@@ -282,7 +284,7 @@ export function QuizPlay() {
     questions,
   };
 
-  return <QuizPlayInner quizData={quizData} cat={cat} theme={theme} catId={catId} themeId={themeId} navigate={navigate} />;
+  return <QuizPlayInner key={quizId} quizData={quizData} cat={cat} theme={theme} catId={catId} themeId={themeId} navigate={navigate} />;
 }
 
 // ── QuizPlayInner — logique de jeu ────────────────────────────────────────────
@@ -466,10 +468,12 @@ export function QuizPlayInner({ quizData, cat, theme, catId, themeId, navigate, 
 
       {/* Suivant */}
       {quiz.answered && (
-        <button className="btn btn-primary btn-full" onClick={quiz.next}
-          style={{ animation: 'fadeIn .3s ease', fontFamily: "'Raleway', sans-serif", fontWeight: 700 }}>
-          {(quiz.qIndex + 1 >= quiz.totalQuestions || quiz.over) ? 'Voir mes résultats 🏆' : 'Question suivante →'}
-        </button>
+        <div style={{ position: 'sticky', bottom: 'calc(var(--bnav-height) + 10px)', zIndex: 20, paddingTop: 6 }}>
+          <button className="btn btn-primary btn-full" onClick={quiz.next}
+            style={{ animation: 'fadeIn .3s ease', fontFamily: "'Raleway', sans-serif", fontWeight: 700, boxShadow: '0 6px 20px rgba(0,0,0,.5)' }}>
+            {(quiz.qIndex + 1 >= quiz.totalQuestions || quiz.over) ? 'Voir mes résultats 🏆' : 'Question suivante →'}
+          </button>
+        </div>
       )}
     </div>
   );
@@ -485,6 +489,21 @@ function ResultScreen({ quiz, quizData, catId, themeId, navigate, onReplay, onPr
   const [celebrate, setCelebrate] = React.useState(true);
   React.useEffect(() => { if (pct >= 0.6) playWin(); else playLose(); }, []); // eslint-disable-line
   const { profile } = useAuth();
+  const [nextQuiz, setNextQuiz] = React.useState(null);
+  const canSeek = !!(catId && themeId && quizData?.id && quizData.id !== 'review');
+  React.useEffect(() => {
+    if (!canSeek) return;
+    (async () => {
+      try {
+        const snap = await getDocs(query(collection(db, 'quizzes'), where('catId', '==', catId), where('themeId', '==', themeId)));
+        const ORDER = { easy: 0, medium: 1, hard: 2 };
+        const list = snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => (ORDER[a.diff] ?? 3) - (ORDER[b.diff] ?? 3));
+        const i = list.findIndex(z => z.id === quizData.id);
+        setNextQuiz(i >= 0 && list[i + 1] ? list[i + 1] : null);
+      } catch (e) { /* hors-ligne : pas de bouton */ }
+    })();
+  }, [canSeek, catId, themeId, quizData?.id]); // eslint-disable-line
+  const passedNow = pct * 100 >= PASS || (profile?.bestScores?.[quizData?.id] ?? -1) >= PASS;
   const xpInLevel = profile?.xpInLevel || 0;
   const level     = profile?.level || 1;
 
@@ -558,6 +577,15 @@ function ResultScreen({ quiz, quizData, catId, themeId, navigate, onReplay, onPr
       {extra && (quiz.saved ? extra : <div style={{ textAlign: 'center', color: 'var(--muted)', fontSize: 12, padding: 14 }}>Enregistrement du score…</div>)}
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 8 }}>
+        {nextQuiz && passedNow && !quiz.practice && (
+          <button className="btn btn-primary btn-full" style={{ fontFamily: "'Raleway', sans-serif", fontWeight: 700 }}
+            onClick={() => navigate(`/quiz/${catId}/${themeId}/${nextQuiz.id}`)}>
+            Quiz suivant : {cleanQuizName(nextQuiz.name)} →
+          </button>
+        )}
+        {nextQuiz && !passedNow && !quiz.practice && (
+          <div style={{ textAlign: 'center', fontSize: 12, color: 'var(--muted)' }}>🔒 Réussis ce quiz à {PASS} % pour débloquer le suivant.</div>
+        )}
         {quiz.wrongCount > 0 && (
           <button className="btn btn-primary btn-full" style={{ fontFamily: "'Raleway', sans-serif", fontWeight: 700 }}
             onClick={onPractice}>
@@ -566,7 +594,7 @@ function ResultScreen({ quiz, quizData, catId, themeId, navigate, onReplay, onPr
         )}
         <button className="btn btn-secondary btn-full" style={{ fontFamily: "'Raleway', sans-serif", fontWeight: 700 }}
           onClick={async () => {
-            const r = await shareScore({ score: quiz.score, total: quiz.totalQuestions, name: quizData?.name || 'Quiz', url: window.location.href });
+            const r = await shareScore({ score: quiz.score, total: quiz.totalQuestions, name: cleanQuizName(quizData?.name) || 'Quiz', url: window.location.href });
             setShareMsg(r === 'copied' ? 'Lien copié ✓' : r === 'downloaded' ? 'Image téléchargée ✓' : r === 'shared' ? 'Partagé ✓' : '');
           }}>
           📣 Partager mon score{shareMsg ? ` · ${shareMsg}` : ''}

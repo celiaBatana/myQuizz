@@ -8,6 +8,7 @@ import { dayKey } from '../hooks/useQuiz';
 import { dueReviewIds } from '../utils/league';
 import DailyPanel from '../components/DailyPanel';
 import Onboarding from '../components/Onboarding';
+import { cleanQuizName } from '../utils/quizName';
 
 const styles = {
   hero: { textAlign: 'center', padding: '28px 0 20px' },
@@ -173,7 +174,7 @@ export default function Home() {
           onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
         >
           <div style={styles.featuredLabel}>⭐ Sélection du jour</div>
-          <div style={styles.featuredTitle}>{featuredQuiz.name}</div>
+          <div style={styles.featuredTitle}>{cleanQuizName(featuredQuiz.name)}</div>
           <div style={styles.featuredMeta}>
             <span>{diffEmoji[featuredQuiz.diff]} {diffLabel[featuredQuiz.diff]}</span>
             <span>⚡ {xpLabel[featuredQuiz.diff]}/question</span>
