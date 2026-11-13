@@ -257,7 +257,7 @@ export function useQuiz(quiz) {
           }
         } catch (e) { console.warn('Carte non évaluée', e); }
       }
-      const newDayStats = updateDayStats(profile, { perfect: perfectNow, correct: finalScore, xp: earnedXP, maxCombo: maxComboRef.current, mode: quiz.id === 'review' ? 'review' : mode });
+      const newDayStats = updateDayStats(profile, { perfect: perfectNow, correct: finalScore, xp: earnedXP, quizId: isPathQuiz ? quiz.id : undefined, maxCombo: maxComboRef.current, mode: quiz.id === 'review' ? 'review' : mode });
       const newActiveDays = addActiveDay(profile?.activeDays, todayKey);
       const mis = newlyCompleted(profile, newDayStats, newActiveDays);
       const baseXP = earnedXP + chestXP + milestoneBonus + mis.bonus;
