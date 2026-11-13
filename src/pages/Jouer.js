@@ -87,8 +87,8 @@ export default function Jouer() {
         <div style={chip(sel.length === 0)} onClick={() => setSel([])}>🌍 Toutes (varié)</div>
         {cats.map(c => <div key={c.id} data-cat={c.id} style={chip(sel.includes(c.id))} onClick={() => setSel(s => s.includes(c.id) ? s.filter(x => x !== c.id) : [...s, c.id])}>{c.icon} {c.label}</div>)}
       </div>
-      <div style={{ fontSize: 11, color: tooFew ? 'var(--yellow)' : 'var(--muted)', margin: '-8px 0 14px' }}>
-        {sel.length === 0 ? 'Toutes les catégories, ou touche-en plusieurs (au moins 2).' : tooFew ? 'Choisis au moins une 2ᵉ catégorie (ou reviens sur « Toutes »).' : `${sel.length} catégories mélangées.`}
+      <div style={{ fontSize: 11, color: 'var(--muted)', margin: '-8px 0 14px' }}>
+        {sel.length === 0 ? 'Toutes les catégories, ou touche-en plusieurs (au moins 2).' : `${sel.length} catégorie${sel.length > 1 ? 's' : ''} choisie${sel.length > 1 ? 's' : ''}.`}
       </div>
 
       <div className="section-label">Niveau</div>
@@ -101,9 +101,14 @@ export default function Jouer() {
       {mode === 'sudden' && profile?.suddenBest > 0 && (
         <div style={{ fontSize: 12, color: 'var(--yellow)', marginBottom: 10 }}>🏅 Ton record : {profile.suddenBest} bonnes réponses d'affilée</div>
       )}
+      {tooFew && (
+        <div role="alert" style={{ background: 'rgba(255,200,87,.15)', border: '1px solid var(--yellow)', color: 'var(--yellow)', borderRadius: 12, padding: '10px 12px', fontSize: 13, fontWeight: 700, marginBottom: 10, textAlign: 'center' }}>
+          ⚠️ Choisis au moins 2 catégories (ou « Toutes ») pour lancer.
+        </div>
+      )}
       {err && <div style={{ color: 'var(--pink)', fontSize: 12, marginBottom: 10 }}>{err}</div>}
       <button className="btn btn-primary btn-full" disabled={busy || tooFew} onClick={go} style={{ fontFamily: "'Raleway',sans-serif", fontWeight: 700 }}>
-        {busy ? '…' : mode === 'duel' ? 'Créer le duel' : 'Lancer'}
+        {busy ? '…' : tooFew ? 'Choisis une 2ᵉ catégorie' : mode === 'duel' ? 'Créer le duel' : 'Lancer'}
       </button>
     </div>
   );
