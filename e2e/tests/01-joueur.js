@@ -97,6 +97,11 @@ t('3e rejeu du jour sans progression : plus d\'XP de partie', async a => {
   await a.go('/category/culture/theme/geographie'); await playAll(a, 'Relief');
   const b = await a.body(); a.assert.ok(/plus d'XP sur celui-ci/.test(b), b.slice(0, 400));
 });
+t('missions : rejouer le même quiz ne compte pas, un autre oui', async a => {
+  const ds = Object.values((await a.db()).users)[0].dayStats;
+  a.assert.deepStrictEqual([...ds.ids].sort(), ['z1', 'z2'], 'quiz distincts du jour : ' + JSON.stringify(ds.ids));
+  a.assert.strictEqual(ds.quizzes, 2, 'quizzes comptés : ' + ds.quizzes);
+});
 t('mauvaise partie puis progression : XP proportionnel', async a => {
   await a.go('/category/culture/theme/geographie'); await a.patchDb(d => { const u = Object.values(d.users)[0]; u.bestScores.z1 = 50; u.replays = { date: '1999-01-01', n: {} }; });
   await a.page.reload(); await a.page.waitForTimeout(900);

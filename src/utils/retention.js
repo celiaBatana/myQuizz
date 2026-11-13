@@ -70,21 +70,25 @@ export function dailyMissions(dateKey = dk(0)) {
   return out;
 }
 
-export const EMPTY_STATS = { quizzes: 0, perfect: 0, correct: 0, xp: 0, maxCombo: 0, modes: [] };
+export const EMPTY_STATS = { quizzes: 0, perfect: 0, correct: 0, xp: 0, maxCombo: 0, modes: [], ids: [] };
 export function todayStats(profile) {
   return profile?.dayStats?.date === dk(0) ? { ...EMPTY_STATS, ...profile.dayStats } : { ...EMPTY_STATS, date: dk(0) };
 }
 
+// Rejouer un quiz déjà fait aujourd'hui ne compte plus pour les missions (quiz, sans-faute, bonnes réponses) :
+// il faut des quiz DIFFÉRENTS. `add.quizId` n'est fourni que pour les quiz du parcours.
 export function updateDayStats(profile, add) {
   const s = todayStats(profile);
+  const dup = !!add.quizId && (s.ids || []).includes(add.quizId);
   return {
     date: dk(0),
-    quizzes: s.quizzes + 1,
-    perfect: s.perfect + (add.perfect ? 1 : 0),
-    correct: s.correct + add.correct,
+    quizzes: s.quizzes + (dup ? 0 : 1),
+    perfect: s.perfect + (!dup && add.perfect ? 1 : 0),
+    correct: s.correct + (dup ? 0 : add.correct),
     xp: s.xp + add.xp,
     maxCombo: Math.max(s.maxCombo, add.maxCombo || 0),
     modes: Array.from(new Set([...(s.modes || []), add.mode])),
+    ids: add.quizId ? Array.from(new Set([...(s.ids || []), add.quizId])) : (s.ids || []),
   };
 }
 
