@@ -30,7 +30,7 @@ export default function Play() {
     </div>
   );
 
-  const label = cat === 'all' ? 'Toutes catégories' : (CATEGORIES[cat]?.label || cat);
+  const label = cat === 'all' ? 'Toutes catégories' : String(cat).split(',').map(c => CATEGORIES[c]?.label || c).join(' + ');
   const quizData = {
     id: `${mode}_${cat}_${diff}`,
     name: `${mode === 'sudden' ? 'Mort subite' : 'Quiz mixte'} – ${label}`,

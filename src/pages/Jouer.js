@@ -18,7 +18,9 @@ export default function Jouer() {
   const { user, profile } = useAuth();
   const cats = getCategoryList();
   const [mode, setMode] = useState('mix');
-  const [cat, setCat]   = useState('all');
+  const [sel, setSel]   = useState([]); // catégories choisies ; vide = toutes
+  const cat = sel.length ? sel.join(',') : 'all';
+  const tooFew = sel.length === 1; // une seule catégorie : jouer plutôt ses quiz depuis l'accueil
   const [diff, setDiff] = useState('all');
   const [busy, setBusy] = useState(false);
   const [err, setErr]   = useState('');
@@ -82,8 +84,11 @@ export default function Jouer() {
 
       <div className="section-label">Catégorie</div>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 14 }}>
-        <div style={chip(cat === 'all')} onClick={() => setCat('all')}>🌍 Toutes (varié)</div>
-        {cats.map(c => <div key={c.id} style={chip(cat === c.id)} onClick={() => setCat(c.id)}>{c.icon} {c.label}</div>)}
+        <div style={chip(sel.length === 0)} onClick={() => setSel([])}>🌍 Toutes (varié)</div>
+        {cats.map(c => <div key={c.id} data-cat={c.id} style={chip(sel.includes(c.id))} onClick={() => setSel(s => s.includes(c.id) ? s.filter(x => x !== c.id) : [...s, c.id])}>{c.icon} {c.label}</div>)}
+      </div>
+      <div style={{ fontSize: 11, color: tooFew ? 'var(--yellow)' : 'var(--muted)', margin: '-8px 0 14px' }}>
+        {sel.length === 0 ? 'Toutes les catégories, ou touche-en plusieurs (au moins 2).' : tooFew ? 'Choisis au moins une 2ᵉ catégorie (ou reviens sur « Toutes »).' : `${sel.length} catégories mélangées.`}
       </div>
 
       <div className="section-label">Niveau</div>
@@ -97,7 +102,7 @@ export default function Jouer() {
         <div style={{ fontSize: 12, color: 'var(--yellow)', marginBottom: 10 }}>🏅 Ton record : {profile.suddenBest} bonnes réponses d'affilée</div>
       )}
       {err && <div style={{ color: 'var(--pink)', fontSize: 12, marginBottom: 10 }}>{err}</div>}
-      <button className="btn btn-primary btn-full" disabled={busy} onClick={go} style={{ fontFamily: "'Raleway',sans-serif", fontWeight: 700 }}>
+      <button className="btn btn-primary btn-full" disabled={busy || tooFew} onClick={go} style={{ fontFamily: "'Raleway',sans-serif", fontWeight: 700 }}>
         {busy ? '…' : mode === 'duel' ? 'Créer le duel' : 'Lancer'}
       </button>
     </div>

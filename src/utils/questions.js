@@ -78,11 +78,25 @@ async function fetchRandomAll(diff, target = 120) {
   return list;
 }
 
-// Questions variées pour mixte / mort subite / duel. cat = identifiant de catégorie ou 'all'.
+// Questions variées pour mixte / mort subite / duel.
+// cat = 'all', un identifiant de catégorie, ou plusieurs séparés par des virgules (« culture,cinema »).
+// Plusieurs catégories : on alterne entre elles pour que chacune soit représentée.
 export async function fetchVaried(cat, diff, n) {
-  const pool = cat === 'all' ? await fetchRandomAll(diff) : await fetchByCatDiff(cat, diff);
   const seen = getSeen();
-  const picked = pickVaried(pool, n, seen);
+  let picked;
+  const cats = cat === 'all' ? null : String(cat).split(',').filter(Boolean);
+  if (!cats) {
+    picked = pickVaried(await fetchRandomAll(diff), n, seen);
+  } else if (cats.length === 1) {
+    picked = pickVaried(await fetchByCatDiff(cats[0], diff), n, seen);
+  } else {
+    const lists = await Promise.all(cats.map(c => fetchByCatDiff(c, diff)));
+    const queues = shuffle(lists.map(l => pickVaried(l, n, seen)).filter(l => l.length));
+    picked = [];
+    while (picked.length < n && queues.some(q => q.length)) {
+      for (const q of queues) { if (q.length && picked.length < n) picked.push(q.shift()); }
+    }
+  }
   markSeen(picked.map(q => q.id));
   return picked;
 }
