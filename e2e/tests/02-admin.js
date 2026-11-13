@@ -70,6 +70,15 @@ t('santé : CSV invalide affiche une erreur', async a => {
   await a.page.locator('button:has-text("Voir l\'aperçu")').click(); await a.page.waitForTimeout(300);
   a.assert.ok(/invalide/.test(await a.body()));
 });
+t('santé : compléter des explications tronquées par CSV', async a => {
+  await a.patchDb(d => { d.questions.tr1 = { ...d.questions.d1, text: 'Tronquée unique ?', explanation: 'Un antivirus détecte' }; });
+  await openTab(a, 'Santé');
+  await a.page.locator('[data-testid="expl-input"]').fill('tr1,"Un antivirus détecte et supprime les logiciels malveillants, comme les virus."');
+  await a.page.locator('[data-testid="expl-input"] ~ button:has-text("Voir")').click(); await a.page.waitForTimeout(300);
+  a.assert.ok(/Aperçu/.test(await a.body()));
+  await a.page.locator('button:has-text("Valider et remplacer")').first().click(); await a.page.waitForTimeout(900);
+  a.assert.strictEqual((await a.db()).questions.tr1.explanation, 'Un antivirus détecte et supprime les logiciels malveillants, comme les virus.');
+});
 t('santé : supprimer un exemplaire', async a => {
   await a.patchDb(d => { d.questions.d3 = { ...d.questions.d1, options: ['B3', 'F1', 'F2', 'F3'] }; });
   await openTab(a, 'Santé'); const n0 = Object.keys((await a.db()).questions).length;
