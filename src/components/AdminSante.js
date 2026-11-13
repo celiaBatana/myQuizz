@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { S } from './adminStyles';
 import { QuestionForm } from './AdminForms';
 import { questionOrigin } from './AdminReports';
-import { normText } from '../utils/csv';
+import { normText, parseCSV } from '../utils/csv';
 
 const MIN_QUIZ = 10;      // nombre de questions attendu par quiz
 const MIN_PLAYS = 10;     // vues minimum avant de juger une question
@@ -35,8 +35,52 @@ function download(name, content, type) {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
+
+// Colle une ligne CSV : question,A,B,C,D,reponse,explication  (reponse = lettre A-D ou texte du choix)
+export function parseReimport(text) {
+  const rows = parseCSV(String(text || '').trim());
+  let r = rows.find(x => x.length >= 6 && !/^question$/i.test(x[0].trim()));
+  if (!r) return { error: 'Il faut au moins 6 colonnes : question, 4 choix, réponse (+ explication).' };
+  r = r.map(x => x.trim());
+  const [t, a, b, c, d, ans, ...rest] = r;
+  const options = [a, b, c, d];
+  if (options.some(o => !o) || !t) return { error: 'La question et les 4 choix doivent être remplis.' };
+  let idx = ['A', 'B', 'C', 'D'].indexOf(ans.toUpperCase());
+  if (idx < 0) idx = options.findIndex(o => normText(o) === normText(ans));
+  if (idx < 0) return { error: `Réponse « ${ans} » introuvable : mets A, B, C, D ou le texte exact d'un choix.` };
+  return { data: { text: t, options, answer: idx, explanation: rest.join(', ').trim() } };
+}
+
+function ReimportBox({ q, onSave, onCancel }) {
+  const [val, setVal] = useState('');
+  const [err, setErr] = useState('');
+  const [busy, setBusy] = useState(false);
+  async function go() {
+    const r = parseReimport(val);
+    if (r.error) { setErr(r.error); return; }
+    setBusy(true);
+    try { await onSave(q, r.data); } finally { setBusy(false); }
+  }
+  return (
+    <div>
+      <div style={{ fontSize: 11, color: 'var(--muted)', marginBottom: 4 }}>
+        Colle : question,choix A,choix B,choix C,choix D,réponse (A-D),explication
+      </div>
+      <textarea data-testid="reimport-input" value={val} onChange={e => { setVal(e.target.value); setErr(''); }} rows={4}
+        placeholder='Quel fleuve traverse Budapest ?,Le Danube,La Vistule,L&apos;Elbe,Le Rhin,A,"Le Danube sépare Buda et Pest."'
+        style={{ width: '100%', boxSizing: 'border-box', fontSize: 12 }} />
+      {err && <div role="alert" style={{ color: '#FF4D4D', fontSize: 11, margin: '4px 0' }}>{err}</div>}
+      <div style={{ display: 'flex', gap: 6, marginTop: 6 }}>
+        <button className="btn btn-primary" disabled={busy || !val.trim()} style={{ padding: '5px 12px', fontSize: 11 }} onClick={go}>Remplacer cette question</button>
+        <button className="btn btn-secondary" style={{ padding: '5px 12px', fontSize: 11 }} onClick={onCancel}>Annuler</button>
+      </div>
+    </div>
+  );
+}
+
 export default function AdminSante({ questions, quizzes, cats, themes, reports, stats, statsOk, onSaveQuestion, onDeleteQuestion, onBulkUpdate, setTab, ok }) {
   const [editId, setEditId] = useState(null);
+  const [csvId, setCsvId] = useState(null);
   const [cleaning, setCleaning] = useState(false);
 
   const data = useMemo(() => {
@@ -229,7 +273,9 @@ export default function AdminSante({ questions, quizzes, cats, themes, reports, 
                     {nQuiz === null ? 'Dans aucun quiz (jamais jouée)' : `Son quiz compte ${nQuiz} question${nQuiz > 1 ? 's' : ''}${nQuiz <= MIN_QUIZ ? ` → ${nQuiz - 1} si tu la supprimes` : ''}`}
                     {sameQuiz && <strong style={{ color: '#FF4D4D' }}> · doublon dans le MÊME quiz</strong>}
                   </div>
-                  {editId === q.id ? (
+                  {csvId === q.id ? (
+                    <ReimportBox q={q} onSave={async (qq, d) => { await onSaveQuestion(qq, d); setCsvId(null); }} onCancel={() => setCsvId(null)} />
+                  ) : editId === q.id ? (
                     <QuestionForm q={q} onSave={async d => { await onSaveQuestion(q, d); setEditId(null); }} onCancel={() => setEditId(null)} />
                   ) : (
                     <div>
@@ -238,6 +284,7 @@ export default function AdminSante({ questions, quizzes, cats, themes, reports, 
                       </div>
                       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                         <button className="btn btn-primary" style={{ padding: '5px 12px', fontSize: 11 }} onClick={() => setEditId(q.id)}>✏️ Modifier (en faire une autre)</button>
+                        <button className="btn btn-primary" data-testid="csv-replace" style={{ padding: '5px 12px', fontSize: 11 }} onClick={() => setCsvId(q.id)}>📋 Remplacer par CSV</button>
                         <button className="btn btn-secondary" style={{ padding: '5px 12px', fontSize: 11, color: '#FF4D4D' }} onClick={async () => {
                           const warn = nQuiz !== null && nQuiz <= MIN_QUIZ ? `\n\nAttention : son quiz passera à ${nQuiz - 1} question(s).` : '';
                           if (!window.confirm(`Supprimer cet exemplaire ?${warn}`)) return;

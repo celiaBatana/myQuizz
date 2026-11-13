@@ -48,6 +48,26 @@ t('santé : modifier un exemplaire en doublon', async a => {
   await a.page.locator('button:has-text("Enregistrer"), button:has-text("Sauvegarder")').first().click(); await a.page.waitForTimeout(900);
   const q = (await a.db()).questions; a.assert.notStrictEqual(q.d1.text, q.d2.text);
 });
+t('santé : remplacer un doublon par une ligne CSV', async a => {
+  await a.patchDb(d => { d.questions.r1 = { ...d.questions.d1, text: 'Question en double R ?' }; d.questions.r2 = { ...d.questions.d1, text: 'Question en double R ?' }; });
+  await openTab(a, 'Santé');
+  await a.page.locator('[data-testid="csv-replace"]').first().click();
+  await a.page.locator('[data-testid="reimport-input"]').fill('Quel fleuve traverse Budapest ?,Le Danube,La Vistule,"L\'Elbe",Le Rhin,A,"Le Danube sépare Buda et Pest, deux villes."');
+  await a.page.locator('button:has-text("Remplacer cette question")').click(); await a.page.waitForTimeout(900);
+  const q = (await a.db()).questions;
+  const hit = Object.values(q).find(x => x.text === 'Quel fleuve traverse Budapest ?');
+  a.assert.ok(hit, 'question remplacée'); a.assert.strictEqual(hit.answer, 0);
+  a.assert.deepStrictEqual(hit.options, ['Le Danube', 'La Vistule', "L'Elbe", 'Le Rhin']);
+  a.assert.ok(/Buda et Pest/.test(hit.explanation));
+});
+t('santé : CSV invalide affiche une erreur', async a => {
+  await a.patchDb(d => { d.questions.r3 = { ...d.questions.d1, text: 'Autre double S ?' }; d.questions.r4 = { ...d.questions.d1, text: 'Autre double S ?' }; });
+  await openTab(a, 'Santé');
+  await a.page.locator('[data-testid="csv-replace"]').first().click();
+  await a.page.locator('[data-testid="reimport-input"]').fill('Q,a,b,c,d,Z,expl');
+  await a.page.locator('button:has-text("Remplacer cette question")').click(); await a.page.waitForTimeout(300);
+  a.assert.ok(/introuvable/.test(await a.body()));
+});
 t('santé : supprimer un exemplaire', async a => {
   await a.patchDb(d => { d.questions.d3 = { ...d.questions.d1, options: ['B3', 'F1', 'F2', 'F3'] }; });
   await openTab(a, 'Santé'); const n0 = Object.keys((await a.db()).questions).length;
