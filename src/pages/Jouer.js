@@ -62,6 +62,12 @@ export default function Jouer() {
       <div className="page-title">🎮 Jouer</div>
       <div className="page-sub">Modes spéciaux</div>
 
+      {tooFew && (
+        <div role="alert" style={{ border: '1px solid var(--yellow)', color: 'var(--yellow)', borderRadius: 12, padding: '10px 12px', fontSize: 13, fontWeight: 700, marginBottom: 12, textAlign: 'center', position: 'sticky', top: 66, zIndex: 50, backdropFilter: 'blur(8px)', backgroundColor: '#2a2210' }}>
+          ⚠️ Choisis au moins 2 catégories (ou « Toutes ») pour lancer.
+        </div>
+      )}
+
       <div onClick={() => navigate('/daily')} style={{ background: 'linear-gradient(135deg, #9B6DFF, #FF5FA0)', borderRadius: 16, padding: 16, marginBottom: 14, cursor: 'pointer' }}>
         <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.12em', textTransform: 'uppercase', opacity: .85 }}>📅 Chaque jour</div>
         <div style={{ fontFamily: "'Raleway',sans-serif", fontWeight: 800, fontSize: 18 }}>Défi du jour</div>
@@ -101,13 +107,8 @@ export default function Jouer() {
       {mode === 'sudden' && profile?.suddenBest > 0 && (
         <div style={{ fontSize: 12, color: 'var(--yellow)', marginBottom: 10 }}>🏅 Ton record : {profile.suddenBest} bonnes réponses d'affilée</div>
       )}
-      {tooFew && (
-        <div role="alert" style={{ background: 'rgba(255,200,87,.15)', border: '1px solid var(--yellow)', color: 'var(--yellow)', borderRadius: 12, padding: '10px 12px', fontSize: 13, fontWeight: 700, marginBottom: 10, textAlign: 'center' }}>
-          ⚠️ Choisis au moins 2 catégories (ou « Toutes ») pour lancer.
-        </div>
-      )}
       {err && <div style={{ color: 'var(--pink)', fontSize: 12, marginBottom: 10 }}>{err}</div>}
-      <button className="btn btn-primary btn-full" disabled={busy || tooFew} onClick={go} style={{ fontFamily: "'Raleway',sans-serif", fontWeight: 700 }}>
+      <button className="btn btn-primary btn-full" disabled={busy || tooFew} onClick={go} style={{ fontFamily: "'Raleway',sans-serif", fontWeight: 700, opacity: tooFew ? 0.5 : 1 }}>
         {busy ? '…' : tooFew ? 'Choisis une 2ᵉ catégorie' : mode === 'duel' ? 'Créer le duel' : 'Lancer'}
       </button>
     </div>
