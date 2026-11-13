@@ -13,8 +13,9 @@ const launch = (a, ids) => a.go('/jouer').then(async () => {
 
 t('une seule catégorie : lancement bloqué', async a => {
   await a.signup(); await a.go('/jouer'); await a.page.locator('[data-cat="sport"]').click();
-  a.assert.ok(await a.page.locator('button:has-text("Lancer")').isDisabled(), 'bouton devrait être désactivé');
-  a.assert.ok(/au moins une 2ᵉ catégorie/.test(await a.body()));
+  const btn = a.page.locator('button:has-text("Choisis une 2ᵉ catégorie")');
+  a.assert.ok(await btn.isDisabled(), 'bouton désactivé avec explication dans son libellé');
+  a.assert.ok(await a.page.locator('[role=alert]:has-text("au moins 2 catégories")').isVisible(), 'bandeau d\'avertissement');
 });
 t('deux catégories : seules ces catégories sont jouées', async a => {
   await a.page.locator('[data-cat="culture"]').click();
