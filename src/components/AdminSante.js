@@ -96,6 +96,59 @@ function ReimportBox({ q, onSave, onCancel }) {
   );
 }
 
+
+// Complète les explications tronquées : export (id + texte actuel) puis réimport « id,explication »
+export function parseExplFix(text, questions) {
+  const ids = new Set(questions.map(q => q.id));
+  const rows = parseCSV(String(text || '').trim()).filter(r => r.length >= 2 && !/^id$/i.test(r[0].trim()));
+  const ok = [], bad = [];
+  rows.forEach(r => {
+    const id = r[0].trim(); const explanation = r.slice(1).join(', ').trim();
+    if (ids.has(id) && explanation) ok.push({ id, data: { explanation } }); else bad.push(id || '(vide)');
+  });
+  return { ok, bad };
+}
+
+function FixExplanations({ items, questions, onBulkUpdate, notify }) {
+  const [val, setVal] = useState('');
+  const [prev, setPrev] = useState(null);
+  const [busy, setBusy] = useState(false);
+  function exportBroken() {
+    const header = ['id', 'question', 'optionA', 'optionB', 'optionC', 'optionD', 'reponse_correcte', 'explication_actuelle'];
+    const rows = items.map(q => { const o = q.options || []; return [q.id, q.text, o[0], o[1], o[2], o[3], q.answer ?? 0, q.explanation || ''].map(csvCell).join(','); });
+    download(`explications_a_completer_${new Date().toISOString().slice(0, 10)}.csv`, [header.map(csvCell).join(','), ...rows].join('\n'), 'text/csv');
+    notify(`✓ ${items.length} questions exportées`);
+  }
+  async function apply() {
+    setBusy(true);
+    try { await onBulkUpdate(prev.ok); notify(`✓ ${prev.ok.length} explications mises à jour`); setPrev(null); setVal(''); }
+    catch (e) { console.error(e); notify('⚠️ Mise à jour impossible'); }
+    setBusy(false);
+  }
+  return (
+    <div style={{ ...S.card, borderColor: 'var(--yellow)' }}>
+      <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 4 }}>✍️ {items.length} explication(s) coupées ou sans point final</div>
+      <div style={{ fontSize: 11, color: 'var(--muted)', marginBottom: 6 }}>1) Exporte la liste et envoie-la à Claude. 2) Colle ici ses lignes « id,explication » pour tout mettre à jour d'un coup.</div>
+      <button className="btn btn-secondary" data-testid="expl-export" style={{ padding: '6px 14px', fontSize: 12, marginBottom: 8 }} onClick={exportBroken}>⬇️ Exporter les {items.length} à compléter</button>
+      {prev ? (
+        <div data-testid="expl-preview">
+          <div style={{ fontSize: 11, color: 'var(--yellow)', marginBottom: 4 }}>Aperçu : {prev.ok.length} explication(s) à remplacer{prev.bad.length ? ` · ${prev.bad.length} ligne(s) ignorée(s) (id inconnu ou vide)` : ''}</div>
+          {prev.ok.slice(0, 3).map(x => <div key={x.id} style={{ fontSize: 11, color: 'var(--muted)', marginBottom: 2 }}>💡 {x.data.explanation}</div>)}
+          <div style={{ display: 'flex', gap: 6, marginTop: 6 }}>
+            <button className="btn btn-primary" disabled={busy || !prev.ok.length} style={{ padding: '5px 12px', fontSize: 11 }} onClick={apply}>✓ Valider et remplacer</button>
+            <button className="btn btn-secondary" style={{ padding: '5px 12px', fontSize: 11 }} onClick={() => setPrev(null)}>← Corriger</button>
+          </div>
+        </div>
+      ) : (
+        <div>
+          <textarea data-testid="expl-input" value={val} onChange={e => setVal(e.target.value)} rows={4} placeholder='id,"Explication complète."' style={{ width: '100%', boxSizing: 'border-box', fontSize: 12 }} />
+          <button className="btn btn-primary" disabled={!val.trim()} style={{ padding: '5px 12px', fontSize: 11, marginTop: 6 }} onClick={() => setPrev(parseExplFix(val, questions))}>Voir l'aperçu</button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function AdminSante({ questions, quizzes, cats, themes, reports, stats, statsOk, onSaveQuestion, onDeleteQuestion, onBulkUpdate, setTab, ok }) {
   const [editId, setEditId] = useState(null);
   const [csvId, setCsvId] = useState(null);
@@ -249,6 +302,9 @@ export default function AdminSante({ questions, quizzes, cats, themes, reports, 
               setCleaning(false);
             }}>{cleaning ? '…' : `🧹 Tout nettoyer (${cleanable.length})`}</button>
           </div>
+        )}
+        {broken.some(b => /explication/.test(b.why)) && (
+          <FixExplanations items={broken.filter(b => /explication/.test(b.why)).map(b => b.q)} questions={questions} onBulkUpdate={onBulkUpdate} notify={ok} />
         )}
         {broken.slice(0, 40).map(({ q, why }) => (
           <div key={q.id} style={S.card}>
