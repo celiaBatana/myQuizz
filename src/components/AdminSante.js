@@ -36,7 +36,8 @@ function download(name, content, type) {
 }
 
 
-// Colle une ligne CSV : question,A,B,C,D,reponse,explication  (reponse = lettre A-D ou texte du choix)
+// Colle une ligne CSV : question,A,B,C,D,reponse,explication
+// reponse = 0 à 3 (comme dans les CSV d'import : 0 = A, 1 = B, 2 = C, 3 = D)
 export function parseReimport(text) {
   const rows = parseCSV(String(text || '').trim());
   let r = rows.find(x => x.length >= 6 && !/^question$/i.test(x[0].trim()));
@@ -45,33 +46,50 @@ export function parseReimport(text) {
   const [t, a, b, c, d, ans, ...rest] = r;
   const options = [a, b, c, d];
   if (options.some(o => !o) || !t) return { error: 'La question et les 4 choix doivent être remplis.' };
-  let idx = ['A', 'B', 'C', 'D'].indexOf(ans.toUpperCase());
-  if (idx < 0) idx = options.findIndex(o => normText(o) === normText(ans));
-  if (idx < 0) return { error: `Réponse « ${ans} » introuvable : mets A, B, C, D ou le texte exact d'un choix.` };
-  return { data: { text: t, options, answer: idx, explanation: rest.join(', ').trim() } };
+  if (!/^[0-3]$/.test(ans)) return { error: `Réponse « ${ans} » invalide : mets 0, 1, 2 ou 3 (0 = A, 1 = B, 2 = C, 3 = D), comme dans les CSV d'import.` };
+  return { data: { text: t, options, answer: Number(ans), explanation: rest.join(', ').trim() } };
 }
 
 function ReimportBox({ q, onSave, onCancel }) {
   const [val, setVal] = useState('');
   const [err, setErr] = useState('');
   const [busy, setBusy] = useState(false);
-  async function go() {
+  const [prev, setPrev] = useState(null);
+  function check() {
     const r = parseReimport(val);
     if (r.error) { setErr(r.error); return; }
-    setBusy(true);
-    try { await onSave(q, r.data); } finally { setBusy(false); }
+    setPrev(r.data);
   }
+  async function go() {
+    setBusy(true);
+    try { await onSave(q, prev); } finally { setBusy(false); }
+  }
+  if (prev) return (
+    <div data-testid="reimport-preview">
+      <div style={{ fontSize: 11, color: 'var(--yellow)', marginBottom: 4 }}>Aperçu : vérifie avant de remplacer</div>
+      <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 4 }}>{prev.text}</div>
+      <div style={{ fontSize: 11, color: 'var(--muted)', marginBottom: 4 }}>
+        {prev.options.map((o, n) => <div key={n} style={{ color: n === prev.answer ? 'var(--cyan)' : undefined }}>{['A', 'B', 'C', 'D'][n]}. {o}{n === prev.answer ? ' ✓' : ''}</div>)}
+      </div>
+      <div style={{ fontSize: 11, fontStyle: 'italic', marginBottom: 6 }}>💡 {prev.explanation || '(pas d\'explication)'}</div>
+      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+        <button className="btn btn-primary" disabled={busy} style={{ padding: '5px 12px', fontSize: 11 }} onClick={go}>✓ Valider et remplacer</button>
+        <button className="btn btn-secondary" style={{ padding: '5px 12px', fontSize: 11 }} onClick={() => setPrev(null)}>← Corriger</button>
+        <button className="btn btn-secondary" style={{ padding: '5px 12px', fontSize: 11 }} onClick={onCancel}>Annuler</button>
+      </div>
+    </div>
+  );
   return (
     <div>
       <div style={{ fontSize: 11, color: 'var(--muted)', marginBottom: 4 }}>
-        Colle : question,choix A,choix B,choix C,choix D,réponse (A-D),explication
+        Colle : question,A,B,C,D,réponse (0-3),explication
       </div>
       <textarea data-testid="reimport-input" value={val} onChange={e => { setVal(e.target.value); setErr(''); }} rows={4}
-        placeholder='Quel fleuve traverse Budapest ?,Le Danube,La Vistule,L&apos;Elbe,Le Rhin,A,"Le Danube sépare Buda et Pest."'
+        placeholder='Quel fleuve traverse Budapest ?,Le Danube,La Vistule,L&apos;Elbe,Le Rhin,0,"Le Danube sépare Buda et Pest."'
         style={{ width: '100%', boxSizing: 'border-box', fontSize: 12 }} />
       {err && <div role="alert" style={{ color: '#FF4D4D', fontSize: 11, margin: '4px 0' }}>{err}</div>}
       <div style={{ display: 'flex', gap: 6, marginTop: 6 }}>
-        <button className="btn btn-primary" disabled={busy || !val.trim()} style={{ padding: '5px 12px', fontSize: 11 }} onClick={go}>Remplacer cette question</button>
+        <button className="btn btn-primary" disabled={!val.trim()} style={{ padding: '5px 12px', fontSize: 11 }} onClick={check}>Voir l'aperçu</button>
         <button className="btn btn-secondary" style={{ padding: '5px 12px', fontSize: 11 }} onClick={onCancel}>Annuler</button>
       </div>
     </div>
