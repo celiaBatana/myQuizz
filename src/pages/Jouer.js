@@ -113,6 +113,13 @@ export default function Jouer() {
         <div style={{ fontSize: 11, color: 'var(--muted)', margin: '-12px 0 14px' }}>Tu peux cocher 1, 2 ou 3 niveaux.</div>
       )}
 
+      {mode === 'duel' && (
+        <div data-testid="duel-friends" onClick={() => navigate('/amis')} style={{ background: 'var(--s1)', border: '1px solid var(--yellow)', borderRadius: 14, padding: '12px 14px', marginBottom: 14, cursor: 'pointer', fontSize: 13 }}>
+          <div style={{ fontWeight: 700, color: 'var(--yellow)' }}>{invitedUid ? `Défi pour ${invitedName || 'ton ami'}` : '👥 Défier un ami directement'}</div>
+          <div style={{ color: 'var(--muted)', marginTop: 2 }}>{invitedUid ? 'Le duel lui sera proposé sur son accueil.' : 'Ajoute-le par code ou pseudo, puis défie-le (sinon, partage le lien du duel).'}</div>
+        </div>
+      )}
+
       {mode === 'sudden' && profile?.suddenBest > 0 && (
         <div style={{ fontSize: 12, color: 'var(--yellow)', marginBottom: 10 }}>Ton record : {profile.suddenBest} bonnes réponses d'affilée</div>
       )}
