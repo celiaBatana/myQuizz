@@ -16,6 +16,7 @@ import Admin from './pages/Admin';
 import Jouer from './pages/Jouer';
 import Play from './pages/Play';
 import Daily from './pages/Daily';
+import Amis from './pages/Amis';
 import Duel from './pages/Duel';
 import Leaderboard from './pages/Leaderboard';
 import './styles/globals.css';
@@ -35,6 +36,7 @@ export default function App() {
             <Route path="/jouer" element={<Jouer />} />
             <Route path="/play" element={<Play />} />
             <Route path="/daily" element={<Daily />} />
+            <Route path="/amis" element={<Amis />} />
             <Route path="/duel/:id" element={<Duel />} />
             <Route path="/groupes" element={<GroupsList />} />
             <Route path="/groupes/:code" element={<GroupDetail />} />
