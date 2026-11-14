@@ -71,7 +71,7 @@ export function Themes() {
             opacity: isEmpty(theme) ? 0.45 : 1,
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           }}
-          onMouseEnter={e => { if (isEmpty(theme)) return; e.currentTarget.style.borderColor = 'var(--purple)'; e.currentTarget.style.background = 'rgba(127,176,122,.07)'; }}
+          onMouseEnter={e => { if (isEmpty(theme)) return; e.currentTarget.style.borderColor = 'var(--purple)'; e.currentTarget.style.background = 'rgba(217,144,79,.07)'; }}
           onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--s2)'; e.currentTarget.style.background = 'var(--s1)'; }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -338,7 +338,7 @@ export function QuizPlayInner({ quizData, cat, theme, catId, themeId, navigate, 
   return (
     <div className="page">
       <div className={`toast ${xpToast.show ? 'show' : ''}`}>{xpToast.msg}</div>
-      <style>{`@keyframes qz-shake { 0%,100% { transform: translateX(0) } 20% { transform: translateX(-7px) } 40% { transform: translateX(7px) } 60% { transform: translateX(-5px) } 80% { transform: translateX(5px) } } @keyframes qz-pulse { 0% { transform: scale(1) } 50% { transform: scale(1.03); box-shadow: 0 0 14px rgba(127,200,192,.5) } 100% { transform: scale(1) } }`}</style>
+      <style>{`@keyframes qz-shake { 0%,100% { transform: translateX(0) } 20% { transform: translateX(-7px) } 40% { transform: translateX(7px) } 60% { transform: translateX(-5px) } 80% { transform: translateX(5px) } } @keyframes qz-pulse { 0% { transform: scale(1) } 50% { transform: scale(1.03); box-shadow: 0 0 14px rgba(143,195,159,.5) } 100% { transform: scale(1) } }`}</style>
 
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12, paddingTop: 4 }}>
@@ -416,13 +416,13 @@ export function QuizPlayInner({ quizData, cat, theme, catId, themeId, navigate, 
         {q?.o.map((opt, i) => {
           let borderColor = 'var(--s2)', bg = 'var(--s1)', letterBg = 'var(--s2)', letterColor = 'var(--muted)';
           if (quiz.answered) {
-            if (i === q.a)                   { borderColor = 'var(--cyan)';  bg = 'rgba(127,200,192,.07)'; letterBg = 'var(--cyan)';  letterColor = '#1F1A16'; }
+            if (i === q.a)                   { borderColor = 'var(--cyan)';  bg = 'rgba(143,195,159,.07)'; letterBg = 'var(--cyan)';  letterColor = '#1F1A16'; }
             else if (i === quiz.selectedOption) { borderColor = 'var(--pink)'; bg = 'rgba(229,139,115,.07)'; letterBg = 'var(--pink)'; letterColor = '#fff'; }
           }
           return (
             <div key={i} onClick={() => !quiz.answered && handleAnswer(i)}
               style={{ animation: quiz.answered ? (i === q.a ? 'qz-pulse .5s ease' : i === quiz.selectedOption ? 'qz-shake .4s ease' : undefined) : undefined, background: bg, border: `2px solid ${borderColor}`, borderRadius: 10, padding: '12px 13px', cursor: quiz.answered ? 'default' : 'pointer', transition: 'all .2s', display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, fontWeight: 500 }}
-              onMouseEnter={e => { if (!quiz.answered) { e.currentTarget.style.borderColor = 'var(--purple)'; e.currentTarget.style.background = 'rgba(127,176,122,.08)'; } }}
+              onMouseEnter={e => { if (!quiz.answered) { e.currentTarget.style.borderColor = 'var(--purple)'; e.currentTarget.style.background = 'rgba(217,144,79,.08)'; } }}
               onMouseLeave={e => { if (!quiz.answered) { e.currentTarget.style.borderColor = 'var(--s2)'; e.currentTarget.style.background = 'var(--s1)'; } }}
             >
               <div style={{ width: 25, height: 25, borderRadius: 7, background: letterBg, color: letterColor, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, flexShrink: 0 }}>
@@ -436,7 +436,7 @@ export function QuizPlayInner({ quizData, cat, theme, catId, themeId, navigate, 
 
       {/* Explication */}
       {quiz.answered && quiz.explanation && (
-        <div style={{ background: 'rgba(127,200,192,.05)', border: '1px solid rgba(127,200,192,.16)', borderRadius: 10, padding: '11px 13px', marginBottom: 12, fontSize: 12, color: 'var(--muted)', lineHeight: 1.6, animation: 'fadeIn .3s ease' }}>
+        <div style={{ background: 'rgba(143,195,159,.05)', border: '1px solid rgba(143,195,159,.16)', borderRadius: 10, padding: '11px 13px', marginBottom: 12, fontSize: 12, color: 'var(--muted)', lineHeight: 1.6, animation: 'fadeIn .3s ease' }}>
           <strong style={{ color: 'var(--cyan)' }}>
             {quiz.selectedOption === quiz.currentQuestion?.a ? '✓ Bonne réponse !' : '✗ Pas tout à fait.'}
           </strong>{' '}

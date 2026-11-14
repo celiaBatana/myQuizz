@@ -113,11 +113,11 @@ export default function Profile() {
         {profile?.title && <div style={{ fontSize: 12, color: 'var(--yellow)', fontWeight: 700, marginBottom: 4 }}>{titleName(profile.title)}</div>}
         <div style={{ fontSize: 12, color: 'var(--muted)', marginBottom: 14 }}>
           {user.email}
-          {isAdmin && <span style={{ marginLeft: 8, background: 'rgba(127,176,122,.2)', color: 'var(--purple)', borderRadius: 6, padding: '1px 7px', fontSize: 10, fontWeight: 700 }}>ADMIN</span>}
+          {isAdmin && <span style={{ marginLeft: 8, background: 'rgba(217,144,79,.2)', color: 'var(--purple)', borderRadius: 6, padding: '1px 7px', fontSize: 10, fontWeight: 700 }}>ADMIN</span>}
         </div>
 
         {/* Badge niveau */}
-        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'rgba(127,176,122,.15)', border: '1px solid rgba(127,176,122,.3)', borderRadius: 12, padding: '6px 14px', marginBottom: 14 }}>
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'rgba(217,144,79,.15)', border: '1px solid rgba(217,144,79,.3)', borderRadius: 12, padding: '6px 14px', marginBottom: 14 }}>
           <span style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 800, fontSize: 18, color: 'var(--purple)' }}>Niveau {level}</span>
           <span style={{ fontSize: 12, color: 'var(--muted)' }}>{totalXP} XP total</span>
         </div>

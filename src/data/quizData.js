@@ -5,7 +5,7 @@
 export const CATEGORIES = {
   culture: {
     id: 'culture', label: 'Culture générale', icon: '🧠',
-    color: '#7FB07A',
+    color: '#D9904F',
     gradient: 'linear-gradient(135deg, #2a1f4e, #3d2a6e)',
     themes: {
       classique:    { id: 'classique',    label: 'Culture classique',  icon: '📚' },
@@ -27,7 +27,7 @@ export const CATEGORIES = {
   },
   sciences: {
     id: 'sciences', label: 'Sciences & Tech', icon: '🔬',
-    color: '#7FC8C0',
+    color: '#8FC39F',
     gradient: 'linear-gradient(135deg, #1f3a2e, #1a4d3a)',
     themes: {
       physique:     { id: 'physique',     label: 'Physique',              icon: '⚛️' },
@@ -37,7 +37,7 @@ export const CATEGORIES = {
   },
   sport: {
     id: 'sport', label: 'Sport', icon: '⚽',
-    color: '#8FBF8A',
+    color: '#F2A65A',
     gradient: 'linear-gradient(135deg, #2a2a1f, #3d3a18)',
     themes: {
       football:   { id: 'football',   label: 'Football',   icon: '⚽' },
@@ -77,7 +77,7 @@ export const CATEGORIES = {
   },
   jeux_video: {
     id: 'jeux_video', label: 'Jeux vidéo', icon: '🎮',
-    color: '#7FB07A',
+    color: '#D9904F',
     gradient: 'linear-gradient(135deg, #1a0f3a, #2d1a5e)',
     themes: {
       classiques_jv: { id: 'classiques_jv', label: 'Classiques & Histoire', icon: '👾' },
@@ -87,7 +87,7 @@ export const CATEGORIES = {
   },
   nature: {
     id: 'nature', label: 'Nature & Animaux', icon: '🌿',
-    color: '#7FC8C0',
+    color: '#8FC39F',
     gradient: 'linear-gradient(135deg, #0f2d1f, #1a4a2e)',
     themes: {
       animaux:      { id: 'animaux',      label: 'Animaux',                icon: '🦁' },
@@ -107,7 +107,7 @@ export const CATEGORIES = {
   },
   economie: {
     id: 'economie', label: 'Économie & Finance', icon: '💰',
-    color: '#8FBF8A',
+    color: '#F2A65A',
     gradient: 'linear-gradient(135deg, #2a2500, #3d3800)',
     themes: {
       bases_eco:          { id: 'bases_eco',          label: "Bases de l'économie",  icon: '📊' },
@@ -117,7 +117,7 @@ export const CATEGORIES = {
   },
   astronomie: {
     id: 'astronomie', label: 'Astronomie & Espace', icon: '🔭',
-    color: '#7FB07A',
+    color: '#D9904F',
     gradient: 'linear-gradient(135deg, #0a0520, #150a35)',
     themes: {
       systeme_solaire:  { id: 'systeme_solaire',  label: 'Système solaire',   icon: '☀️' },
@@ -137,7 +137,7 @@ export const CATEGORIES = {
   },
   mathematiques: {
     id: 'mathematiques', label: 'Logique & Mathématiques', icon: '🧩',
-    color: '#7FC8C0',
+    color: '#8FC39F',
     gradient: 'linear-gradient(135deg, #0a1f2a, #0f3040)',
     themes: {
       logique:             { id: 'logique',             label: 'Logique & Raisonnement', icon: '🧠' },
@@ -160,6 +160,6 @@ export function getThemeList(catId) {
 export const XP_MAP        = { easy: 5, medium: 10, hard: 20 };
 export const XP_TIMER_BONUS= { easy: 10, medium: 20, hard: 30 };
 export const DIFF_LABELS   = { easy: 'Facile', medium: 'Moyen', hard: 'Expert' };
-export const DIFF_COLORS   = { easy: '#7FC8C0', medium: '#E6B35A', hard: '#E58B73' };
+export const DIFF_COLORS   = { easy: '#8FC39F', medium: '#F2A65A', hard: '#E58B73' };
 export const XP_PER_LEVEL  = 200;
 export const FREE_DAILY_LIMIT = 3;

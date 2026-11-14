@@ -37,7 +37,7 @@ export default function TabQuestions({ ctx }) {
             </div>
             <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
               <button
-                style={{ fontSize: 11, padding: '5px 10px', borderRadius: 7, border: '1px solid rgba(127,200,192,.3)', background: 'none', color: 'var(--cyan)', cursor: 'pointer', fontFamily: 'inherit' }}
+                style={{ fontSize: 11, padding: '5px 10px', borderRadius: 7, border: '1px solid rgba(143,195,159,.3)', background: 'none', color: 'var(--cyan)', cursor: 'pointer', fontFamily: 'inherit' }}
                 onClick={selectAllFiltered}
               >☑ Tout ({Math.min(filtered.length, 60)})</button>
               {selectedQ.length > 0 && (
@@ -76,7 +76,7 @@ export default function TabQuestions({ ctx }) {
           {filtered.slice(0, 60).map(q => {
             const isSel = selectedQ.includes(q.id);
             return (
-              <div key={q.id} style={{ ...S.card, borderColor: isSel ? 'var(--purple)' : 'var(--s2)', background: isSel ? 'rgba(127,176,122,.07)' : 'var(--s1)' }}>
+              <div key={q.id} style={{ ...S.card, borderColor: isSel ? 'var(--purple)' : 'var(--s2)', background: isSel ? 'rgba(217,144,79,.07)' : 'var(--s1)' }}>
                 {editQ?.id === q.id ? (
                   <QuestionForm q={editQ} onSave={data => saveQuestion(q, data)} onCancel={() => setEditQ(null)} />
                 ) : (
@@ -90,7 +90,7 @@ export default function TabQuestions({ ctx }) {
                         <div style={{ fontSize: 12, fontWeight: 500, marginBottom: 4, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{q.text}</div>
                         <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
                           <span style={S.tag('var(--purple)')}>{q.category}</span>
-                          <span style={S.tag(q.diff === 'easy' ? 'var(--cyan)' : q.diff === 'medium' ? 'var(--amber)' : 'var(--pink)')}>{DIFF_LABELS[q.diff]}</span>
+                          <span style={S.tag(q.diff === 'easy' ? 'var(--cyan)' : q.diff === 'medium' ? 'var(--yellow)' : 'var(--pink)')}>{DIFF_LABELS[q.diff]}</span>
                           {q.quizId ? <span style={S.tag('var(--cyan)')}>lié</span> : <span style={S.tag('var(--pink)')}>sans quiz</span>}
                           {q.theme && <span style={S.tag('var(--muted)')}>{q.theme}</span>}
                         </div>

@@ -52,7 +52,7 @@ export default function Onboarding() {
             {DAILY_GOALS.map(n => (
               <div key={n} onClick={() => setGoal(n)} style={{
                 display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '11px 14px', marginBottom: 8, borderRadius: 12, cursor: 'pointer',
-                border: `2px solid ${goal === n ? 'var(--purple)' : 'var(--s2)'}`, background: goal === n ? 'rgba(127,176,122,.12)' : 'var(--s2)', textAlign: 'left',
+                border: `2px solid ${goal === n ? 'var(--purple)' : 'var(--s2)'}`, background: goal === n ? 'rgba(217,144,79,.12)' : 'var(--s2)', textAlign: 'left',
               }}>
                 <div><div style={{ fontWeight: 800 }}>{GOAL_TXT[n][0]}</div><div style={{ fontSize: 11, color: 'var(--muted)' }}>{GOAL_TXT[n][1]}</div></div>
                 <div style={{ fontWeight: 800, color: 'var(--yellow)' }}>{n} XP</div>
