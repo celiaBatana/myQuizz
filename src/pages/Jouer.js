@@ -113,11 +113,6 @@ export default function Jouer() {
         <div style={{ fontSize: 11, color: 'var(--muted)', margin: '-12px 0 14px' }}>Tu peux cocher 1, 2 ou 3 niveaux.</div>
       )}
 
-      <div data-testid="bt-link" onClick={() => navigate('/blindtest')} style={{ background: 'var(--s1)', border: '1px solid var(--s2)', borderRadius: 14, padding: '12px 14px', marginBottom: 14, cursor: 'pointer', fontSize: 13 }}>
-        <div style={{ fontWeight: 700 }}>🎵 Blind test <span style={{ color: 'var(--yellow)', fontSize: 11 }}>NOUVEAU</span></div>
-        <div style={{ color: 'var(--muted)', marginTop: 2 }}>7 styles : années 80/90/2000, rap FR, génériques d'animes, films…</div>
-      </div>
-
       {mode === 'duel' && (
         <div data-testid="duel-friends" onClick={() => navigate('/amis')} style={{ background: 'var(--s1)', border: '1px solid var(--yellow)', borderRadius: 14, padding: '12px 14px', marginBottom: 14, cursor: 'pointer', fontSize: 13 }}>
           <div style={{ fontWeight: 700, color: 'var(--yellow)' }}>{invitedUid ? `Défi pour ${invitedName || 'ton ami'}` : '👥 Défier un ami directement'}</div>
