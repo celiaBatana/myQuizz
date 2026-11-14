@@ -419,7 +419,7 @@ export default function Admin() {
       {showAuth && <AuthModal onClose={() => setShowAuth(false)} />}
       <div style={{ textAlign: 'center', padding: '40px 16px' }}>
         <div style={{ fontSize: 48, marginBottom: 12 }}>🔒</div>
-        <div style={{ fontFamily: "'Raleway', sans-serif", fontSize: 20, fontWeight: 800, marginBottom: 8 }}>Accès restreint</div>
+        <div style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontSize: 20, fontWeight: 800, marginBottom: 8 }}>Accès restreint</div>
         <p style={{ color: 'var(--muted)', fontSize: 13, marginBottom: 20 }}>Connecte-toi avec un compte admin.</p>
         <button className="btn btn-primary" onClick={() => setShowAuth(true)}>Se connecter</button>
       </div>
@@ -429,7 +429,7 @@ export default function Admin() {
     <div className="page">
       <div style={{ textAlign: 'center', padding: '40px 16px' }}>
         <div style={{ fontSize: 48, marginBottom: 12 }}>🚫</div>
-        <div style={{ fontFamily: "'Raleway', sans-serif", fontSize: 20, fontWeight: 800 }}>Accès refusé</div>
+        <div style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontSize: 20, fontWeight: 800 }}>Accès refusé</div>
       </div>
     </div>
   );
@@ -455,8 +455,8 @@ export default function Admin() {
       <div className={`toast-success ${toast ? 'show' : ''}`}>{toast}</div>
 
       {/* Header */}
-      <div style={{ background: 'linear-gradient(135deg, #1a1040, #2d1a5e)', border: '1px solid #4a3580', borderRadius: 16, padding: 16, marginBottom: 14 }}>
-        <div style={{ fontFamily: "'Raleway', sans-serif", fontSize: 18, fontWeight: 800, marginBottom: 2 }}>⚙️ Admin Quizly</div>
+      <div style={{ background: 'var(--s1)', border: '1px solid var(--s2)', borderRadius: 16, padding: 16, marginBottom: 14 }}>
+        <div style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontSize: 18, fontWeight: 800, marginBottom: 2 }}>⚙️ Admin Quizly</div>
         <div style={{ color: 'var(--muted)', fontSize: 12, display: 'flex', gap: 14, flexWrap: 'wrap' }}>
           <span>{questions.length} questions</span>
           <span>{questions.filter(q => q.quizId).length} liées à un quiz</span>
@@ -470,8 +470,8 @@ export default function Admin() {
         {TABS.map(t => (
           <div key={t.id} onClick={() => setTab(t.id)} style={{
             padding: '7px 12px', borderRadius: 8, cursor: 'pointer', whiteSpace: 'nowrap', fontSize: 11, fontWeight: 600, flexShrink: 0,
-            background: tab === t.id ? 'linear-gradient(135deg, var(--purple), var(--pink))' : 'var(--s2)',
-            color: tab === t.id ? '#fff' : 'var(--muted)',
+            background: tab === t.id ? 'var(--yellow)' : 'var(--s2)',
+            color: tab === t.id ? 'var(--on-primary)' : 'var(--muted)',
           }}>{t.label}</div>
         ))}
       </div>

@@ -405,7 +405,7 @@ export default function Calendar() {
     return (
       <ModalWrap onClose={() => setModal(null)} wide>
         <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:14 }}>
-          <div style={{ fontFamily:"'Raleway',sans-serif", fontWeight:800, fontSize:16 }}>
+          <div style={{ fontFamily:"'Bricolage Grotesque', sans-serif", fontWeight:800, fontSize:16 }}>
             {d.toLocaleDateString("fr-FR", { weekday:"long", day:"numeric", month:"long" })}
           </div>
           <span style={{ fontSize:11, color:"var(--muted)", background:"var(--s2)", padding:"3px 8px", borderRadius:6 }}>
@@ -450,7 +450,7 @@ export default function Calendar() {
   function renderEventModal() {
     return (
       <ModalWrap onClose={() => setModal(null)} wide>
-        <div style={{ fontFamily:"'Raleway',sans-serif", fontWeight:800, fontSize:16, marginBottom:14 }}>
+        <div style={{ fontFamily:"'Bricolage Grotesque', sans-serif", fontWeight:800, fontSize:16, marginBottom:14 }}>
           {editId ? "Modifier l'événement" : "Nouvel événement"}
         </div>
         <label style={lbl}>Titre</label>
@@ -496,8 +496,8 @@ export default function Calendar() {
         <label style={lbl}>Note (optionnel)</label>
         <textarea style={{ ...inp, minHeight:56, resize:"vertical" }} value={form.note} onChange={e => setForm(f=>({...f, note:e.target.value}))} placeholder="Détails, lieu, lien…" />
         <div style={{ display:"flex", gap:8, marginTop:4 }}>
-          <button className="btn btn-primary" style={{ flex:1, fontFamily:"'Raleway'", fontWeight:700 }} onClick={saveEvent}>{editId ? "Enregistrer" : "Ajouter"}</button>
-          {editId && <button className="btn btn-secondary" style={{ padding:"0 14px", color:"var(--pink)", fontFamily:"'Raleway'", fontWeight:700 }} onClick={() => deleteEvent(editId)}>Supprimer</button>}
+          <button className="btn btn-primary" style={{ flex:1, fontFamily:"'Bricolage Grotesque'", fontWeight:700 }} onClick={saveEvent}>{editId ? "Enregistrer" : "Ajouter"}</button>
+          {editId && <button className="btn btn-secondary" style={{ padding:"0 14px", color:"var(--pink)", fontFamily:"'Bricolage Grotesque'", fontWeight:700 }} onClick={() => deleteEvent(editId)}>Supprimer</button>}
         </div>
       </ModalWrap>
     );
@@ -506,7 +506,7 @@ export default function Calendar() {
   function renderUserModal() {
     return (
       <ModalWrap onClose={() => setModal(null)}>
-        <div style={{ fontFamily:"'Raleway',sans-serif", fontWeight:800, fontSize:16, marginBottom:14 }}>👥 Gérer les utilisateurs</div>
+        <div style={{ fontFamily:"'Bricolage Grotesque', sans-serif", fontWeight:800, fontSize:16, marginBottom:14 }}>👥 Gérer les utilisateurs</div>
         {users.map(u => (
           <div key={u.id} style={{ display:"flex", alignItems:"center", gap:10, padding:"9px 11px", background:"var(--s2)", borderRadius:10, marginBottom:6 }}>
             <span style={{ fontSize:16, color:u.color }}>{u.shape}</span>
@@ -521,7 +521,7 @@ export default function Calendar() {
         {users.length === 0 && <div style={{ color:"var(--muted)", fontSize:13, textAlign:"center", padding:"12px 0" }}>Aucun utilisateur — ajoute-en un !</div>}
         <div style={{ display:"flex", gap:8, marginTop:12 }}>
           <input style={{ ...inp, margin:0, flex:1 }} value={uName} onChange={e=>setUName(e.target.value)} onKeyDown={e=>e.key==="Enter"&&addUser()} placeholder="Prénom ou pseudo…" />
-          <button className="btn btn-primary" style={{ fontFamily:"'Raleway'", fontWeight:700, whiteSpace:"nowrap" }} onClick={addUser}>Ajouter</button>
+          <button className="btn btn-primary" style={{ fontFamily:"'Bricolage Grotesque'", fontWeight:700, whiteSpace:"nowrap" }} onClick={addUser}>Ajouter</button>
         </div>
       </ModalWrap>
     );
@@ -549,16 +549,16 @@ export default function Calendar() {
   }
 
   if (loadingData) return (
-    <div style={{ textAlign:"center", paddingTop:80, color:"var(--muted,#888)", fontFamily:"Josefin Sans,sans-serif" }}>
+    <div style={{ textAlign:"center", paddingTop:80, color:"var(--muted,#888)", fontFamily:"Inter,sans-serif" }}>
       <div style={{ fontSize:32, marginBottom:12 }}>📅</div>
       <div>Chargement du calendrier…</div>
     </div>
   );
 
   return (
-    <div style={{ maxWidth:900, margin:"0 auto", padding:"16px 12px 80px", fontFamily:"Josefin Sans, sans-serif", color:"var(--text, #f0eeff)", minHeight:"100vh" }}>
+    <div style={{ maxWidth:900, margin:"0 auto", padding:"16px 12px 80px", fontFamily:"Inter, sans-serif", color:"var(--text, #f0eeff)", minHeight:"100vh" }}>
       <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:16, flexWrap:"wrap", gap:8 }}>
-        <div style={{ fontFamily:"'Raleway',sans-serif", fontWeight:800, fontSize:22 }}>📅 Calendrier</div>
+        <div style={{ fontFamily:"'Bricolage Grotesque', sans-serif", fontWeight:800, fontSize:22 }}>📅 Calendrier</div>
         <div style={{ display:"flex", gap:6 }}>
           <button style={tabBtn(view==="month")} onClick={()=>setView("month")}>Mois</button>
           <button style={tabBtn(view==="week")}  onClick={()=>setView("week")}>Semaine</button>
@@ -570,7 +570,7 @@ export default function Calendar() {
       <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:12 }}>
         <button onClick={prev} style={navBtn}>‹</button>
         <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-          <span style={{ fontFamily:"'Raleway',sans-serif", fontWeight:800, fontSize:15 }}>{navTitle()}</span>
+          <span style={{ fontFamily:"'Bricolage Grotesque', sans-serif", fontWeight:800, fontSize:15 }}>{navTitle()}</span>
           <button onClick={() => setCurDate(today)} style={{ fontSize:10, padding:"3px 9px", borderRadius:6, border:"1px solid var(--s3,#333)", background:"none", color:"var(--muted,#888)", cursor:"pointer", fontFamily:"inherit" }}>Aujourd'hui</button>
         </div>
         <button onClick={next} style={navBtn}>›</button>
@@ -631,7 +631,7 @@ function TimeInput({ value, onChange, compact }) {
 
   return (
     <input type="text" value={focused ? raw : (value || "")} placeholder="09:00"
-      style={{ background:"var(--s2)", border:"1px solid var(--purple,#9B6DFF)", borderRadius: compact?7:9, padding: compact?"5px 8px":"9px 12px", color:"var(--text)", fontFamily:"Josefin Sans", fontSize:12, outline:"none", textAlign:"center", width: compact?"auto":"100%", flex: compact?1:undefined, boxSizing:"border-box" }}
+      style={{ background:"var(--s2)", border:"1px solid var(--purple,#9B6DFF)", borderRadius: compact?7:9, padding: compact?"5px 8px":"9px 12px", color:"var(--text)", fontFamily:"Inter", fontSize:12, outline:"none", textAlign:"center", width: compact?"auto":"100%", flex: compact?1:undefined, boxSizing:"border-box" }}
       onFocus={() => { setFocused(true); setRaw(value || ""); }}
       onChange={e => setRaw(e.target.value)}
       onBlur={handleBlur}
@@ -677,7 +677,7 @@ function QuickAdd({ dateStr, users, onAdd, onOpenFull }) {
   return (
     <div style={{ marginTop:12, borderTop:"1px solid var(--s2,#222)", paddingTop:14 }}>
       <div style={{ fontSize:11, fontWeight:700, color:"var(--muted)", textTransform:"uppercase", letterSpacing:".07em", marginBottom:10 }}>Ajouter rapidement</div>
-      <input style={{ width:"100%", background:"var(--s2)", border:"1px solid var(--s3,#333)", borderRadius:9, padding:"9px 12px", color:"var(--text)", fontFamily:"Josefin Sans", fontSize:12, outline:"none", marginBottom:8, boxSizing:"border-box" }}
+      <input style={{ width:"100%", background:"var(--s2)", border:"1px solid var(--s3,#333)", borderRadius:9, padding:"9px 12px", color:"var(--text)", fontFamily:"Inter", fontSize:12, outline:"none", marginBottom:8, boxSizing:"border-box" }}
         value={title} onChange={e=>setTitle(e.target.value)} onKeyDown={e=>e.key==="Enter"&&submit()} placeholder="Titre de l'événement…" />
       <div style={{ display:"flex", gap:5, flexWrap:"wrap", marginBottom:8 }}>
         {Object.entries(CATEGORIES).map(([k,v]) => (
@@ -706,8 +706,8 @@ function QuickAdd({ dateStr, users, onAdd, onOpenFull }) {
         </div>
       )}
       <div style={{ display:"flex", gap:8, marginTop:10 }}>
-        <button onClick={submit} style={{ flex:1, padding:"9px 0", borderRadius:9, border:"none", background:"linear-gradient(135deg, var(--purple,#9B6DFF), var(--pink,#FF5FA0))", color:"#fff", fontFamily:"'Raleway'", fontWeight:700, fontSize:13, cursor:"pointer", opacity:title.trim()?1:0.5 }}>Ajouter</button>
-        <button onClick={()=>onOpenFull({title,cat,allDay,timeStart,timeEnd,userIds})} style={{ padding:"9px 14px", borderRadius:9, border:"1px solid var(--s3,#333)", background:"var(--s2)", color:"var(--muted)", fontFamily:"Josefin Sans", fontSize:11, cursor:"pointer", whiteSpace:"nowrap" }}>Plus d'options →</button>
+        <button onClick={submit} style={{ flex:1, padding:"9px 0", borderRadius:9, border:"none", background:"linear-gradient(135deg, var(--purple,#9B6DFF), var(--pink,#FF5FA0))", color:"#fff", fontFamily:"'Bricolage Grotesque'", fontWeight:700, fontSize:13, cursor:"pointer", opacity:title.trim()?1:0.5 }}>Ajouter</button>
+        <button onClick={()=>onOpenFull({title,cat,allDay,timeStart,timeEnd,userIds})} style={{ padding:"9px 14px", borderRadius:9, border:"1px solid var(--s3,#333)", background:"var(--s2)", color:"var(--muted)", fontFamily:"Inter", fontSize:11, cursor:"pointer", whiteSpace:"nowrap" }}>Plus d'options →</button>
       </div>
     </div>
   );
@@ -725,6 +725,6 @@ function ModalWrap({ children, onClose, wide }) {
 }
 
 const lbl    = { fontSize:11, color:"var(--muted,#888)", fontWeight:500, marginBottom:4, display:"block" };
-const inp    = { width:"100%", background:"var(--s2,#1a1a2e)", border:"1px solid var(--s3,#333)", borderRadius:9, padding:"9px 12px", color:"var(--text,#f0eeff)", fontFamily:"Josefin Sans, sans-serif", fontSize:12, outline:"none", marginBottom:10, boxSizing:"border-box" };
+const inp    = { width:"100%", background:"var(--s2,#1a1a2e)", border:"1px solid var(--s3,#333)", borderRadius:9, padding:"9px 12px", color:"var(--text,#f0eeff)", fontFamily:"Inter, sans-serif", fontSize:12, outline:"none", marginBottom:10, boxSizing:"border-box" };
 const navBtn = { width:34, height:34, borderRadius:8, border:"1px solid var(--s2,#222)", background:"var(--s1,#111)", color:"var(--text,#f0eeff)", fontSize:20, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", fontFamily:"inherit" };
 const tabBtn = (active) => ({ padding:"6px 14px", borderRadius:8, border:"none", fontSize:11, fontWeight:700, cursor:"pointer", fontFamily:"inherit", background:active?"linear-gradient(135deg, var(--purple,#9B6DFF), var(--pink,#FF5FA0))":"var(--s2,#1a1a2e)", color:active?"#fff":"var(--muted,#888)", transition:"all .2s" });

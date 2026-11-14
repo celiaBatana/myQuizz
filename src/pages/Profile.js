@@ -23,7 +23,7 @@ export default function Profile() {
       {showAuth && <AuthModal onClose={() => setShowAuth(false)} />}
       <div style={{ textAlign: 'center', padding: '48px 16px' }}>
         <div style={{ fontSize: 56, marginBottom: 12 }}>👤</div>
-        <div style={{ fontFamily: "'Raleway', sans-serif", fontSize: 22, fontWeight: 800, marginBottom: 8 }}>
+        <div style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontSize: 22, fontWeight: 800, marginBottom: 8 }}>
           Mon Profil
         </div>
         <p style={{ color: 'var(--muted)', fontSize: 13, marginBottom: 24, maxWidth: 280, margin: '0 auto 24px' }}>
@@ -105,9 +105,9 @@ export default function Profile() {
     <div className="page">
 
       {/* ── Hero profil ── */}
-      <div style={{ background: 'linear-gradient(135deg, #1a1040, #2d1a5e)', border: '1px solid #4a3580', borderRadius: 20, padding: '20px 16px', marginBottom: 14, textAlign: 'center' }}>
+      <div style={{ background: 'var(--s1)', border: '1px solid var(--s2)', borderRadius: 20, padding: '20px 16px', marginBottom: 14, textAlign: 'center' }}>
         <div style={{ fontSize: 48, marginBottom: 6 }}>{profile?.avatar ? avatarIcon(profile.avatar) : levelEmoji(level)}</div>
-        <div style={{ fontFamily: "'Raleway', sans-serif", fontSize: 20, fontWeight: 800, marginBottom: 2 }}>
+        <div style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontSize: 20, fontWeight: 800, marginBottom: 2 }}>
           {displayName}
         </div>
         {profile?.title && <div style={{ fontSize: 12, color: 'var(--yellow)', fontWeight: 700, marginBottom: 4 }}>{titleName(profile.title)}</div>}
@@ -118,7 +118,7 @@ export default function Profile() {
 
         {/* Badge niveau */}
         <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'rgba(155,109,255,.15)', border: '1px solid rgba(155,109,255,.3)', borderRadius: 12, padding: '6px 14px', marginBottom: 14 }}>
-          <span style={{ fontFamily: "'Raleway',sans-serif", fontWeight: 800, fontSize: 18, color: 'var(--purple)' }}>Niveau {level}</span>
+          <span style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 800, fontSize: 18, color: 'var(--purple)' }}>Niveau {level}</span>
           <span style={{ fontSize: 12, color: 'var(--muted)' }}>{totalXP} XP total</span>
         </div>
 
@@ -130,7 +130,7 @@ export default function Profile() {
             <span>Niveau {level + 1}</span>
           </div>
           <div style={{ height: 8, background: 'rgba(255,255,255,.1)', borderRadius: 10, overflow: 'hidden' }}>
-            <div style={{ height: '100%', width: `${xpPct}%`, background: 'linear-gradient(90deg, var(--purple), var(--pink))', borderRadius: 10, transition: 'width .6s ease' }} />
+            <div style={{ height: '100%', width: `${xpPct}%`, background: 'var(--yellow)', borderRadius: 10, transition: 'width .6s ease' }} />
           </div>
           <div style={{ fontSize: 10, color: 'var(--muted)', marginTop: 3, textAlign: 'right' }}>
             {XP_PER_LEVEL - xpInLevel} XP pour le niveau suivant
@@ -147,7 +147,7 @@ export default function Profile() {
         ].map(s => (
           <div key={s.label} style={{ background: 'var(--s1)', border: '1px solid var(--s2)', borderRadius: 14, padding: '12px 8px', textAlign: 'center' }}>
             <div style={{ fontSize: 20, marginBottom: 4 }}>{s.icon}</div>
-            <div style={{ fontFamily: "'Raleway',sans-serif", fontWeight: 800, fontSize: 18, color: s.color }}>{s.value}</div>
+            <div style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 800, fontSize: 18, color: s.color }}>{s.value}</div>
             <div style={{ fontSize: 10, color: 'var(--muted)', marginTop: 2 }}>{s.label}</div>
           </div>
         ))}
@@ -213,8 +213,8 @@ export default function Profile() {
           <div key={id} onClick={() => setActiveTab(id)} style={{
             flex: 1, textAlign: 'center', padding: '8px 0', borderRadius: 8, cursor: 'pointer',
             fontSize: 12, fontWeight: 600,
-            background: activeTab === id ? 'linear-gradient(135deg, var(--purple), var(--pink))' : 'transparent',
-            color: activeTab === id ? '#fff' : 'var(--muted)',
+            background: activeTab === id ? 'var(--yellow)' : 'transparent',
+            color: activeTab === id ? 'var(--on-primary)' : 'var(--muted)',
             transition: 'all .2s',
           }}>{label}</div>
         ))}
@@ -224,7 +224,7 @@ export default function Profile() {
       {activeTab === 'stats' && (
         <div>
           {/* Stats par difficulté */}
-          <div style={{ fontFamily: "'Raleway',sans-serif", fontWeight: 700, fontSize: 14, marginBottom: 10 }}>Par difficulté</div>
+          <div style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 700, fontSize: 14, marginBottom: 10 }}>Par difficulté</div>
           {Object.entries(statsByDiff).map(([diff, s]) => {
             const acc = s.played > 0 ? Math.round((s.correct / s.played) * 100) : 0;
             return (
@@ -247,7 +247,7 @@ export default function Profile() {
           })}
 
           {/* Stats globales */}
-          <div style={{ fontFamily: "'Raleway',sans-serif", fontWeight: 700, fontSize: 14, margin: '16px 0 10px' }}>Global</div>
+          <div style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 700, fontSize: 14, margin: '16px 0 10px' }}>Global</div>
           <div style={{ background: 'var(--s1)', border: '1px solid var(--s2)', borderRadius: 12, padding: '13px 15px' }}>
             {[
               ['Questions répondues', totalAnswers],
@@ -291,7 +291,7 @@ export default function Profile() {
                       <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 2 }}>{date}</div>
                     </div>
                     <div style={{ textAlign: 'right', flexShrink: 0, marginLeft: 8 }}>
-                      <div style={{ fontFamily: "'Raleway',sans-serif", fontWeight: 800, fontSize: 15, color: pct >= 60 ? 'var(--cyan)' : 'var(--pink)' }}>
+                      <div style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 800, fontSize: 15, color: pct >= 60 ? 'var(--cyan)' : 'var(--pink)' }}>
                         {h.score}/{h.total}
                       </div>
                       <div style={{ fontSize: 10, color: 'var(--yellow)', fontWeight: 600 }}>+{h.xp} XP</div>
@@ -319,7 +319,7 @@ export default function Profile() {
       <div style={{ marginTop: 24, paddingTop: 16, borderTop: '1px solid var(--s2)' }}>
         <button
           className="btn btn-secondary btn-full"
-          style={{ fontFamily: "'Raleway',sans-serif", fontWeight: 700, color: 'var(--muted)' }}
+          style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 700, color: 'var(--muted)' }}
           onClick={handleLogout}
         >
           Se déconnecter

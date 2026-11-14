@@ -74,7 +74,7 @@ export default function Progress() {
 
       <div style={card}>
         <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 6 }}>
-          <div style={{ fontFamily: "'Raleway',sans-serif", fontWeight: 900, fontSize: 28 }}>{data.mastery}%</div>
+          <div style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 900, fontSize: 28 }}>{data.mastery}%</div>
           <div style={{ fontSize: 11, color: 'var(--muted)' }}>maîtrise globale</div>
         </div>
         <Bar pct={data.mastery} h={8} />
@@ -86,7 +86,7 @@ export default function Progress() {
 
       {data.weak.length > 0 && (
         <div style={{ ...card, borderColor: 'var(--yellow)' }}>
-          <div style={{ fontWeight: 800, fontFamily: "'Raleway',sans-serif", marginBottom: 8 }}>💪 À renforcer</div>
+          <div style={{ fontWeight: 800, fontFamily: "'Bricolage Grotesque', sans-serif", marginBottom: 8 }}>💪 À renforcer</div>
           {data.weak.map(t => (
             <div key={t.catId + t.id} onClick={() => go(t)} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8, cursor: 'pointer' }}>
               <div style={{ fontSize: 20 }}>{t.icon}</div>
@@ -105,7 +105,7 @@ export default function Progress() {
       {data.cats.map(c => (
         <div key={c.id} style={card}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-            <div style={{ fontWeight: 800, fontFamily: "'Raleway',sans-serif" }}>{c.icon} {c.label}</div>
+            <div style={{ fontWeight: 800, fontFamily: "'Bricolage Grotesque', sans-serif" }}>{c.icon} {c.label}</div>
             <div style={{ fontWeight: 800, color: color(c.mastery) }}>{c.mastery}%</div>
           </div>
           <Bar pct={c.mastery} h={8} />

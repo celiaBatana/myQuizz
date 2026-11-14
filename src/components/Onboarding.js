@@ -22,7 +22,7 @@ export default function Onboarding() {
     if (start) navigate(`/play?mode=mix&cat=${cat}&diff=easy`);
   }
 
-  const btn = { fontFamily: "'Raleway',sans-serif", fontWeight: 800 };
+  const btn = { fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 800 };
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(10,5,30,.92)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18 }}>
       <div style={{ background: 'var(--s1)', border: '1px solid var(--purple)', borderRadius: 20, padding: '24px 20px', width: '100%', maxWidth: 400, maxHeight: '90vh', overflowY: 'auto' }}>

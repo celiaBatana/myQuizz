@@ -68,9 +68,9 @@ export default function Jouer() {
         </div>
       )}
 
-      <div onClick={() => navigate('/daily')} style={{ background: 'linear-gradient(135deg, #9B6DFF, #FF5FA0)', borderRadius: 16, padding: 16, marginBottom: 14, cursor: 'pointer' }}>
-        <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.12em', textTransform: 'uppercase', opacity: .85 }}>📅 Chaque jour</div>
-        <div style={{ fontFamily: "'Raleway',sans-serif", fontWeight: 800, fontSize: 18 }}>Défi du jour</div>
+      <div onClick={() => navigate('/daily')} style={{ background: 'var(--yellow)', color: 'var(--on-primary)', borderRadius: 16, padding: 16, marginBottom: 14, cursor: 'pointer' }}>
+        <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.12em', textTransform: 'uppercase', opacity: .85 }}>Chaque jour</div>
+        <div style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 800, fontSize: 18 }}>Défi du jour</div>
         <div style={{ fontSize: 12, opacity: .85 }}>5 questions, un seul essai, classement du jour</div>
       </div>
 
@@ -108,7 +108,7 @@ export default function Jouer() {
         <div style={{ fontSize: 12, color: 'var(--yellow)', marginBottom: 10 }}>🏅 Ton record : {profile.suddenBest} bonnes réponses d'affilée</div>
       )}
       {err && <div style={{ color: 'var(--pink)', fontSize: 12, marginBottom: 10 }}>{err}</div>}
-      <button className="btn btn-primary btn-full" disabled={busy || tooFew} onClick={go} style={{ fontFamily: "'Raleway',sans-serif", fontWeight: 700, opacity: tooFew ? 0.5 : 1 }}>
+      <button className="btn btn-primary btn-full" disabled={busy || tooFew} onClick={go} style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 700, opacity: tooFew ? 0.5 : 1 }}>
         {busy ? '…' : tooFew ? 'Choisis une 2ᵉ catégorie' : mode === 'duel' ? 'Créer le duel' : 'Lancer'}
       </button>
     </div>

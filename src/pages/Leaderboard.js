@@ -17,7 +17,7 @@ function Row({ rank, name, right, sub, me, avatar, title }) {
         <div style={{ fontSize: 14, fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{avatar ? avatarIcon(avatar) + ' ' : ''}{name}{me && ' (toi)'}</div>
         {(title || sub) && <div style={{ fontSize: 10, color: 'var(--muted)' }}>{[title && titleName(title), sub].filter(Boolean).join(' · ')}</div>}
       </div>
-      <div style={{ fontFamily: "'Raleway',sans-serif", fontWeight: 800, color: 'var(--yellow)' }}>{right}</div>
+      <div style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 800, color: 'var(--yellow)' }}>{right}</div>
     </div>
   );
 }
@@ -83,7 +83,7 @@ function LeagueBoard() {
   return (
     <div>
       <div style={{ background: 'var(--s1)', border: '1px solid var(--purple)', borderRadius: 14, padding: '12px 14px', marginBottom: 10 }}>
-        <div style={{ fontFamily: "'Raleway',sans-serif", fontWeight: 800, fontSize: 16 }}>{L.icon} Ligue {L.name}</div>
+        <div style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 800, fontSize: 16 }}>{L.icon} Ligue {L.name}</div>
         <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 4, lineHeight: 1.6 }}>
           Remise à zéro dans {days} jour{days > 1 ? 's' : ''} (lundi). Fais au moins <strong>{PROMOTE_XP} XP</strong> dans la semaine pour monter d'une ligue ; moins de {DEMOTE_XP} XP et tu descends.
         </div>
@@ -122,8 +122,8 @@ export default function Leaderboard() {
         {[['week', '🏅 Ligue'], ['xp', '⚡ Général'], ['daily', '📅 Défi']].map(([id, label]) => (
           <div key={id} onClick={() => setTab(id)} style={{
             flex: 1, textAlign: 'center', padding: '8px 0', borderRadius: 8, cursor: 'pointer', fontSize: 12, fontWeight: 600,
-            background: tab === id ? 'linear-gradient(135deg, var(--purple), var(--pink))' : 'transparent',
-            color: tab === id ? '#fff' : 'var(--muted)',
+            background: tab === id ? 'var(--yellow)' : 'transparent',
+            color: tab === id ? 'var(--on-primary)' : 'var(--muted)',
           }}>{label}</div>
         ))}
       </div>

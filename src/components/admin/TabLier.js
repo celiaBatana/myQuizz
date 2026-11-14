@@ -95,7 +95,7 @@ export default function TabLier({ ctx }) {
           </div>
 
           <button className="btn btn-primary btn-full"
-            style={{ fontFamily: "'Raleway'", fontWeight: 700, opacity: (!linkQuizId || linkSelected.length === 0) ? 0.5 : 1 }}
+            style={{ fontFamily: "'Bricolage Grotesque'", fontWeight: 700, opacity: (!linkQuizId || linkSelected.length === 0) ? 0.5 : 1 }}
             onClick={linkQuestionsToQuiz} disabled={!linkQuizId || linkSelected.length === 0}
           >
             🔗 Lier {linkSelected.length} question(s) au quiz sélectionné

@@ -8,7 +8,7 @@ export function QuestionForm({ q, onSave, onCancel }) {
   const [ans, setAns]   = useState(q.answer);
   const [expl, setExpl] = useState(q.explanation || '');
   const [diff, setDiff] = useState(q.diff);
-  const inp = { width: '100%', background: 'var(--s2)', border: '1px solid var(--purple)', borderRadius: 8, padding: '7px 10px', color: 'var(--text)', fontFamily: 'Josefin Sans', fontSize: 12, outline: 'none', marginBottom: 7 };
+  const inp = { width: '100%', background: 'var(--s2)', border: '1px solid var(--purple)', borderRadius: 8, padding: '7px 10px', color: 'var(--text)', fontFamily: 'Inter', fontSize: 12, outline: 'none', marginBottom: 7 };
   return (
     <div>
       <textarea style={{ ...inp, minHeight: 56, resize: 'vertical' }} value={text} onChange={e => setText(e.target.value)} />
@@ -40,7 +40,7 @@ export function QuizForm({ quiz, cats, themes, onSave, onCancel }) {
   const [diff,    setDiff]    = useState(quiz.diff);
   const [catId,   setCatId]   = useState(quiz.catId);
   const [themeId, setThemeId] = useState(quiz.themeId);
-  const inp = { width: '100%', background: 'var(--s2)', border: '1px solid var(--purple)', borderRadius: 8, padding: '7px 10px', color: 'var(--text)', fontFamily: 'Josefin Sans', fontSize: 12, outline: 'none', marginBottom: 7 };
+  const inp = { width: '100%', background: 'var(--s2)', border: '1px solid var(--purple)', borderRadius: 8, padding: '7px 10px', color: 'var(--text)', fontFamily: 'Inter', fontSize: 12, outline: 'none', marginBottom: 7 };
   return (
     <div>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
@@ -67,7 +67,7 @@ export function QuizForm({ quiz, cats, themes, onSave, onCancel }) {
 // ── Édition inline ────────────────────────────────────────────────────────────
 export function InlineEdit({ data, fields, onSave, onCancel }) {
   const [form, setForm] = useState({ ...data });
-  const inp = { width: '100%', background: 'var(--s2)', border: '1px solid var(--purple)', borderRadius: 8, padding: '7px 10px', color: 'var(--text)', fontFamily: 'Josefin Sans', fontSize: 12, outline: 'none', marginBottom: 6 };
+  const inp = { width: '100%', background: 'var(--s2)', border: '1px solid var(--purple)', borderRadius: 8, padding: '7px 10px', color: 'var(--text)', fontFamily: 'Inter', fontSize: 12, outline: 'none', marginBottom: 6 };
   return (
     <div>
       {fields.map(f => <input key={f} style={inp} value={form[f] || ''} onChange={e => setForm({ ...form, [f]: e.target.value })} placeholder={f} />)}
