@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 
-const COLORS = ['#FFD166', '#FF6B9D', '#D9904F', '#4DE1C1', '#FF8A3D'];
+const COLORS = ['#FFD166', '#FF6B9D', '#CF7A45', '#4DE1C1', '#FF8A3D'];
 
 // Confettis CSS (aucune dépendance)
 export default function Confetti({ count = 50 }) {

@@ -199,7 +199,7 @@ export function GroupDetail() {
 
       {!user && <div style={{ textAlign: 'center', color: 'var(--muted)', fontSize: 13, padding: 20 }}>Connecte-toi pour voir le classement.</div>}
       {user && rows.map((r, i) => (
-        <div key={r.uid} style={{ display: 'flex', alignItems: 'center', gap: 10, background: r.uid === user.uid ? 'rgba(217,144,79,.15)' : 'var(--s1)', border: `1px solid ${r.uid === user.uid ? 'var(--purple)' : 'var(--s2)'}`, borderRadius: 12, padding: '10px 13px', marginBottom: 6 }}>
+        <div key={r.uid} style={{ display: 'flex', alignItems: 'center', gap: 10, background: r.uid === user.uid ? 'rgba(207,122,69,.15)' : 'var(--s1)', border: `1px solid ${r.uid === user.uid ? 'var(--purple)' : 'var(--s2)'}`, borderRadius: 12, padding: '10px 13px', marginBottom: 6 }}>
           <div style={{ width: 28, textAlign: 'center', fontWeight: 800, color: 'var(--muted)' }}>{MEDALS[i] || i + 1}</div>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontSize: 14, fontWeight: 700 }}>{r.avatar ? avatarIcon(r.avatar) + ' ' : ''}{r.name}{r.uid === user.uid && ' (toi)'}</div>
