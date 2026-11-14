@@ -78,6 +78,11 @@ service cloud.firestore {
       allow read: if true;
       allow create: if signedIn() && request.resource.data.creatorUid == request.auth.uid
         && request.resource.data.questionIds.size() <= 20;
+      // Manche suivante : n'importe quel joueur connecté peut l'ajouter, une seule fois
+      allow update: if signedIn()
+        && !('nextId' in resource.data)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['nextId'])
+        && request.resource.data.nextId is string;
     }
     match /duel_results/{id} {
       allow read: if true;
