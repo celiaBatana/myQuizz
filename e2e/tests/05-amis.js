@@ -25,7 +25,7 @@ t('ajout par code → demande envoyée', async a => {
 });
 t('demande reçue → accepter → ami + bouton Défier', async a => {
   const u = await uid(a);
-  await a.patchDb(d => { d.friend_requests = { [`bob_${u}`]: { fromUid: 'bob', toUid: u, fromName: 'Bob', toName: 'Testeur', status: 'pending' } }; });
+  await a.page.evaluate(u => { const d = window.__DB(); d.friend_requests = d.friend_requests || {}; d.friend_requests['bob_' + u] = { fromUid: 'bob', toUid: u, fromName: 'Bob', toName: 'Testeur', status: 'pending' }; localStorage.setItem('fakedb', JSON.stringify(d)); }, u);
   await a.go('/amis'); await a.page.waitForTimeout(800);
   a.assert.strictEqual(await a.page.locator('[data-testid="friend-incoming"]').count(), 1);
   await a.page.locator('[data-testid="friend-accept"]').click(); await a.page.waitForTimeout(800);
