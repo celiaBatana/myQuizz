@@ -19,7 +19,7 @@
   --radius-sm: 12px;
   --radius-xs: 8px;
   --nav-height: 56px;
-  --bnav-height: 64px;
+  --bnav-height: 72px;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -75,21 +75,22 @@ body {
 /* ── BOTTOM NAV ── */
 .bottom-nav {
   position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
-  background: rgba(31,26,22,0.97);
+  background: rgba(42,35,30,0.98);
   backdrop-filter: blur(12px);
-  border-top: 1px solid rgba(255,255,255,0.06);
+  border-top: 1px solid rgba(255,255,255,0.12);
+  box-shadow: 0 -6px 18px rgba(0,0,0,.35);
   display: flex; justify-content: space-around;
   padding: 8px 0 14px;
   height: var(--bnav-height);
 }
 .bnav-item {
   display: flex; flex-direction: column; align-items: center; gap: 3px;
-  cursor: pointer; padding: 4px 16px; border-radius: 10px;
-  color: var(--muted); font-size: 10px; font-weight: 600;
-  transition: color 0.2s; text-decoration: none;
+  cursor: pointer; padding: 6px 14px; border-radius: 14px; min-width: 64px; justify-content: center;
+  color: #D3C6B8; font-size: 12px; font-weight: 700;
+  transition: color 0.2s, background 0.2s; text-decoration: none;
 }
-.bnav-item.active { color: var(--yellow); }
-.bnav-item svg { width: 19px; height: 19px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.bnav-item.active { color: var(--yellow); background: rgba(232,132,74,0.16); }
+.bnav-item svg { width: 24px; height: 24px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 
 /* ── BUTTONS ── */
 .btn { border: none; border-radius: var(--radius-sm); padding: 13px 20px; font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; transition: transform 0.15s, opacity 0.15s; }
