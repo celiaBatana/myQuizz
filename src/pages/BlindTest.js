@@ -2,7 +2,8 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams, Navigate } from 'react-router-dom';
 import { BLIND_CATS, ALL_TRACKS, getBlindCat } from '../data/blindtest';
 import { fetchPreview } from '../utils/itunes';
-import { doc, setDoc, serverTimestamp, collection, getDocs, query, where, orderBy, limit } from 'firebase/firestore';
+import { doc, setDoc, addDoc, serverTimestamp, collection, getDocs, query, where, orderBy, limit } from 'firebase/firestore';
+import { DuelBoard } from './Leaderboard';
 import { avatarIcon } from '../data/cosmetics';
 import { db } from '../firebase';
 import { useAuth } from '../context/AuthContext';
@@ -23,6 +24,23 @@ function build(pool) {
     track: t,
     options: shuffle([t, ...shuffle(pool.filter(x => x !== t)).slice(0, 3)]),
   }));
+}
+
+// Un duel stocke ses manches sous forme de texte « style:index:d1.d2.d3 » (3 mauvaises réponses) : les deux joueurs ont les mêmes questions
+const poolOf = id => id === 'mix' ? ALL_TRACKS : (getBlindCat(id)?.tracks || []);
+export function encodeRounds(styleId, rounds) {
+  const pool = poolOf(styleId);
+  return rounds.map(r => `${styleId}:${pool.indexOf(r.track)}:${r.options.filter(o => o !== r.track).map(o => pool.indexOf(o)).join('.')}`);
+}
+export function decodeRounds(ids) {
+  return (ids || []).map(id => {
+    const [sid, idx, ds] = String(id).split(':');
+    const pool = poolOf(sid);
+    const track = pool[Number(idx)];
+    if (!track) return null;
+    const wrong = String(ds || '').split('.').map(n => pool[Number(n)]).filter(Boolean);
+    return { track, options: shuffle([track, ...wrong]) };
+  }).filter(Boolean);
 }
 
 // ── Choix du type de blind test ──
@@ -107,11 +125,17 @@ function Visualizer({ playing, loading, onPlay, disabled }) {
   );
 }
 
-export function BlindPlay() {
+export function BlindPlay({ preset }) {
   const { cat } = useParams();
   const navigate = useNavigate();
-  const info = cat === 'mix' ? { id: 'mix', label: 'Tout mélangé', tracks: ALL_TRACKS } : getBlindCat(cat);
-  const [rounds, setRounds] = useState(null);
+  const styleId = preset ? preset.styleId : cat;
+  const info = styleId === 'mix' ? { id: 'mix', label: 'Tout mélangé', icon: '🎲', tracks: ALL_TRACKS } : getBlindCat(styleId);
+  const duelId = preset?.duelId || null;
+  const [rounds, setRounds] = useState(preset ? preset.rounds : null);
+  const [friends, setFriends] = useState([]);
+  const [invitee, setInvitee] = useState('');
+  const [creating, setCreating] = useState(false);
+  const [dErr, setDErr] = useState('');
   const [i, setI] = useState(0);
   const [picked, setPicked] = useState(null);
   const [score, setScore] = useState(0);
@@ -147,6 +171,7 @@ export function BlindPlay() {
           blindPlayed: (profile.blindPlayed || 0) + 1,
           blindDay: { date: today, count: played + 1 },
         });
+        if (duelId) await setDoc(doc(db, 'duel_results', `${duelId}_${user.uid}`), { uid: user.uid, name: profile.displayName || user.displayName || 'Joueur', duelId, score, total: ROUNDS, createdAt: serverTimestamp() });
         await setDoc(doc(db, 'leaderboard', user.uid), {
           uid: user.uid, name: profile.displayName || user.displayName || 'Joueur', totalXP, level: lvl,
           weekKey: lg.weekKey, weekXP: lg.weekXP, league: lg.league,
@@ -165,7 +190,37 @@ export function BlindPlay() {
     return () => { alive = false; if (audio.current) audio.current.pause(); };
   }, [rounds, i]);
 
+  useEffect(() => {
+    if (!user || preset) return;
+    (async () => {
+      try {
+        const [a, b] = await Promise.all([
+          getDocs(query(collection(db, 'friend_requests'), where('fromUid', '==', user.uid))),
+          getDocs(query(collection(db, 'friend_requests'), where('toUid', '==', user.uid))),
+        ]);
+        const out = [];
+        a.forEach(d => { const x = d.data(); if (x.status === 'accepted') out.push({ uid: x.toUid, name: x.toName }); });
+        b.forEach(d => { const x = d.data(); if (x.status === 'accepted') out.push({ uid: x.fromUid, name: x.fromName }); });
+        setFriends(out);
+      } catch (e) { /* règles amis pas publiées : pas de liste */ }
+    })();
+  }, [user, preset]);
+
   if (!info) return <Navigate to="/blindtest" replace />;
+
+  async function createDuel() {
+    setDErr(''); setCreating(true);
+    try {
+      const rs = build(info.tracks);
+      const friend = friends.find(f => f.uid === invitee);
+      const ref = await addDoc(collection(db, 'duels'), {
+        type: 'blind', styleId: info.id, questionIds: encodeRounds(info.id, rs), cat: info.id, diff: 'all',
+        creatorUid: user.uid, creatorName: profile?.displayName || user.displayName || 'Un joueur', createdAt: serverTimestamp(),
+        ...(friend ? { invitedUid: friend.uid, invitedName: friend.name } : {}),
+      });
+      navigate(`/duel/${ref.id}`);
+    } catch (e) { console.error(e); setDErr('Impossible de créer le duel.'); setCreating(false); }
+  }
 
   function play() {
     const a = audio.current; if (!a || !url) return;
@@ -190,6 +245,23 @@ export function BlindPlay() {
         <div style={card}>
           <div style={{ fontSize: 14, lineHeight: 1.6, marginBottom: 12 }}>Tu écoutes un extrait de 30 secondes, puis tu choisis le bon morceau. Monte le son !</div>
           <button className="btn btn-primary btn-full" data-testid="bt-start" onClick={restart}>Commencer</button>
+        </div>
+        <div style={card}>
+          <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 6 }}>⚔️ Défier un ami</div>
+          <div style={{ fontSize: 12, color: 'var(--muted)', marginBottom: 10, lineHeight: 1.5 }}>Mêmes 10 extraits pour vous deux, les scores s'affichent à la fin.</div>
+          {!user ? <div style={{ fontSize: 12, color: 'var(--muted)' }}>Connecte-toi pour créer un duel.</div> : (
+            <>
+              {friends.length > 0 && (
+                <select data-testid="bt-invitee" value={invitee} onChange={e => setInvitee(e.target.value)}
+                  style={{ width: '100%', background: 'var(--s2)', border: '1px solid var(--s3)', borderRadius: 9, padding: '9px 12px', color: 'var(--text)', fontSize: 14, marginBottom: 8 }}>
+                  <option value="">Partager par lien (pas d'ami précis)</option>
+                  {friends.map(f => <option key={f.uid} value={f.uid}>Inviter {f.name}</option>)}
+                </select>
+              )}
+              <button className="btn btn-secondary btn-full" data-testid="bt-duel-create" disabled={creating} onClick={createDuel}>{creating ? '…' : 'Créer le duel'}</button>
+              {dErr && <div role="alert" style={{ color: 'var(--red)', fontSize: 12, marginTop: 6 }}>{dErr}</div>}
+            </>
+          )}
         </div>
         <button className="btn btn-secondary btn-full" onClick={() => navigate('/blindtest')}>Changer de style</button>
       </div>
@@ -216,8 +288,18 @@ export function BlindPlay() {
             )}
           </div>
         )}
-        <button className="btn btn-primary btn-full" onClick={restart}>Rejouer ce style</button>
-        <button className="btn btn-secondary btn-full" style={{ marginTop: 8 }} onClick={() => navigate('/blindtest')}>Changer de style</button>
+        {duelId ? (
+          <>
+            <div className="section-label">Résultats du duel</div>
+            <DuelBoard duelId={duelId} invitedUid={preset.invitedUid} invitedName={preset.invitedName} />
+            <button className="btn btn-secondary btn-full" style={{ marginTop: 10 }} onClick={() => navigate('/blindtest')}>Retour au blind test</button>
+          </>
+        ) : (
+          <>
+            <button className="btn btn-primary btn-full" onClick={restart}>Rejouer ce style</button>
+            <button className="btn btn-secondary btn-full" style={{ marginTop: 8 }} onClick={() => navigate('/blindtest')}>Changer de style</button>
+          </>
+        )}
       </div>
     );
   }

@@ -59,4 +59,23 @@ t('classement : mes scores et ceux des autres, par style', async a => {
   await a.page.locator('[data-tab="films"]').click();
   a.assert.ok(/Personne n'a encore/.test(await a.body()));
 });
+t('duel blind test : création, partie, résultat enregistré', async a => {
+  await a.go('/blindtest/annees80');
+  await a.page.locator('[data-testid="bt-duel-create"]').click(); await a.page.waitForTimeout(1200);
+  const d = await a.db(); const [id, duel] = Object.entries(d.duels).find(([, x]) => x.type === 'blind');
+  a.assert.strictEqual(duel.questionIds.length, 10); a.assert.strictEqual(duel.styleId, 'annees80');
+  a.assert.ok(a.page.url().endsWith('/duel/' + id), a.page.url());
+  await a.page.locator('[data-testid="bt-duel-start"]').click();
+  await a.page.evaluate(() => { window.__ITUNES_MOCK = async () => 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA='; });
+  for (let k = 0; k < 10; k++) {
+    await a.page.locator('[data-testid="bt-play"]').waitFor({ timeout: 5000 });
+    a.assert.strictEqual(await a.page.locator('[data-testid="bt-opt"]').count(), 4);
+    await a.page.locator('[data-testid="bt-opt"]').first().click();
+    await a.page.locator('[data-testid="bt-next"]').click();
+  }
+  await a.page.locator('[data-testid="duel-board"]').waitFor({ timeout: 5000 });
+  await a.page.waitForTimeout(500);
+  const r = Object.values((await a.db()).duel_results || {}).find(x => x.duelId === id);
+  a.assert.ok(r && r.total === 10, JSON.stringify(r));
+});
 module.exports = { tests, seed };
