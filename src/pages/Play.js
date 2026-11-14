@@ -38,5 +38,5 @@ export default function Play() {
     mode, noBest: true, questions,
   };
   return <QuizPlayInner key={`${mode}${cat}${diff}`} quizData={quizData} navigate={navigate} backTo="/jouer"
-    tagLabel={`${mode === 'sudden' ? '💥 Mort subite' : '🎲 Mixte'} · ${label}`} />;
+    tagLabel={`${mode === 'sudden' ? 'Mort subite' : 'Mixte'} · ${label}`} />;
 }

@@ -37,7 +37,7 @@ export default function TabQuestions({ ctx }) {
             </div>
             <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
               <button
-                style={{ fontSize: 11, padding: '5px 10px', borderRadius: 7, border: '1px solid rgba(61,255,208,.3)', background: 'none', color: 'var(--cyan)', cursor: 'pointer', fontFamily: 'inherit' }}
+                style={{ fontSize: 11, padding: '5px 10px', borderRadius: 7, border: '1px solid rgba(143,195,159,.3)', background: 'none', color: 'var(--cyan)', cursor: 'pointer', fontFamily: 'inherit' }}
                 onClick={selectAllFiltered}
               >☑ Tout ({Math.min(filtered.length, 60)})</button>
               {selectedQ.length > 0 && (
@@ -47,7 +47,7 @@ export default function TabQuestions({ ctx }) {
                     onClick={deselectAll}
                   >✕ Désélectionner</button>
                   <button
-                    style={{ fontSize: 11, padding: '5px 12px', borderRadius: 7, border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 700, background: 'rgba(255,77,77,.15)', color: '#FF4D4D' }}
+                    style={{ fontSize: 11, padding: '5px 12px', borderRadius: 7, border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 700, background: 'rgba(229,96,77,.15)', color: '#E5604D' }}
                     onClick={() => setConfirmBulk(true)}
                   >🗑 Supprimer ({selectedQ.length})</button>
                 </>
@@ -62,7 +62,7 @@ export default function TabQuestions({ ctx }) {
                 ⚠️ Supprimer définitivement {selectedQ.length} question(s) ? Cette action est irréversible.
               </p>
               <div style={{ display: 'flex', gap: 6 }}>
-                <button className="btn btn-primary" style={{ padding: '6px 14px', fontSize: 12, background: '#FF4D4D' }} onClick={deleteBulk}>
+                <button className="btn btn-primary" style={{ padding: '6px 14px', fontSize: 12, background: '#E5604D' }} onClick={deleteBulk}>
                   Oui, supprimer {selectedQ.length}
                 </button>
                 <button className="btn btn-secondary" style={{ padding: '6px 14px', fontSize: 12 }} onClick={() => setConfirmBulk(false)}>
@@ -76,7 +76,7 @@ export default function TabQuestions({ ctx }) {
           {filtered.slice(0, 60).map(q => {
             const isSel = selectedQ.includes(q.id);
             return (
-              <div key={q.id} style={{ ...S.card, borderColor: isSel ? 'var(--purple)' : 'var(--s2)', background: isSel ? 'rgba(155,109,255,.07)' : 'var(--s1)' }}>
+              <div key={q.id} style={{ ...S.card, borderColor: isSel ? 'var(--purple)' : 'var(--s2)', background: isSel ? 'rgba(217,144,79,.07)' : 'var(--s1)' }}>
                 {editQ?.id === q.id ? (
                   <QuestionForm q={editQ} onSave={data => saveQuestion(q, data)} onCancel={() => setEditQ(null)} />
                 ) : (
@@ -108,7 +108,7 @@ export default function TabQuestions({ ctx }) {
                       <div style={S.confirm}>
                         <p style={{ fontSize: 11, color: 'var(--pink)', marginBottom: 8 }}>Supprimer cette question ?</p>
                         <div style={{ display: 'flex', gap: 6 }}>
-                          <button className="btn btn-primary" style={{ padding: '5px 12px', fontSize: 11, background: '#FF4D4D' }} onClick={() => deleteQuestion(q)}>Supprimer</button>
+                          <button className="btn btn-primary" style={{ padding: '5px 12px', fontSize: 11, background: '#E5604D' }} onClick={() => deleteQuestion(q)}>Supprimer</button>
                           <button className="btn btn-secondary" style={{ padding: '5px 12px', fontSize: 11 }} onClick={() => setConfirmDel(null)}>Annuler</button>
                         </div>
                       </div>

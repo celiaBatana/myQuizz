@@ -87,7 +87,7 @@ export function GroupsList() {
   return (
     <div className="page">
       {showAuth && <AuthModal onClose={() => setShowAuth(false)} />}
-      <div className="page-title">👥 Groupes privés</div>
+      <div className="page-title">Groupes privés</div>
       <div className="page-sub">Un classement rien que pour vous : famille, amis, classe…</div>
 
       {groups.length > 0 && <div className="section-label">Mes groupes</div>}
@@ -179,11 +179,11 @@ export function GroupDetail() {
   return (
     <div className="page">
       {showAuth && <AuthModal onClose={() => setShowAuth(false)} />}
-      <div className="page-title">👥 {group.name}</div>
+      <div className="page-title">{group.name}</div>
       <div className="page-sub">Code : <strong style={{ letterSpacing: 3 }}>{code}</strong> · {members ? members.length : '…'} membre{members?.length > 1 ? 's' : ''}</div>
 
       <div style={{ display: 'flex', gap: 8, margin: '10px 0' }}>
-        <button className="btn btn-primary" style={{ flex: 1 }} onClick={invite}>📨 Inviter</button>
+        <button className="btn btn-primary" style={{ flex: 1 }} onClick={invite}>Inviter</button>
         {!isMember && <button className="btn btn-secondary" style={{ flex: 1 }} onClick={doJoin}>Rejoindre</button>}
       </div>
       {msg && <div style={{ color: 'var(--cyan)', fontSize: 12, textAlign: 'center', marginBottom: 8 }}>{msg}</div>}
@@ -199,7 +199,7 @@ export function GroupDetail() {
 
       {!user && <div style={{ textAlign: 'center', color: 'var(--muted)', fontSize: 13, padding: 20 }}>Connecte-toi pour voir le classement.</div>}
       {user && rows.map((r, i) => (
-        <div key={r.uid} style={{ display: 'flex', alignItems: 'center', gap: 10, background: r.uid === user.uid ? 'rgba(155,109,255,.15)' : 'var(--s1)', border: `1px solid ${r.uid === user.uid ? 'var(--purple)' : 'var(--s2)'}`, borderRadius: 12, padding: '10px 13px', marginBottom: 6 }}>
+        <div key={r.uid} style={{ display: 'flex', alignItems: 'center', gap: 10, background: r.uid === user.uid ? 'rgba(217,144,79,.15)' : 'var(--s1)', border: `1px solid ${r.uid === user.uid ? 'var(--purple)' : 'var(--s2)'}`, borderRadius: 12, padding: '10px 13px', marginBottom: 6 }}>
           <div style={{ width: 28, textAlign: 'center', fontWeight: 800, color: 'var(--muted)' }}>{MEDALS[i] || i + 1}</div>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontSize: 14, fontWeight: 700 }}>{r.avatar ? avatarIcon(r.avatar) + ' ' : ''}{r.name}{r.uid === user.uid && ' (toi)'}</div>

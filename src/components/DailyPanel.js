@@ -45,7 +45,7 @@ export default function DailyPanel() {
               {s.count} jour{s.count > 1 ? 's' : ''} <span style={{ fontSize: 12, color: 'var(--muted)', fontWeight: 600 }}>de série</span>
             </div>
             <div style={{ fontSize: 11, color: s.danger ? 'var(--yellow)' : 'var(--muted)', fontWeight: s.danger ? 700 : 400 }}>
-              {s.danger ? `⚠️ Joue avant minuit pour garder ta série de ${s.count} jours !`
+              {s.danger ? `Joue avant minuit pour garder ta série de ${s.count} jours !`
                 : s.playedToday ? '✓ Série validée aujourd\'hui'
                 : 'Lance un quiz pour démarrer ta série'}
               {nextMs && s.count > 0 && !s.danger ? ` · prochain palier : ${nextMs} jours` : ''}
@@ -94,7 +94,7 @@ export default function DailyPanel() {
 
       {/* Missions */}
       <div style={card}>
-        <div style={{ fontWeight: 800, fontFamily: "'Bricolage Grotesque', sans-serif", marginBottom: 8 }}>🎯 Missions du jour</div>
+        <div style={{ fontWeight: 800, fontFamily: "'Bricolage Grotesque', sans-serif", marginBottom: 8 }}>Missions du jour</div>
         {missions.map(m => {
           const val = Math.min(m.target, m.val(stats));
           const ok = done.includes(m.id) || val >= m.target;

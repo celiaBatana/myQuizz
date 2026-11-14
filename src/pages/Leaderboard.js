@@ -11,7 +11,7 @@ const MEDALS = ['🥇', '🥈', '🥉'];
 
 function Row({ rank, name, right, sub, me, avatar, title }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: me ? 'rgba(155,109,255,.15)' : 'var(--s1)', border: `1px solid ${me ? 'var(--purple)' : 'var(--s2)'}`, borderRadius: 12, padding: '10px 13px', marginBottom: 6 }}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: me ? 'rgba(217,144,79,.15)' : 'var(--s1)', border: `1px solid ${me ? 'var(--purple)' : 'var(--s2)'}`, borderRadius: 12, padding: '10px 13px', marginBottom: 6 }}>
       <div style={{ width: 28, textAlign: 'center', fontWeight: 800, fontSize: rank < 3 ? 18 : 13, color: 'var(--muted)' }}>{MEDALS[rank] || rank + 1}</div>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontSize: 14, fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{avatar ? avatarIcon(avatar) + ' ' : ''}{name}{me && ' (toi)'}</div>
@@ -117,9 +117,9 @@ export default function Leaderboard() {
 
   return (
     <div className="page">
-      <div className="page-title">🏆 Classement</div>
+      <div className="page-title">Classement</div>
       <div style={{ display: 'flex', gap: 4, background: 'var(--s2)', borderRadius: 10, padding: 3, margin: '12px 0' }}>
-        {[['week', '🏅 Ligue'], ['xp', '⚡ Général'], ['daily', '📅 Défi']].map(([id, label]) => (
+        {[['week', 'Ligue'], ['xp', 'Général'], ['daily', 'Défi']].map(([id, label]) => (
           <div key={id} onClick={() => setTab(id)} style={{
             flex: 1, textAlign: 'center', padding: '8px 0', borderRadius: 8, cursor: 'pointer', fontSize: 12, fontWeight: 600,
             background: tab === id ? 'var(--yellow)' : 'transparent',
@@ -127,12 +127,12 @@ export default function Leaderboard() {
           }}>{label}</div>
         ))}
       </div>
-      <div onClick={() => navigate('/groupes')} style={{ textAlign: 'center', fontSize: 12, fontWeight: 600, color: 'var(--cyan)', cursor: 'pointer', marginBottom: 10 }}>👥 Mes groupes privés ›</div>
+      <div onClick={() => navigate('/groupes')} style={{ textAlign: 'center', fontSize: 12, fontWeight: 600, color: 'var(--cyan)', cursor: 'pointer', marginBottom: 10 }}>Mes groupes privés ›</div>
       {tab === 'week' ? <LeagueBoard /> : tab === 'xp' ? (
         !rows ? <Empty text="Chargement…" /> :
         rows.length === 0 ? <Empty text="Le classement se remplit dès qu'un joueur termine un quiz." /> :
         rows.map((r, i) => (
-          <Row key={r.uid} rank={i} avatar={r.avatar} title={r.title} name={r.name} me={r.uid === user?.uid} right={`${r.totalXP} XP`} sub={`Niveau ${r.level}${r.streak > 1 ? ` · 🔥 ${r.streak} j` : ''}`} />
+          <Row key={r.uid} rank={i} avatar={r.avatar} title={r.title} name={r.name} me={r.uid === user?.uid} right={`${r.totalXP} XP`} sub={`Niveau ${r.level}${r.streak > 1 ? ` · ${r.streak} j` : ''}`} />
         ))
       ) : <DailyBoard date={dayKey()} />}
     </div>

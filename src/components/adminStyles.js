@@ -7,7 +7,7 @@ export const S = {
   select: { width: '100%', background: 'var(--s2)', border: '1px solid var(--s3)', borderRadius: 9, padding: '9px 12px', color: 'var(--text)', fontFamily: 'Inter, sans-serif', fontSize: 12, outline: 'none' },
   label: { fontSize: 11, color: 'var(--muted)', fontWeight: 500, marginBottom: 4, display: 'block' },
   grid2: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 10 },
-  confirm: { background: 'rgba(255,77,77,.08)', border: '1px solid rgba(255,77,77,.3)', borderRadius: 10, padding: 12, marginTop: 8 },
+  confirm: { background: 'rgba(229,96,77,.08)', border: '1px solid rgba(229,96,77,.3)', borderRadius: 10, padding: 12, marginTop: 8 },
   divider: { borderTop: '1px solid var(--s2)', margin: '16px 0' },
   secLabel: { fontSize: 11, fontWeight: 600, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.08em', margin: '14px 0 8px' },
   chip: (active) => ({

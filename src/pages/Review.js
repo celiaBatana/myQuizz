@@ -49,5 +49,5 @@ export default function Review() {
     </div>
   );
   const quizData = { id: 'review', name: 'Révision espacée', diff: 'medium', mode: 'mix', noBest: true, questions };
-  return <QuizPlayInner quizData={quizData} navigate={navigate} backTo="/" tagLabel="🧠 Révision espacée" noReplay />;
+  return <QuizPlayInner quizData={quizData} navigate={navigate} backTo="/" tagLabel="Révision espacée" noReplay />;
 }

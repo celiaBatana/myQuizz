@@ -29,7 +29,7 @@ export default function Jouer() {
   const chip = (active) => ({
     padding: '7px 12px', borderRadius: 20, fontSize: 12, fontWeight: 600, cursor: 'pointer',
     border: `1px solid ${active ? 'var(--purple)' : 'var(--s2)'}`,
-    background: active ? 'rgba(155,109,255,.2)' : 'var(--s1)', color: active ? '#fff' : 'var(--muted)',
+    background: active ? 'rgba(217,144,79,.2)' : 'var(--s1)', color: active ? '#fff' : 'var(--muted)',
   });
 
   async function go() {
@@ -59,12 +59,12 @@ export default function Jouer() {
   return (
     <div className="page">
       {showAuth && <AuthModal onClose={() => setShowAuth(false)} />}
-      <div className="page-title">🎮 Jouer</div>
+      <div className="page-title">Jouer</div>
       <div className="page-sub">Modes spéciaux</div>
 
       {tooFew && (
         <div role="alert" style={{ border: '1px solid var(--yellow)', color: 'var(--yellow)', borderRadius: 12, padding: '10px 12px', fontSize: 13, fontWeight: 700, marginBottom: 12, textAlign: 'center', position: 'sticky', top: 66, zIndex: 50, backdropFilter: 'blur(8px)', backgroundColor: '#2a2210' }}>
-          ⚠️ Choisis au moins 2 catégories (ou « Toutes ») pour lancer.
+          Choisis au moins 2 catégories (ou « Toutes ») pour lancer.
         </div>
       )}
 
@@ -90,7 +90,7 @@ export default function Jouer() {
 
       <div className="section-label">Catégorie</div>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 14 }}>
-        <div style={chip(sel.length === 0)} onClick={() => setSel([])}>🌍 Toutes (varié)</div>
+        <div style={chip(sel.length === 0)} onClick={() => setSel([])}>Toutes (varié)</div>
         {cats.map(c => <div key={c.id} data-cat={c.id} style={chip(sel.includes(c.id))} onClick={() => setSel(s => s.includes(c.id) ? s.filter(x => x !== c.id) : [...s, c.id])}>{c.icon} {c.label}</div>)}
       </div>
       <div style={{ fontSize: 11, color: 'var(--muted)', margin: '-8px 0 14px' }}>
@@ -105,7 +105,7 @@ export default function Jouer() {
       </div>
 
       {mode === 'sudden' && profile?.suddenBest > 0 && (
-        <div style={{ fontSize: 12, color: 'var(--yellow)', marginBottom: 10 }}>🏅 Ton record : {profile.suddenBest} bonnes réponses d'affilée</div>
+        <div style={{ fontSize: 12, color: 'var(--yellow)', marginBottom: 10 }}>Ton record : {profile.suddenBest} bonnes réponses d'affilée</div>
       )}
       {err && <div style={{ color: 'var(--pink)', fontSize: 12, marginBottom: 10 }}>{err}</div>}
       <button className="btn btn-primary btn-full" disabled={busy || tooFew} onClick={go} style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 700, opacity: tooFew ? 0.5 : 1 }}>

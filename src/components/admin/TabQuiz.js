@@ -84,7 +84,7 @@ export default function TabQuiz({ ctx }) {
                             <div style={S.confirm}>
                               <p style={{ fontSize: 11, color: 'var(--pink)', marginBottom: 8 }}>Supprimer ce quiz ?</p>
                               <div style={{ display: 'flex', gap: 6 }}>
-                                <button className="btn btn-primary" style={{ padding: '5px 12px', fontSize: 11, background: '#FF4D4D' }} onClick={() => deleteQuiz(quiz)}>Supprimer</button>
+                                <button className="btn btn-primary" style={{ padding: '5px 12px', fontSize: 11, background: '#E5604D' }} onClick={() => deleteQuiz(quiz)}>Supprimer</button>
                                 <button className="btn btn-secondary" style={{ padding: '5px 12px', fontSize: 11 }} onClick={() => setConfirmDel(null)}>Annuler</button>
                               </div>
                             </div>

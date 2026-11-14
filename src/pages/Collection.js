@@ -93,7 +93,7 @@ export default function Collection() {
             <div style={{ fontSize: 56 }}>{info.icon}</div>
             <div style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 900, fontSize: 20, margin: '8px 0 2px' }}>{info.name}</div>
             <div style={{ fontSize: 11, color: 'var(--muted)', marginBottom: 12 }}>{info.catLabel}</div>
-            <div style={{ fontSize: 13, lineHeight: 1.5 }}>💡 {info.fact}</div>
+            <div style={{ fontSize: 13, lineHeight: 1.5 }}>{info.fact}</div>
             <button className="btn btn-secondary" style={{ marginTop: 16 }} onClick={() => setOpen(null)}>Fermer</button>
           </div>
         </div>

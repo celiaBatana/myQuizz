@@ -69,7 +69,7 @@ export default function Progress() {
 
   return (
     <div className="page">
-      <div className="page-title">📊 Ma progression</div>
+      <div className="page-title">Ma progression</div>
       <div className="page-sub">Là où tu en es, thème par thème</div>
 
       <div style={card}>
@@ -79,14 +79,14 @@ export default function Progress() {
         </div>
         <Bar pct={data.mastery} h={8} />
         <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: 'var(--muted)', marginTop: 8 }}>
-          <span>✅ {data.validated}/{data.total} quiz validés (≥ {PASS} %)</span>
-          {acc !== null && <span>🎯 {acc} % de bonnes réponses</span>}
+          <span>{data.validated}/{data.total} quiz validés (≥ {PASS} %)</span>
+          {acc !== null && <span>{acc} % de bonnes réponses</span>}
         </div>
       </div>
 
       {data.weak.length > 0 && (
         <div style={{ ...card, borderColor: 'var(--yellow)' }}>
-          <div style={{ fontWeight: 800, fontFamily: "'Bricolage Grotesque', sans-serif", marginBottom: 8 }}>💪 À renforcer</div>
+          <div style={{ fontWeight: 800, fontFamily: "'Bricolage Grotesque', sans-serif", marginBottom: 8 }}>À renforcer</div>
           {data.weak.map(t => (
             <div key={t.catId + t.id} onClick={() => go(t)} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8, cursor: 'pointer' }}>
               <div style={{ fontSize: 20 }}>{t.icon}</div>
@@ -100,7 +100,7 @@ export default function Progress() {
         </div>
       )}
 
-      {data.todo > 0 && <div style={{ fontSize: 12, color: 'var(--muted)', margin: '2px 2px 12px' }}>🧭 {data.todo} thème{data.todo > 1 ? 's' : ''} pas encore commencé{data.todo > 1 ? 's' : ''}</div>}
+      {data.todo > 0 && <div style={{ fontSize: 12, color: 'var(--muted)', margin: '2px 2px 12px' }}>{data.todo} thème{data.todo > 1 ? 's' : ''} pas encore commencé{data.todo > 1 ? 's' : ''}</div>}
 
       {data.cats.map(c => (
         <div key={c.id} style={card}>
