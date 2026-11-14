@@ -166,10 +166,10 @@ export default function Home() {
           return (
             <div
               key={cat.id}
-              style={{ background: 'var(--s1)', border: '1px solid var(--s2)', borderRadius: 18, padding: '14px 14px', cursor: 'pointer', transition: 'border-color .2s' }}
+              style={{ background: (cat.color || '#888888') + '24', border: `1px solid ${(cat.color || '#888888')}55`, borderRadius: 18, padding: '14px 14px', cursor: 'pointer', transition: 'border-color .2s' }}
               onClick={() => navigate(`/category/${cat.id}`)}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--yellow)'; }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--s2)'; }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = cat.color || 'var(--yellow)'; }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = (cat.color || '#888888') + '55'; }}
             >
               <span style={{ fontSize: 24, marginBottom: 8, display: 'block' }}>{cat.icon}</span>
               <div style={{ ...display, fontSize: 14, marginBottom: 2 }}>{cat.label}</div>
