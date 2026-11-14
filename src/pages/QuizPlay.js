@@ -177,8 +177,8 @@ export function Quizzes() {
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: 34, flexShrink: 0 }}>
               <div style={{
                 width: 34, height: 34, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, fontWeight: 800,
-                background: !unlocked ? 'var(--s2)' : stars > 0 ? 'linear-gradient(135deg, var(--purple), var(--pink))' : 'var(--s1)',
-                border: `2px solid ${unlocked ? 'var(--purple)' : 'var(--s3)'}`, color: '#fff',
+                background: !unlocked ? 'var(--s2)' : stars > 0 ? 'var(--yellow)' : 'var(--s1)',
+                border: `2px solid ${unlocked ? 'var(--purple)' : 'var(--s3)'}`, color: stars > 0 && unlocked ? 'var(--on-primary)' : '#fff',
               }}>{!unlocked ? '🔒' : stars > 0 ? '✓' : idx + 1}</div>
               {idx < quizzes.length - 1 && <div style={{ flex: 1, width: 3, background: unlocked && stars > 0 ? 'var(--purple)' : 'var(--s2)', margin: '2px 0' }} />}
             </div>
@@ -193,7 +193,7 @@ export function Quizzes() {
               }}
             >
               <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 8, gap: 6 }}>
-                <div style={{ fontFamily: "'Raleway', sans-serif", fontWeight: 700, fontSize: 15 }}>{cleanQuizName(quiz.name)}</div>
+                <div style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 700, fontSize: 15 }}>{cleanQuizName(quiz.name)}</div>
                 <span className={`diff-badge diff-${quiz.diff}`}>{DIFF_LABELS[quiz.diff]}</span>
               </div>
               <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', fontSize: 11, color: 'var(--muted)' }}>
@@ -377,7 +377,7 @@ export function QuizPlayInner({ quizData, cat, theme, catId, themeId, navigate, 
 
       {/* Progress bar */}
       <div style={{ height: 4, background: 'var(--s2)', borderRadius: 10, marginBottom: 14, overflow: 'hidden' }}>
-        <div style={{ height: '100%', background: 'linear-gradient(90deg, var(--purple), var(--pink))', borderRadius: 10, width: `${pct}%`, transition: 'width .4s ease' }} />
+        <div style={{ height: '100%', background: 'var(--yellow)', borderRadius: 10, width: `${pct}%`, transition: 'width .4s ease' }} />
       </div>
 
       {/* Difficulté */}
@@ -406,7 +406,7 @@ export function QuizPlayInner({ quizData, cat, theme, catId, themeId, navigate, 
             {cat.label} › {theme.label}
           </div>
         )}
-        <div style={{ fontFamily: "'Raleway', sans-serif", fontSize: 'clamp(14px, 3.8vw, 18px)', fontWeight: 700, lineHeight: 1.4 }}>
+        <div style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontSize: 'clamp(14px, 3.8vw, 18px)', fontWeight: 700, lineHeight: 1.4 }}>
           {q?.t}
         </div>
       </div>
@@ -470,7 +470,7 @@ export function QuizPlayInner({ quizData, cat, theme, catId, themeId, navigate, 
       {quiz.answered && (
         <div style={{ position: 'sticky', bottom: 'calc(var(--bnav-height) + 10px)', zIndex: 20, paddingTop: 6 }}>
           <button className="btn btn-primary btn-full" onClick={quiz.next}
-            style={{ animation: 'fadeIn .3s ease', fontFamily: "'Raleway', sans-serif", fontWeight: 700, boxShadow: '0 6px 20px rgba(0,0,0,.5)' }}>
+            style={{ animation: 'fadeIn .3s ease', fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 700, boxShadow: '0 6px 20px rgba(0,0,0,.5)' }}>
             {(quiz.qIndex + 1 >= quiz.totalQuestions || quiz.over) ? 'Voir mes résultats 🏆' : 'Question suivante →'}
           </button>
         </div>
@@ -517,7 +517,7 @@ function ResultScreen({ quiz, quizData, catId, themeId, navigate, onReplay, onPr
         <div onClick={() => setCelebrate(false)} style={{ position: 'fixed', inset: 0, zIndex: 1100, background: 'rgba(10,5,30,.88)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: 24 }}>
           <Confetti />
           <div style={{ fontSize: 84 }}>🔥</div>
-          <div style={{ fontFamily: "'Raleway',sans-serif", fontWeight: 900, fontSize: 34, margin: '6px 0' }}>{quiz.rewards.milestone} jours de série !</div>
+          <div style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 900, fontSize: 34, margin: '6px 0' }}>{quiz.rewards.milestone} jours de série !</div>
           <div style={{ fontSize: 15, color: 'var(--muted)', marginBottom: 14 }}>Tu joues sans interruption, bravo. Bonus : <strong style={{ color: 'var(--yellow)' }}>+{quiz.rewards.milestoneBonus} XP</strong></div>
           <button className="btn btn-primary" onClick={() => setCelebrate(false)}>Continuer</button>
         </div>
@@ -525,21 +525,21 @@ function ResultScreen({ quiz, quizData, catId, themeId, navigate, onReplay, onPr
     <div className="page">
       <div style={{ textAlign: 'center', padding: '20px 0' }}>
         <div style={{ fontSize: 50, marginBottom: 10, animation: 'popIn .5s cubic-bezier(.175,.885,.32,1.275)' }}>{emoji}</div>
-        <div style={{ fontFamily: "'Raleway', sans-serif", fontSize: 26, fontWeight: 800, marginBottom: 4 }}>{title}</div>
+        <div style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontSize: 26, fontWeight: 800, marginBottom: 4 }}>{title}</div>
         <div style={{ color: 'var(--muted)', fontSize: 13 }}>{msg.sub}</div>
       </div>
 
       <div style={{ background: 'var(--s1)', border: '1px solid var(--s2)', borderRadius: 16, padding: 16, margin: '14px 0', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6, textAlign: 'center' }}>
         <div>
-          <div style={{ fontFamily: "'Raleway', sans-serif", fontSize: 22, fontWeight: 800, color: 'var(--yellow)' }}>{quiz.score}/{quiz.totalQuestions}</div>
+          <div style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontSize: 22, fontWeight: 800, color: 'var(--yellow)' }}>{quiz.score}/{quiz.totalQuestions}</div>
           <div style={{ fontSize: 10, color: 'var(--muted)', marginTop: 2 }}>Score</div>
         </div>
         <div>
-          <div style={{ fontFamily: "'Raleway', sans-serif", fontSize: 22, fontWeight: 800, color: 'var(--cyan)' }}>+{quiz.totalXP}</div>
+          <div style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontSize: 22, fontWeight: 800, color: 'var(--cyan)' }}>+{quiz.totalXP}</div>
           <div style={{ fontSize: 10, color: 'var(--muted)', marginTop: 2 }}>{quiz.practice ? 'XP (révision)' : 'XP gagnés'}</div>
         </div>
         <div>
-          <div style={{ fontFamily: "'Raleway', sans-serif", fontSize: 22, fontWeight: 800, color: 'var(--purple)' }}>
+          <div style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontSize: 22, fontWeight: 800, color: 'var(--purple)' }}>
             {quiz.avgTime !== null ? `${quiz.avgTime}s` : '—'}
           </div>
           <div style={{ fontSize: 10, color: 'var(--muted)', marginTop: 2 }}>Temps moy.</div>
@@ -578,7 +578,7 @@ function ResultScreen({ quiz, quizData, catId, themeId, navigate, onReplay, onPr
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 8 }}>
         {nextQuiz && passedNow && !quiz.practice && (
-          <button className="btn btn-primary btn-full" style={{ fontFamily: "'Raleway', sans-serif", fontWeight: 700 }}
+          <button className="btn btn-primary btn-full" style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 700 }}
             onClick={() => navigate(`/quiz/${catId}/${themeId}/${nextQuiz.id}`)}>
             Quiz suivant : {cleanQuizName(nextQuiz.name)} →
           </button>
@@ -587,12 +587,12 @@ function ResultScreen({ quiz, quizData, catId, themeId, navigate, onReplay, onPr
           <div style={{ textAlign: 'center', fontSize: 12, color: 'var(--muted)' }}>🔒 Réussis ce quiz à {PASS} % pour débloquer le suivant.</div>
         )}
         {quiz.wrongCount > 0 && (
-          <button className="btn btn-primary btn-full" style={{ fontFamily: "'Raleway', sans-serif", fontWeight: 700 }}
+          <button className="btn btn-primary btn-full" style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 700 }}
             onClick={onPractice}>
             🔁 Rejouer mes {quiz.wrongCount} erreur{quiz.wrongCount > 1 ? 's' : ''} (sans XP)
           </button>
         )}
-        <button className="btn btn-secondary btn-full" style={{ fontFamily: "'Raleway', sans-serif", fontWeight: 700 }}
+        <button className="btn btn-secondary btn-full" style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 700 }}
           onClick={async () => {
             const r = await shareScore({ score: quiz.score, total: quiz.totalQuestions, name: cleanQuizName(quizData?.name) || 'Quiz', url: window.location.href });
             setShareMsg(r === 'copied' ? 'Lien copié ✓' : r === 'downloaded' ? 'Image téléchargée ✓' : r === 'shared' ? 'Partagé ✓' : '');
@@ -600,16 +600,16 @@ function ResultScreen({ quiz, quizData, catId, themeId, navigate, onReplay, onPr
           📣 Partager mon score{shareMsg ? ` · ${shareMsg}` : ''}
         </button>
         {!noReplay && (
-          <button className={`btn ${quiz.wrongCount > 0 ? 'btn-secondary' : 'btn-primary'} btn-full`} style={{ fontFamily: "'Raleway', sans-serif", fontWeight: 700 }}
+          <button className={`btn ${quiz.wrongCount > 0 ? 'btn-secondary' : 'btn-primary'} btn-full`} style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 700 }}
             onClick={onReplay}>
             Rejouer ce quiz
           </button>
         )}
-        <button className="btn btn-secondary btn-full" style={{ fontFamily: "'Raleway', sans-serif", fontWeight: 700 }}
+        <button className="btn btn-secondary btn-full" style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 700 }}
           onClick={() => navigate(backTo || `/category/${catId}/theme/${themeId}`)}>
           {backTo && !catId ? 'Retour' : 'Autres quiz du thème'}
         </button>
-        <button className="btn btn-secondary btn-full" style={{ fontFamily: "'Raleway', sans-serif", fontWeight: 700 }}
+        <button className="btn btn-secondary btn-full" style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 700 }}
           onClick={() => navigate('/')}>
           Accueil
         </button>

@@ -43,7 +43,7 @@ export default function Review() {
   if (!questions.length) return (
     <div className="page" style={{ textAlign: 'center', paddingTop: 60 }}>
       <div style={{ fontSize: 40 }}>🎉</div>
-      <div style={{ fontFamily: "'Raleway',sans-serif", fontWeight: 800, fontSize: 18, margin: '8px 0' }}>Rien à revoir pour aujourd'hui</div>
+      <div style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 800, fontSize: 18, margin: '8px 0' }}>Rien à revoir pour aujourd'hui</div>
       <div style={{ color: 'var(--muted)', fontSize: 13, margin: '0 0 18px' }}>Tes erreurs reviendront ici au bon moment pour mieux les retenir.</div>
       <button className="btn btn-primary" onClick={() => navigate('/')}>Accueil</button>
     </div>

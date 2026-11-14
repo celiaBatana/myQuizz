@@ -51,7 +51,7 @@ export default function TabThemes({ ctx }) {
             ))}
           </>}
           <div style={S.divider} />
-          <div style={{ fontFamily: "'Raleway', sans-serif", fontWeight: 700, fontSize: 14, marginBottom: 12 }}>+ Nouveau thème</div>
+          <div style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 700, fontSize: 14, marginBottom: 12 }}>+ Nouveau thème</div>
           <form onSubmit={addTheme}>
             <div style={{ marginBottom: 8 }}>
               <label style={S.label}>Catégorie parente</label>
@@ -64,7 +64,7 @@ export default function TabThemes({ ctx }) {
               <div><label style={S.label}>Icône</label><input style={S.input} value={newTheme.icon} onChange={e => setNewTheme({ ...newTheme, icon: e.target.value })} /></div>
               <div><label style={S.label}>Nom</label><input style={S.input} value={newTheme.label} onChange={e => setNewTheme({ ...newTheme, label: e.target.value })} required /></div>
             </div>
-            <button type="submit" className="btn btn-primary btn-full" style={{ fontFamily: "'Raleway'", fontWeight: 700 }}>Ajouter</button>
+            <button type="submit" className="btn btn-primary btn-full" style={{ fontFamily: "'Bricolage Grotesque'", fontWeight: 700 }}>Ajouter</button>
           </form>
         </div>
     </>

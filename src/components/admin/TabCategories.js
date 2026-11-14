@@ -46,13 +46,13 @@ export default function TabCategories({ ctx }) {
             ))}
           </>}
           <div style={S.divider} />
-          <div style={{ fontFamily: "'Raleway', sans-serif", fontWeight: 700, fontSize: 14, marginBottom: 12 }}>+ Nouvelle catégorie</div>
+          <div style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 700, fontSize: 14, marginBottom: 12 }}>+ Nouvelle catégorie</div>
           <form onSubmit={addCat}>
             <div style={S.grid2}>
               <div><label style={S.label}>Icône</label><input style={S.input} value={newCat.icon} onChange={e => setNewCat({ ...newCat, icon: e.target.value })} /></div>
               <div><label style={S.label}>Nom</label><input style={S.input} value={newCat.label} onChange={e => setNewCat({ ...newCat, label: e.target.value })} required /></div>
             </div>
-            <button type="submit" className="btn btn-primary btn-full" style={{ fontFamily: "'Raleway'", fontWeight: 700 }}>Ajouter</button>
+            <button type="submit" className="btn btn-primary btn-full" style={{ fontFamily: "'Bricolage Grotesque'", fontWeight: 700 }}>Ajouter</button>
           </form>
         </div>
     </>

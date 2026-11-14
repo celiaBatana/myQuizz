@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../firebase';
-import { getCategoryList } from '../data/quizData';
+import { getCategoryList, XP_PER_LEVEL } from '../data/quizData';
 import { useAuth } from '../context/AuthContext';
 import { dayKey } from '../hooks/useQuiz';
 import { dueReviewIds } from '../utils/league';
@@ -10,42 +10,20 @@ import DailyPanel from '../components/DailyPanel';
 import Onboarding from '../components/Onboarding';
 import { cleanQuizName } from '../utils/quizName';
 
-const styles = {
-  hero: { textAlign: 'center', padding: '28px 0 20px' },
-  h1: { fontFamily: "'Raleway', sans-serif", fontSize: 'clamp(28px, 7vw, 46px)', fontWeight: 800, lineHeight: 1.1, marginBottom: 12 },
-  em: { fontStyle: 'normal', background: 'linear-gradient(90deg, #FFE14D, #FF7A3D)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' },
-  p: { color: 'var(--muted)', fontSize: 15, maxWidth: 300, margin: '0 auto 20px', lineHeight: 1.6 },
-  statsRow: { display: 'flex', justifyContent: 'center', gap: 20, marginBottom: 24 },
-  stat: { textAlign: 'center' },
-  statNum: { fontFamily: "'Raleway', sans-serif", fontSize: 22, fontWeight: 800, color: 'var(--yellow)' },
-  statLabel: { fontSize: 11, color: 'var(--muted)', marginTop: 2 },
-  featured: { background: 'linear-gradient(135deg, #9B6DFF, #FF5FA0)', borderRadius: 16, padding: 18, marginBottom: 10, cursor: 'pointer', transition: 'transform .2s' },
-  featuredLabel: { fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.12em', opacity: .8, marginBottom: 6 },
-  featuredTitle: { fontFamily: "'Raleway', sans-serif", fontSize: 18, fontWeight: 800, marginBottom: 6 },
-  featuredMeta: { fontSize: 12, opacity: .8, display: 'flex', gap: 12, flexWrap: 'wrap' },
-  catGrid: { display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8, marginBottom: 24 },
-  catCard: { borderRadius: 16, padding: '14px 13px', cursor: 'pointer', transition: 'transform .2s, box-shadow .2s', border: '1px solid transparent' },
-  catIcon: { fontSize: 24, marginBottom: 6, display: 'block' },
-  catName: { fontFamily: "'Raleway', sans-serif", fontSize: 13, fontWeight: 700, marginBottom: 2 },
-  catMeta: { fontSize: 10, opacity: .65 },
+const Icon = ({ d, size = 22, color = 'currentColor' }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={d} /></svg>
+);
+const ICONS = {
+  calendar: 'M4 6h16v14H4zM4 10h16M8 3v4M16 3v4',
+  chart: 'M4 20V10M10 20V4M16 20v-7M22 20H2',
+  cards: 'M5 7h10v13H5zM9 4h10v13M8 11h4',
+  brain: 'M12 4a3 3 0 0 0-3 3 3 3 0 0 0-3 3 3 3 0 0 0 1 5 3 3 0 0 0 5 3zM12 4a3 3 0 0 1 3 3 3 3 0 0 1 3 3 3 3 0 0 1-1 5 3 3 0 0 1-5 3M12 4v14',
+  arrow: 'M9 6l6 6-6 6',
+  star: 'M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z',
 };
-
-const CAT_STYLES = {
-  culture:         { background: 'linear-gradient(135deg, #2a1f4e, #3d2a6e)', borderColor: '#4a3580' },
-  sciences:        { background: 'linear-gradient(135deg, #1f3a2e, #1a4d3a)', borderColor: '#2a6b4e' },
-  cinema:          { background: 'linear-gradient(135deg, #3a1f2a, #5a1f35)', borderColor: '#7a2a45' },
-  sport:           { background: 'linear-gradient(135deg, #2a2a1f, #3d3a18)', borderColor: '#5a5520' },
-  histoire:        { background: 'linear-gradient(135deg, #1f2a3a, #1a3050)', borderColor: '#2a4570' },
-  langues:         { background: 'linear-gradient(135deg, #2a1f1f, #4a2a1a)', borderColor: '#6a3a20' },
-  gastronomie:     { background: 'linear-gradient(135deg, #3a2010, #5a3015)', borderColor: '#7a4a20' },
-  jeux_video:      { background: 'linear-gradient(135deg, #1a0f3a, #2d1a5e)', borderColor: '#3d2a7a' },
-  nature:          { background: 'linear-gradient(135deg, #0f2d1f, #1a4a2e)', borderColor: '#1a6a3e' },
-  politique:       { background: 'linear-gradient(135deg, #0f1f3a, #1a2d5e)', borderColor: '#1a3a7a' },
-  economie:        { background: 'linear-gradient(135deg, #2a2500, #3d3800)', borderColor: '#5a5000' },
-  astronomie:      { background: 'linear-gradient(135deg, #0a0520, #150a35)', borderColor: '#2a1550' },
-  theatre_culture: { background: 'linear-gradient(135deg, #2d0f20, #4a1535)', borderColor: '#6a1a45' },
-  mathematiques:   { background: 'linear-gradient(135deg, #0a1f2a, #0f3040)', borderColor: '#0a4560' },
-};
+const RING_R = 40, RING_C = 2 * Math.PI * RING_R;
+const row = { background: 'var(--s1)', border: '1px solid var(--s2)', borderRadius: 16, padding: '14px 16px', marginBottom: 10, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 12 };
+const display = { fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 700 };
 
 export default function Home() {
   const navigate = useNavigate();
@@ -92,117 +70,110 @@ export default function Home() {
   }, []);
 
   const diffLabel = { easy: 'Facile', medium: 'Moyen', hard: 'Expert' };
-  const diffEmoji = { easy: '🟢', medium: '🟡', hard: '🔴' };
   const xpLabel   = { easy: '+5–15 XP', medium: '+10–30 XP', hard: '+20–50 XP' };
+
+  const level = profile?.level || 1;
+  const xpInLevel = profile?.xpInLevel || 0;
+  const xpPct = Math.min(1, xpInLevel / XP_PER_LEVEL);
+  const firstName = (profile?.displayName || '').split(' ')[0];
 
   return (
     <div className="page">
-      <div style={styles.hero}>
-        <h1 style={styles.h1}>
-          Teste tes<br />
-          <em style={styles.em}>connaissances</em>
-        </h1>
-        <p style={styles.p}>Quiz thématiques, difficulté progressive, système XP. Joue et progresse.</p>
-        <div style={styles.statsRow}>
-          <div style={styles.stat}>
-            <div style={styles.statNum}>{categories.length}</div>
-            <div style={styles.statLabel}>Catégories</div>
+      <div style={{ background: 'var(--s1)', borderRadius: 24, padding: 20, marginBottom: 14, display: 'flex', alignItems: 'center', gap: 18 }}>
+        <div style={{ position: 'relative', width: 92, height: 92, flexShrink: 0 }}>
+          <svg width="92" height="92" viewBox="0 0 92 92" aria-hidden="true">
+            <circle cx="46" cy="46" r={RING_R} fill="none" stroke="var(--s2)" strokeWidth="8" />
+            <circle cx="46" cy="46" r={RING_R} fill="none" stroke="var(--yellow)" strokeWidth="8" strokeLinecap="round"
+              strokeDasharray={RING_C} strokeDashoffset={RING_C * (1 - xpPct)} transform="rotate(-90 46 46)" />
+          </svg>
+          <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ ...display, fontSize: 28, lineHeight: 1 }}>{level}</div>
+            <div style={{ fontSize: 11, color: 'var(--muted)' }}>niveau</div>
           </div>
-          <div style={styles.stat}>
-            <div style={styles.statNum}>{totalThemes}</div>
-            <div style={styles.statLabel}>Thèmes</div>
+        </div>
+        <div style={{ minWidth: 0 }}>
+          <div style={{ fontSize: 13, color: 'var(--muted)' }}>{firstName ? `Bonjour ${firstName}` : 'Bienvenue'}</div>
+          <div style={{ ...display, fontSize: 21, lineHeight: 1.2, marginTop: 2 }}>
+            {profile ? `${XP_PER_LEVEL - xpInLevel} XP avant le niveau ${level + 1}` : 'Teste tes connaissances'}
           </div>
-          <div style={styles.stat}>
-            <div style={styles.statNum}>{totalQuizzes}</div>
-            <div style={styles.statLabel}>Quiz</div>
-          </div>
-          <div style={styles.stat}>
-            <div style={styles.statNum}>{totalQuestions}</div>
-            <div style={styles.statLabel}>Questions</div>
+          <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 4 }}>
+            {categories.length} catégories · {totalThemes} thèmes · {totalQuizzes} quiz · {totalQuestions} questions
           </div>
         </div>
       </div>
 
       <div
         onClick={() => navigate('/daily')}
-        style={{ background: 'var(--s1)', border: '2px solid var(--purple)', borderRadius: 16, padding: '14px 16px', marginBottom: 14, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 12 }}
+        style={{ background: 'var(--yellow)', color: 'var(--on-primary)', borderRadius: 20, padding: '16px 18px', marginBottom: 14, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 12 }}
       >
-        <div style={{ fontSize: 28 }}>📅</div>
         <div style={{ flex: 1 }}>
-          <div style={{ fontFamily: "'Raleway', sans-serif", fontWeight: 800, fontSize: 15 }}>Défi du jour</div>
-          <div style={{ fontSize: 11, color: 'var(--muted)' }}>5 questions pour tous · un seul essai · classement</div>
+          <div style={{ ...display, fontSize: 19 }}>Défi du jour</div>
+          <div style={{ fontSize: 13, marginTop: 2 }}>5 questions pour tous · un seul essai · classement</div>
         </div>
-        <div style={{ color: 'var(--purple)', fontWeight: 800 }}>›</div>
+        <Icon d="M5 12h14M13 6l6 6-6 6" size={26} />
       </div>
 
       {profile && !profile.onboarded && !(profile.quizzesPlayed > 0) && <Onboarding />}
       <DailyPanel />
 
-      <div onClick={() => navigate('/progression')} style={{ background: 'var(--s1)', border: '1px solid var(--s2)', borderRadius: 14, padding: '12px 16px', marginBottom: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 10 }}>
-        <div style={{ fontSize: 22 }}>📊</div>
-        <div style={{ flex: 1, fontSize: 13, fontWeight: 700 }}>Ma progression par thème</div>
-        <div style={{ color: 'var(--cyan)', fontWeight: 800 }}>›</div>
-      </div>
-
-      <div onClick={() => navigate('/collection')} style={{ background: 'var(--s1)', border: '1px solid var(--s2)', borderRadius: 14, padding: '12px 16px', marginBottom: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 10 }}>
-        <div style={{ fontSize: 22 }}>🃏</div>
-        <div style={{ flex: 1, fontSize: 13, fontWeight: 700 }}>Ma collection de cartes{(profile?.cards || []).length ? ` · ${(profile.cards || []).length}` : ''}</div>
-        <div style={{ color: 'var(--cyan)', fontWeight: 800 }}>›</div>
-      </div>
-
       {dueCount > 0 && (
-        <div
-          onClick={() => navigate('/revision')}
-          style={{ background: 'var(--s1)', border: '2px solid var(--cyan)', borderRadius: 16, padding: '14px 16px', marginBottom: 14, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 12 }}
-        >
-          <div style={{ fontSize: 28 }}>🧠</div>
+        <div onClick={() => navigate('/revision')} style={{ ...row, borderColor: 'var(--cyan)' }}>
+          <Icon d={ICONS.brain} color="var(--cyan)" />
           <div style={{ flex: 1 }}>
-            <div style={{ fontFamily: "'Raleway', sans-serif", fontWeight: 800, fontSize: 15 }}>Révision du jour</div>
-            <div style={{ fontSize: 11, color: 'var(--muted)' }}>{dueCount} question{dueCount > 1 ? 's' : ''} à revoir pour mieux les retenir</div>
+            <div style={{ ...display, fontSize: 15 }}>Révision du jour</div>
+            <div style={{ fontSize: 12, color: 'var(--muted)' }}>{dueCount} question{dueCount > 1 ? 's' : ''} à revoir pour mieux les retenir</div>
           </div>
-          <div style={{ color: 'var(--cyan)', fontWeight: 800 }}>›</div>
+          <Icon d={ICONS.arrow} color="var(--cyan)" size={18} />
         </div>
       )}
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 10, marginBottom: 16 }}>
+        <div onClick={() => navigate('/progression')} style={{ ...row, marginBottom: 0, flexDirection: 'column', alignItems: 'flex-start', gap: 10 }}>
+          <Icon d={ICONS.chart} color="var(--yellow)" />
+          <div style={{ fontSize: 14, fontWeight: 600 }}>Ma progression</div>
+        </div>
+        <div onClick={() => navigate('/collection')} style={{ ...row, marginBottom: 0, flexDirection: 'column', alignItems: 'flex-start', gap: 10 }}>
+          <Icon d={ICONS.cards} color="var(--yellow)" />
+          <div style={{ fontSize: 14, fontWeight: 600 }}>Ma collection{(profile?.cards || []).length ? ` · ${(profile.cards || []).length}` : ''}</div>
+        </div>
+      </div>
 
       {/* Quiz du jour */}
       <div className="section-label">Quiz du jour</div>
       {featuredQuiz ? (
         <div
-          style={styles.featured}
+          style={{ background: 'var(--s1)', border: '1px solid var(--yellow)', borderRadius: 18, padding: 18, marginBottom: 10, cursor: 'pointer' }}
           onClick={() => navigate(`/quiz/${featuredQuiz.catId}/${featuredQuiz.themeId}/${featuredQuiz.id}`)}
-          onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'}
-          onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
         >
-          <div style={styles.featuredLabel}>⭐ Sélection du jour</div>
-          <div style={styles.featuredTitle}>{cleanQuizName(featuredQuiz.name)}</div>
-          <div style={styles.featuredMeta}>
-            <span>{diffEmoji[featuredQuiz.diff]} {diffLabel[featuredQuiz.diff]}</span>
-            <span>⚡ {xpLabel[featuredQuiz.diff]}/question</span>
+          <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.1em', color: 'var(--yellow)', marginBottom: 6 }}>Sélection du jour</div>
+          <div style={{ ...display, fontSize: 19, marginBottom: 8 }}>{cleanQuizName(featuredQuiz.name)}</div>
+          <div style={{ fontSize: 12, color: 'var(--muted)', display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+            <span className={`diff-badge diff-${featuredQuiz.diff}`}>{diffLabel[featuredQuiz.diff]}</span>
+            <span>{xpLabel[featuredQuiz.diff]} par question</span>
           </div>
         </div>
       ) : (
-        <div style={{ ...styles.featured, opacity: 0.5, cursor: 'default' }}>
-          <div style={styles.featuredLabel}>⭐ Sélection du jour</div>
-          <div style={styles.featuredTitle}>Chargement…</div>
+        <div style={{ background: 'var(--s1)', borderRadius: 18, padding: 18, marginBottom: 10, opacity: 0.5 }}>
+          <div style={{ ...display, fontSize: 19 }}>Chargement…</div>
         </div>
       )}
 
       {/* Catégories */}
       <div className="section-label" style={{ marginTop: 20 }}>Catégories</div>
-      <div style={styles.catGrid}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 10, marginBottom: 24 }}>
         {categories.map(cat => {
           const themeCount = Object.keys(cat.themes).length;
           return (
             <div
               key={cat.id}
-              style={{ ...styles.catCard, ...(CAT_STYLES[cat.id] || {}) }}
+              style={{ background: 'var(--s1)', border: '1px solid var(--s2)', borderRadius: 18, padding: '14px 14px', cursor: 'pointer', transition: 'border-color .2s' }}
               onClick={() => navigate(`/category/${cat.id}`)}
-              onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 10px 24px rgba(0,0,0,.4)'; }}
-              onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--yellow)'; }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--s2)'; }}
             >
-              <span style={styles.catIcon}>{cat.icon}</span>
-              <div style={styles.catName}>{cat.label}</div>
-              <div style={styles.catMeta}>{themeCount} thèmes</div>
+              <span style={{ fontSize: 24, marginBottom: 8, display: 'block' }}>{cat.icon}</span>
+              <div style={{ ...display, fontSize: 14, marginBottom: 2 }}>{cat.label}</div>
+              <div style={{ fontSize: 11, color: 'var(--muted)' }}>{themeCount} thèmes</div>
             </div>
           );
         })}

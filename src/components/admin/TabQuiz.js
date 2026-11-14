@@ -28,7 +28,7 @@ export default function TabQuiz({ ctx }) {
               {/* Header catégorie */}
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 4px', marginBottom: 6, borderBottom: '1px solid var(--s2)' }}>
                 <span style={{ fontSize: 18 }}>{cat.icon}</span>
-                <span style={{ fontFamily: "'Raleway', sans-serif", fontWeight: 800, fontSize: 14 }}>{cat.label}</span>
+                <span style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 800, fontSize: 14 }}>{cat.label}</span>
                 <span style={{ fontSize: 11, color: 'var(--muted)', marginLeft: 'auto' }}>
                   {themeGroups.reduce((s, t) => s + t.quizzes.length, 0)} quiz
                 </span>
@@ -137,7 +137,7 @@ export default function TabQuiz({ ctx }) {
 
           {/* Import CSV quiz */}
           <div style={S.divider} />
-          <div style={{ fontFamily: "'Raleway', sans-serif", fontWeight: 700, fontSize: 14, marginBottom: 8 }}>📥 Importer des quiz (CSV)</div>
+          <div style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 700, fontSize: 14, marginBottom: 8 }}>📥 Importer des quiz (CSV)</div>
           <div style={{ fontSize: 11, color: 'var(--muted)', marginBottom: 10, fontFamily: 'monospace', background: 'var(--s2)', borderRadius: 8, padding: '8px 10px' }}>
             catId,themeId,name,diff<br />culture,classique,Quiz #1 — Capitales du monde,easy
           </div>
@@ -157,7 +157,7 @@ export default function TabQuiz({ ctx }) {
                 <div key={i} style={{ fontSize: 11, color: 'var(--muted)', marginBottom: 3 }}>• [{q.catId}/{q.themeId}] {q.name} — {DIFF_LABELS[q.diff] || q.diff}</div>
               ))}
               {csvQuizRows.length > 4 && <div style={{ fontSize: 11, color: 'var(--muted)' }}>+{csvQuizRows.length - 4} autres</div>}
-              <button className="btn btn-primary btn-full" style={{ marginTop: 10, fontFamily: "'Raleway'", fontWeight: 700 }} onClick={importCSVQuiz}>
+              <button className="btn btn-primary btn-full" style={{ marginTop: 10, fontFamily: "'Bricolage Grotesque'", fontWeight: 700 }} onClick={importCSVQuiz}>
                 Importer {csvQuizRows.length} quiz
               </button>
             </div>
@@ -165,7 +165,7 @@ export default function TabQuiz({ ctx }) {
 
           {/* Ajouter quiz manuellement */}
           <div style={S.divider} />
-          <div style={{ fontFamily: "'Raleway', sans-serif", fontWeight: 700, fontSize: 14, marginBottom: 12 }}>+ Nouveau quiz</div>
+          <div style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 700, fontSize: 14, marginBottom: 12 }}>+ Nouveau quiz</div>
           <form onSubmit={addQuiz}>
             <div style={S.grid2}>
               <div>
@@ -193,7 +193,7 @@ export default function TabQuiz({ ctx }) {
                 <option value="easy">Facile</option><option value="medium">Moyen</option><option value="hard">Expert</option>
               </select>
             </div>
-            <button type="submit" className="btn btn-primary btn-full" style={{ fontFamily: "'Raleway'", fontWeight: 700 }}>Ajouter le quiz</button>
+            <button type="submit" className="btn btn-primary btn-full" style={{ fontFamily: "'Bricolage Grotesque'", fontWeight: 700 }}>Ajouter le quiz</button>
           </form>
         </div>
     </>

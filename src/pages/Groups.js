@@ -192,7 +192,7 @@ export function GroupDetail() {
         {[['week', 'Cette semaine'], ['total', 'Total']].map(([id, label]) => (
           <div key={id} onClick={() => setTab(id)} style={{
             flex: 1, textAlign: 'center', padding: '8px 0', borderRadius: 8, cursor: 'pointer', fontSize: 12, fontWeight: 600,
-            background: tab === id ? 'linear-gradient(135deg, var(--purple), var(--pink))' : 'transparent', color: tab === id ? '#fff' : 'var(--muted)',
+            background: tab === id ? 'var(--yellow)' : 'transparent', color: tab === id ? 'var(--on-primary)' : 'var(--muted)',
           }}>{label}</div>
         ))}
       </div>
@@ -205,7 +205,7 @@ export function GroupDetail() {
             <div style={{ fontSize: 14, fontWeight: 700 }}>{r.avatar ? avatarIcon(r.avatar) + ' ' : ''}{r.name}{r.uid === user.uid && ' (toi)'}</div>
             {r.title && <div style={{ fontSize: 10, color: 'var(--muted)' }}>{titleName(r.title)}</div>}
           </div>
-          <div style={{ fontFamily: "'Raleway',sans-serif", fontWeight: 800, color: 'var(--yellow)' }}>{r.score} XP</div>
+          <div style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 800, color: 'var(--yellow)' }}>{r.score} XP</div>
         </div>
       ))}
       {isMember && <div onClick={leave} style={{ textAlign: 'center', color: 'var(--muted)', fontSize: 11, marginTop: 18, cursor: 'pointer', textDecoration: 'underline' }}>Quitter le groupe</div>}

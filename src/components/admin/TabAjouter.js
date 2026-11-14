@@ -53,11 +53,11 @@ export default function TabAjouter({ ctx }) {
               <label style={S.label}>Explication</label>
               <input type="text" style={S.input} value={qExpl} onChange={e => setQExpl(e.target.value)} placeholder="Explication de la bonne réponse..." />
             </div>
-            <button type="submit" className="btn btn-primary btn-full" style={{ fontFamily: "'Raleway'", fontWeight: 700 }}>Ajouter la question</button>
+            <button type="submit" className="btn btn-primary btn-full" style={{ fontFamily: "'Bricolage Grotesque'", fontWeight: 700 }}>Ajouter la question</button>
           </form>
 
           <div style={S.divider} />
-          <div style={{ fontFamily: "'Raleway', sans-serif", fontWeight: 700, fontSize: 14, marginBottom: 6 }}>Import CSV questions</div>
+          <div style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 700, fontSize: 14, marginBottom: 6 }}>Import CSV questions</div>
           <div style={{ fontSize: 11, color: 'var(--muted)', marginBottom: 12, fontFamily: 'monospace', background: 'var(--s2)', borderRadius: 8, padding: '8px 10px' }}>
             categorie,theme,difficulte,question,optA,optB,optC,optD,reponse(0-3),explication,quiz (optionnel : nom du quiz, créé automatiquement s'il n'existe pas)
           </div>
@@ -80,7 +80,7 @@ export default function TabAjouter({ ctx }) {
               })()}
               {csvRows.slice(0, 3).map((q, i) => <div key={i} style={{ fontSize: 11, color: 'var(--muted)', marginBottom: 3 }}>• {q.text?.slice(0, 60)}…</div>)}
               {csvRows.length > 3 && <div style={{ fontSize: 11, color: 'var(--muted)' }}>+{csvRows.length - 3} autres</div>}
-              <button className="btn btn-primary btn-full" style={{ marginTop: 10, fontFamily: "'Raleway'", fontWeight: 700 }} onClick={importCSVQuestions}>
+              <button className="btn btn-primary btn-full" style={{ marginTop: 10, fontFamily: "'Bricolage Grotesque'", fontWeight: 700 }} onClick={importCSVQuestions}>
                 Importer {csvRows.length} questions
               </button>
             </div>

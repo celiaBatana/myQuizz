@@ -54,7 +54,7 @@ export default function Collection() {
       <div className="page-sub">Une carte par thème : réussis (≥ 60 %) un quiz de chaque niveau pour la gagner</div>
 
       <div style={{ background: 'var(--s1)', border: '1px solid var(--s2)', borderRadius: 14, padding: '12px 14px', marginBottom: 14 }}>
-        <div style={{ fontWeight: 800, fontFamily: "'Raleway',sans-serif" }}>{have} / {total} cartes</div>
+        <div style={{ fontWeight: 800, fontFamily: "'Bricolage Grotesque', sans-serif" }}>{have} / {total} cartes</div>
         <div style={{ height: 6, background: 'var(--s2)', borderRadius: 6, marginTop: 8, overflow: 'hidden' }}>
           <div style={{ height: '100%', width: `${total ? (100 * have) / total : 0}%`, background: 'var(--purple)', transition: 'width .6s' }} />
         </div>
@@ -91,7 +91,7 @@ export default function Collection() {
         <div onClick={() => setOpen(null)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.7)', zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
           <div onClick={e => e.stopPropagation()} style={{ background: info.gradient, border: `2px solid ${info.color}`, borderRadius: 20, padding: 24, maxWidth: 320, textAlign: 'center' }}>
             <div style={{ fontSize: 56 }}>{info.icon}</div>
-            <div style={{ fontFamily: "'Raleway',sans-serif", fontWeight: 900, fontSize: 20, margin: '8px 0 2px' }}>{info.name}</div>
+            <div style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 900, fontSize: 20, margin: '8px 0 2px' }}>{info.name}</div>
             <div style={{ fontSize: 11, color: 'var(--muted)', marginBottom: 12 }}>{info.catLabel}</div>
             <div style={{ fontSize: 13, lineHeight: 1.5 }}>💡 {info.fact}</div>
             <button className="btn btn-secondary" style={{ marginTop: 16 }} onClick={() => setOpen(null)}>Fermer</button>

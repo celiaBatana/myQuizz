@@ -41,7 +41,7 @@ export default function DailyPanel() {
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <div style={{ fontSize: 40, lineHeight: 1, filter: s.count ? 'none' : 'grayscale(1)', opacity: s.count ? 1 : 0.5 }}>🔥</div>
           <div style={{ flex: 1 }}>
-            <div style={{ fontFamily: "'Raleway',sans-serif", fontWeight: 800, fontSize: 22 }}>
+            <div style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 800, fontSize: 22 }}>
               {s.count} jour{s.count > 1 ? 's' : ''} <span style={{ fontSize: 12, color: 'var(--muted)', fontWeight: 600 }}>de série</span>
             </div>
             <div style={{ fontSize: 11, color: s.danger ? 'var(--yellow)' : 'var(--muted)', fontWeight: s.danger ? 700 : 400 }}>
@@ -63,7 +63,7 @@ export default function DailyPanel() {
                 <div style={{ fontSize: 10, color: 'var(--muted)', marginBottom: 3 }}>{letter}</div>
                 <div style={{
                   width: 28, height: 28, margin: '0 auto', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14,
-                  background: on ? 'linear-gradient(135deg, var(--purple), var(--pink))' : 'var(--s2)', color: '#fff',
+                  background: on ? 'var(--yellow)' : 'var(--s2)', color: on ? 'var(--on-primary)' : '#fff',
                   border: isToday ? '2px solid var(--yellow)' : '2px solid transparent', opacity: on || isToday ? 1 : 0.55,
                 }}>{on ? '🔥' : ''}</div>
               </div>
@@ -77,7 +77,7 @@ export default function DailyPanel() {
         <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
           <Ring pct={g.pct} label={g.pct >= 1 ? '✓' : `${Math.round(g.pct * 100)}%`} />
           <div style={{ flex: 1 }}>
-            <div style={{ fontWeight: 800, fontFamily: "'Raleway',sans-serif" }}>Objectif du jour</div>
+            <div style={{ fontWeight: 800, fontFamily: "'Bricolage Grotesque', sans-serif" }}>Objectif du jour</div>
             <div style={{ fontSize: 12, color: 'var(--muted)', marginBottom: 6 }}>
               {g.xp >= g.goal ? `Atteint ! +${GOAL_BONUS} XP gagnés` : `${g.xp} / ${g.goal} XP · bonus +${GOAL_BONUS} XP à l'arrivée`}
             </div>
@@ -94,7 +94,7 @@ export default function DailyPanel() {
 
       {/* Missions */}
       <div style={card}>
-        <div style={{ fontWeight: 800, fontFamily: "'Raleway',sans-serif", marginBottom: 8 }}>🎯 Missions du jour</div>
+        <div style={{ fontWeight: 800, fontFamily: "'Bricolage Grotesque', sans-serif", marginBottom: 8 }}>🎯 Missions du jour</div>
         {missions.map(m => {
           const val = Math.min(m.target, m.val(stats));
           const ok = done.includes(m.id) || val >= m.target;
