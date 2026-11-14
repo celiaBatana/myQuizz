@@ -71,7 +71,7 @@ export function Themes() {
             opacity: isEmpty(theme) ? 0.45 : 1,
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           }}
-          onMouseEnter={e => { if (isEmpty(theme)) return; e.currentTarget.style.borderColor = 'var(--purple)'; e.currentTarget.style.background = 'rgba(217,144,79,.07)'; }}
+          onMouseEnter={e => { if (isEmpty(theme)) return; e.currentTarget.style.borderColor = 'var(--purple)'; e.currentTarget.style.background = 'rgba(207,122,69,.07)'; }}
           onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--s2)'; e.currentTarget.style.background = 'var(--s1)'; }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -422,7 +422,7 @@ export function QuizPlayInner({ quizData, cat, theme, catId, themeId, navigate, 
           return (
             <div key={i} onClick={() => !quiz.answered && handleAnswer(i)}
               style={{ animation: quiz.answered ? (i === q.a ? 'qz-pulse .5s ease' : i === quiz.selectedOption ? 'qz-shake .4s ease' : undefined) : undefined, background: bg, border: `2px solid ${borderColor}`, borderRadius: 10, padding: '12px 13px', cursor: quiz.answered ? 'default' : 'pointer', transition: 'all .2s', display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, fontWeight: 500 }}
-              onMouseEnter={e => { if (!quiz.answered) { e.currentTarget.style.borderColor = 'var(--purple)'; e.currentTarget.style.background = 'rgba(217,144,79,.08)'; } }}
+              onMouseEnter={e => { if (!quiz.answered) { e.currentTarget.style.borderColor = 'var(--purple)'; e.currentTarget.style.background = 'rgba(207,122,69,.08)'; } }}
               onMouseLeave={e => { if (!quiz.answered) { e.currentTarget.style.borderColor = 'var(--s2)'; e.currentTarget.style.background = 'var(--s1)'; } }}
             >
               <div style={{ width: 25, height: 25, borderRadius: 7, background: letterBg, color: letterColor, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, flexShrink: 0 }}>
