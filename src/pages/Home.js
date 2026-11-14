@@ -164,6 +164,14 @@ export default function Home() {
           <Icon d={ICONS.arrow} color="var(--yellow)" size={18} />
         </div>
       ))}
+      <div data-testid="home-blindtest" onClick={() => navigate('/blindtest')} style={{ ...row, marginBottom: 10, borderColor: 'var(--purple)' }}>
+        <div style={{ fontSize: 22 }}>🎵</div>
+        <div style={{ flex: 1 }}>
+          <div style={{ ...display, fontSize: 15 }}>Blind test</div>
+          <div style={{ fontSize: 12, color: 'var(--muted)' }}>Devine le morceau · années 80, rap FR, génériques d'animes…</div>
+        </div>
+        <Icon d={ICONS.arrow} color="var(--purple)" size={18} />
+      </div>
       <div onClick={() => navigate('/amis')} style={{ ...row, marginBottom: 16 }}>
         <div style={{ flex: 1 }}>
           <div style={{ ...display, fontSize: 15 }}>Mes amis</div>
