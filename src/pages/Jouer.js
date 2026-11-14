@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useAuth } from '../context/AuthContext';
@@ -15,9 +15,12 @@ const MODES = [
 
 export default function Jouer() {
   const navigate = useNavigate();
+  const [sp] = useSearchParams();
+  const invitedUid = sp.get('duel') || '';
+  const invitedName = sp.get('name') || '';
   const { user, profile } = useAuth();
   const cats = getCategoryList();
-  const [mode, setMode] = useState('mix');
+  const [mode, setMode] = useState(invitedUid ? 'duel' : 'mix');
   const [sel, setSel]   = useState([]); // catégories choisies ; vide = toutes
   const cat = sel.length ? sel.join(',') : 'all';
   const tooFew = sel.length === 1; // une seule catégorie : jouer plutôt ses quiz depuis l'accueil
@@ -44,6 +47,7 @@ export default function Jouer() {
           questionIds: qs.map(q => q.id), cat, diff,
           creatorUid: user.uid, creatorName: profile?.displayName || user.displayName || 'Un joueur',
           createdAt: serverTimestamp(),
+          ...(invitedUid ? { invitedUid, invitedName } : {}),
         });
         navigate(`/duel/${ref.id}`);
       } catch (e) {

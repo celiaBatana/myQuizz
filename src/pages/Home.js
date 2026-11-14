@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { collection, getDocs } from 'firebase/firestore';
+import { collection, doc, getDoc, getDocs, query, where, limit } from 'firebase/firestore';
 import { db } from '../firebase';
 import { getCategoryList, XP_PER_LEVEL } from '../data/quizData';
 import { useAuth } from '../context/AuthContext';
@@ -27,7 +27,24 @@ const display = { fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 7
 
 export default function Home() {
   const navigate = useNavigate();
-  const { profile } = useAuth();
+  const { profile, user } = useAuth();
+  const [invites, setInvites] = useState([]);
+  useEffect(() => {
+    if (!user) return;
+    (async () => {
+      try {
+        const r = await getDocs(query(collection(db, 'duels'), where('invitedUid', '==', user.uid), limit(10)));
+        const out = [];
+        for (const d of r.docs) {
+          const x = d.data();
+          if (x.nextId) continue;
+          const done = await getDoc(doc(db, 'duel_results', `${d.id}_${user.uid}`));
+          if (!done.exists()) out.push({ id: d.id, from: x.creatorName });
+        }
+        setInvites(out);
+      } catch (e) { /* règles */ }
+    })();
+  }, [user]);
   const dueCount = dueReviewIds(profile?.review, dayKey()).length;
   const categories = getCategoryList();
 
@@ -138,6 +155,15 @@ export default function Home() {
         </div>
       </div>
 
+      {invites.map(i => (
+        <div key={i.id} data-testid="duel-invite" onClick={() => navigate(`/duel/${i.id}`)} style={{ ...row, borderColor: 'var(--yellow)' }}>
+          <div style={{ flex: 1 }}>
+            <div style={{ ...display, fontSize: 15 }}>⚔️ {i.from} te défie !</div>
+            <div style={{ fontSize: 12, color: 'var(--muted)' }}>Touche pour relever le défi</div>
+          </div>
+          <Icon d={ICONS.arrow} color="var(--yellow)" size={18} />
+        </div>
+      ))}
       <div onClick={() => navigate('/amis')} style={{ ...row, marginBottom: 16 }}>
         <div style={{ flex: 1 }}>
           <div style={{ ...display, fontSize: 15 }}>Mes amis</div>
