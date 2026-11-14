@@ -81,8 +81,8 @@ async function fetchRandomAll(diff, target = 120) {
 // Questions variées pour mixte / mort subite / duel.
 // cat = 'all', un identifiant de catégorie, ou plusieurs séparés par des virgules (« culture,cinema »).
 // Plusieurs catégories : on alterne entre elles pour que chacune soit représentée.
-export async function fetchVaried(cat, diff, n) {
-  const seen = getSeen();
+export async function fetchVaried(cat, diff, n, avoidIds = []) {
+  const seen = new Set([...getSeen(), ...avoidIds]);
   let picked;
   const cats = cat === 'all' ? null : String(cat).split(',').filter(Boolean);
   if (!cats) {

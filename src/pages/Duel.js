@@ -1,15 +1,81 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { doc, getDoc, collection, getDocs, query, where, documentId } from 'firebase/firestore';
+import { doc, getDoc, setDoc, addDoc, updateDoc, collection, getDocs, query, where, documentId, serverTimestamp } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useAuth } from '../context/AuthContext';
 import AuthModal from '../components/AuthModal';
-import { mapQ } from '../utils/questions';
+import { mapQ, fetchVaried } from '../utils/questions';
 import { QuizPlayInner } from './QuizPlay';
 import { DuelBoard } from './Leaderboard';
 
+// Dernière manche d'un salon : on suit la chaîne nextId (jamais plus de 50 maillons)
+async function lastRound(id, first) {
+  let cur = id, data = first;
+  for (let i = 0; i < 50 && data?.nextId; i++) {
+    const d = await getDoc(doc(db, 'duels', data.nextId));
+    if (!d.exists()) break;
+    cur = data.nextId; data = d.data();
+  }
+  return { id: cur, data };
+}
+
+// Bouton « Nouvelle manche » + bandeau quand une manche suivante existe déjà
+function NextRound({ id, duel, navigate }) {
+  const { user, profile } = useAuth();
+  const [nextId, setNextId] = useState(duel?.nextId || null);
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState('');
+
+  useEffect(() => {
+    if (nextId) return undefined;
+    const t = setInterval(async () => {
+      try { const d = await getDoc(doc(db, 'duels', id)); if (d.exists() && d.data().nextId) setNextId(d.data().nextId); } catch (e) { /* réseau */ }
+    }, 3000);
+    return () => clearInterval(t);
+  }, [id, nextId]);
+
+  async function create() {
+    setErr(''); setBusy(true);
+    try {
+      // Quelqu'un l'a peut-être déjà lancée
+      const fresh = await getDoc(doc(db, 'duels', id));
+      if (fresh.exists() && fresh.data().nextId) { navigate(`/duel/${fresh.data().nextId}`); return; }
+      const qs = await fetchVaried(duel.cat || 'all', duel.diff || 'all', duel.questionIds?.length || 10, duel.questionIds || []);
+      if (qs.length < 5) { setErr('Pas assez de nouvelles questions pour cette sélection.'); setBusy(false); return; }
+      const ref = await addDoc(collection(db, 'duels'), {
+        questionIds: qs.map(q => q.id), cat: duel.cat || 'all', diff: duel.diff || 'all',
+        creatorUid: user.uid, creatorName: profile?.displayName || user.displayName || 'Un joueur',
+        prevId: id, round: (duel.round || 1) + 1, createdAt: serverTimestamp(),
+      });
+      try { await updateDoc(doc(db, 'duels', id), { nextId: ref.id }); }
+      catch (e) {
+        // Un autre joueur a été plus rapide : on rejoint sa manche
+        const again = await getDoc(doc(db, 'duels', id));
+        if (again.exists() && again.data().nextId) { navigate(`/duel/${again.data().nextId}`); return; }
+        throw e;
+      }
+      navigate(`/duel/${ref.id}`);
+    } catch (e) { console.error(e); setErr("Impossible de lancer la manche suivante (règles Firestore à jour ?)."); setBusy(false); }
+  }
+
+  return (
+    <div style={{ marginTop: 12 }}>
+      {nextId ? (
+        <button className="btn btn-primary btn-full" data-testid="next-round-join" onClick={() => navigate(`/duel/${nextId}`)}>Manche suivante disponible ▶</button>
+      ) : (
+        <button className="btn btn-secondary btn-full" data-testid="next-round-new" disabled={busy} onClick={create}>{busy ? '…' : 'Nouvelle manche (mêmes réglages)'}</button>
+      )}
+      {err && <div role="alert" style={{ color: 'var(--red)', fontSize: 12, marginTop: 6 }}>{err}</div>}
+    </div>
+  );
+}
+
 export default function Duel() {
   const { id } = useParams();
+  return <DuelInner key={id} id={id} />;
+}
+
+function DuelInner({ id }) {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [state, setState] = useState('loading'); // loading | notfound | ready | played
@@ -26,6 +92,10 @@ export default function Duel() {
         const d = await getDoc(doc(db, 'duels', id));
         if (!d.exists()) { setState('notfound'); return; }
         const data = d.data();
+        if (data.nextId) {
+          const last = await lastRound(id, data);
+          if (last.id !== id) { navigate(`/duel/${last.id}`, { replace: true }); return; }
+        }
         setDuel(data);
         const done = await getDoc(doc(db, 'duel_results', `${id}_${user.uid}`));
         if (done.exists()) { setState('played'); return; }
@@ -53,7 +123,7 @@ export default function Duel() {
   const wrap = (children) => (
     <div className="page">
       {showAuth && <AuthModal onClose={() => setShowAuth(false)} />}
-      <div className="page-title">⚔️ Duel</div>
+      <div className="page-title">Duel{duel?.round > 1 ? ` · manche ${duel.round}` : ''}</div>
       {children}
     </div>
   );
@@ -71,6 +141,7 @@ export default function Duel() {
       <div style={{ color: 'var(--muted)', fontSize: 13, marginBottom: 10 }}>Tu as déjà joué ce duel. Résultats :</div>
       <DuelBoard duelId={id} />
       {shareBtn}
+      <NextRound id={id} duel={duel} navigate={navigate} />
       <button className="btn btn-secondary btn-full" style={{ marginTop: 8 }} onClick={() => navigate('/jouer')}>Retour</button>
     </>
   );
@@ -86,5 +157,5 @@ export default function Duel() {
 
   const quizData = { id: `duel_${id}`, name: `Duel de ${duel?.creatorName || 'un ami'}`, diff: 'medium', mode: 'duel', duelId: id, noBest: true, questions };
   return <QuizPlayInner quizData={quizData} navigate={navigate} backTo="/jouer" tagLabel="Duel" noReplay
-    extra={<div style={{ marginTop: 14 }}><div className="section-label">Résultats du duel</div><DuelBoard duelId={id} />{shareBtn}</div>} />;
+    extra={<div style={{ marginTop: 14 }}><div className="section-label">Résultats du duel</div><DuelBoard duelId={id} />{shareBtn}<NextRound id={id} duel={duel} navigate={navigate} /></div>} />;
 }
