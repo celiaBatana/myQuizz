@@ -15,10 +15,14 @@ export function shuffle(arr) {
   return a;
 }
 
+// « easy,medium » → ['easy','medium'] ; 'all' ou vide → null (tous les niveaux)
+export const diffList = diff => { const l = String(diff || '').split(',').filter(x => x && x !== 'all'); return l.length ? l : null; };
+
 // Questions d'une catégorie (et d'un niveau si diff != 'all'), valides uniquement
 export async function fetchByCatDiff(cat, diff) {
   const conds = [where('category', '==', cat)];
-  if (diff && diff !== 'all') conds.push(where('diff', '==', diff));
+  const dl = diffList(diff);
+  if (dl) conds.push(dl.length === 1 ? where('diff', '==', dl[0]) : where('diff', 'in', dl));
   const snap = await getDocs(query(collection(db, 'questions'), ...conds));
   return snap.docs
     .filter(d => d.data().active !== false && Array.isArray(d.data().options) && d.data().options.length >= 2)
@@ -68,13 +72,14 @@ async function fetchRandomAll(diff, target = 120) {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
   const rid = () => Array.from({ length: 20 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
   const found = new Map();
-  const per = diff && diff !== 'all' ? 40 : 30;
+  const per = diffList(diff) ? 40 : 30;
   for (let i = 0; i < 6 && found.size < target; i++) {
     const snap = await getDocs(query(col, orderBy(documentId()), startAt(rid()), limit(per)));
     snap.docs.filter(isValid).forEach(d => found.set(d.id, mapQ(d)));
   }
   let list = [...found.values()];
-  if (diff && diff !== 'all') list = list.filter(q => q.d === diff);
+  const dl = diffList(diff);
+  if (dl) list = list.filter(q => dl.includes(q.d));
   return list;
 }
 

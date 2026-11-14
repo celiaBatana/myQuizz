@@ -40,4 +40,17 @@ t('mort subite avec plusieurs catégories démarre', async a => {
   await a.page.locator('button:has-text("Lancer")').click(); await a.page.waitForTimeout(1500);
   a.assert.ok(/mort subite/i.test(await a.body()) && /1 \//.test(await a.body()), (await a.body()).slice(0, 200));
 });
+t('plusieurs niveaux cochables en mixte, un seul en mort subite', async a => {
+  await a.go('/jouer');
+  await a.page.locator('[data-diff="easy"]').click(); await a.page.locator('[data-diff="hard"]').click();
+  await a.page.locator('[data-cat="sport"]').click(); await a.page.locator('[data-cat="culture"]').click();
+  await a.page.locator('button:has-text("Lancer")').click(); await a.page.waitForTimeout(1200);
+  a.assert.ok(/diff=easy(%2C|,)hard/.test(a.page.url()), a.page.url());
+  await a.go('/jouer');
+  await a.page.locator('text=Mort subite').click();
+  await a.page.locator('[data-diff="easy"]').click(); await a.page.locator('[data-diff="hard"]').click();
+  await a.page.locator('[data-cat="sport"]').click(); await a.page.locator('[data-cat="culture"]').click();
+  await a.page.locator('button:has-text("Lancer")').click(); await a.page.waitForTimeout(1200);
+  a.assert.ok(/diff=hard(&|$)/.test(a.page.url()), a.page.url());
+});
 module.exports = { tests, seed };

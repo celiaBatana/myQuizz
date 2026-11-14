@@ -24,7 +24,9 @@ export default function Jouer() {
   const [sel, setSel]   = useState([]); // catégories choisies ; vide = toutes
   const cat = sel.length ? sel.join(',') : 'all';
   const tooFew = sel.length === 1; // une seule catégorie : jouer plutôt ses quiz depuis l'accueil
-  const [diff, setDiff] = useState('all');
+  const [diffs, setDiffs] = useState([]); // niveaux cochés ; vide = tous
+  const diff = diffs.length ? diffs.join(',') : 'all';
+  const toggleDiff = id => setDiffs(s => id === 'all' ? [] : mode === 'sudden' ? (s.includes(id) ? [] : [id]) : (s.includes(id) ? s.filter(x => x !== id) : [...s, id]));
   const [busy, setBusy] = useState(false);
   const [err, setErr]   = useState('');
   const [showAuth, setShowAuth] = useState(false);
@@ -81,7 +83,7 @@ export default function Jouer() {
       <div className="section-label">Mode</div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, marginBottom: 14 }}>
         {MODES.map(m => (
-          <div key={m.id} onClick={() => setMode(m.id)} style={{
+          <div key={m.id} onClick={() => { setMode(m.id); if (m.id === 'sudden') setDiffs(d => d.slice(0, 1)); }} style={{
             textAlign: 'center', padding: '12px 6px', borderRadius: 14, cursor: 'pointer',
             background: 'var(--s1)', border: `2px solid ${mode === m.id ? 'var(--purple)' : 'var(--s2)'}`,
           }}>
@@ -104,9 +106,12 @@ export default function Jouer() {
       <div className="section-label">Niveau</div>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 18 }}>
         {[['all', 'Tous'], ['easy', DIFF_LABELS.easy], ['medium', DIFF_LABELS.medium], ['hard', DIFF_LABELS.hard]].map(([id, label]) => (
-          <div key={id} style={chip(diff === id)} onClick={() => setDiff(id)}>{label}</div>
+          <div key={id} data-diff={id} style={chip(id === 'all' ? diffs.length === 0 : diffs.includes(id))} onClick={() => toggleDiff(id)}>{label}</div>
         ))}
       </div>
+      {mode !== 'sudden' && (
+        <div style={{ fontSize: 11, color: 'var(--muted)', margin: '-12px 0 14px' }}>Tu peux cocher 1, 2 ou 3 niveaux.</div>
+      )}
 
       {mode === 'sudden' && profile?.suddenBest > 0 && (
         <div style={{ fontSize: 12, color: 'var(--yellow)', marginBottom: 10 }}>Ton record : {profile.suddenBest} bonnes réponses d'affilée</div>
