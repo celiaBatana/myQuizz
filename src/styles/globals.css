@@ -246,3 +246,13 @@ body {
 .mb-2 { margin-bottom: 16px; }
 .mb-3 { margin-bottom: 24px; }
 .mt-2 { margin-top: 16px; }
+
+/* ── GRANDS ÉCRANS : contenu centré, largeur type « appli » (le téléphone ne change pas) ── */
+@media (min-width: 760px) {
+  .page { max-width: 720px; margin: 0 auto; padding: 24px 18px 100px; }
+  .navbar { padding-left: max(18px, calc((100vw - 720px) / 2 + 18px)); padding-right: max(18px, calc((100vw - 720px) / 2 + 18px)); }
+  .bottom-nav {
+    left: 50%; right: auto; width: 720px; transform: translateX(-50%);
+    border-radius: 18px 18px 0 0; border-left: 1px solid rgba(255,255,255,0.06); border-right: 1px solid rgba(255,255,255,0.06);
+  }
+}
