@@ -168,6 +168,7 @@ export function Quizzes() {
         const xpBase = XP_MAP[quiz.diff] || 10;
         const xpMax  = xpBase + (XP_TIMER_BONUS[quiz.diff] || 20);
         const best   = bestScores[quiz.id];
+        const dc     = DIFF_COLORS[quiz.diff] || 'var(--purple)';
         const prev   = quizzes[idx - 1];
         const laterPlayed = quizzes.slice(idx + 1).some(z => bestScores[z.id] !== undefined);
         const unlocked = !user || isAdmin || idx === 0 || (bestScores[prev.id] ?? -1) >= PASS || best !== undefined || laterPlayed;
@@ -177,10 +178,10 @@ export function Quizzes() {
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: 34, flexShrink: 0 }}>
               <div style={{
                 width: 34, height: 34, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, fontWeight: 800,
-                background: !unlocked ? 'var(--s2)' : stars > 0 ? 'var(--yellow)' : 'var(--s1)',
-                border: `2px solid ${unlocked ? 'var(--purple)' : 'var(--s3)'}`, color: stars > 0 && unlocked ? 'var(--on-primary)' : '#fff',
+                background: !unlocked ? 'var(--s2)' : stars > 0 ? dc : 'var(--s1)',
+                border: `2px solid ${unlocked ? dc : 'var(--s3)'}`, color: stars > 0 && unlocked ? 'var(--on-primary)' : '#fff',
               }}>{!unlocked ? '🔒' : stars > 0 ? '✓' : idx + 1}</div>
-              {idx < quizzes.length - 1 && <div style={{ flex: 1, width: 3, background: unlocked && stars > 0 ? 'var(--purple)' : 'var(--s2)', margin: '2px 0' }} />}
+              {idx < quizzes.length - 1 && <div style={{ flex: 1, width: 3, background: unlocked && stars > 0 ? dc : 'var(--s2)', margin: '2px 0' }} />}
             </div>
             <div
               onClick={() => {
@@ -188,7 +189,7 @@ export function Quizzes() {
                 setLockMsg(''); navigate(`/quiz/${catId}/${themeId}/${quiz.id}`);
               }}
               style={{
-                flex: 1, background: 'var(--s1)', border: '1px solid var(--s2)', borderRadius: 16, opacity: unlocked ? 1 : 0.55,
+                flex: 1, background: 'var(--s1)', border: '1px solid var(--s2)', borderLeft: `4px solid ${dc}`, borderRadius: 16, opacity: unlocked ? 1 : 0.55,
                 padding: '14px 15px', marginBottom: 8, cursor: 'pointer', transition: 'all .2s',
               }}
             >
@@ -198,7 +199,7 @@ export function Quizzes() {
               </div>
               <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', fontSize: 11, color: 'var(--muted)' }}>
                 <span>{qCounts[quiz.id] ?? '…'} questions</span>
-                <span style={{ fontWeight: 600, color: 'var(--yellow)' }}>{xpBase}–{xpMax} XP/question</span>
+                <span style={{ fontWeight: 600, color: dc }}>{xpBase}–{xpMax} XP/question</span>
                 {best !== undefined && (
                   <span style={{ fontWeight: 700, color: best === 100 ? 'var(--cyan)' : 'var(--purple)' }}>
                     {'★'.repeat(stars)}{'☆'.repeat(3 - stars)} Meilleur : {best}%

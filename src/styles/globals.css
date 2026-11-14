@@ -145,7 +145,7 @@ body {
 }
 .diff-easy { background: rgba(143,195,159,0.16); color: var(--cyan); }
 .diff-medium { background: rgba(230,179,90,0.16); color: #E6B35A; }
-.diff-hard { background: rgba(229,139,115,0.16); color: var(--pink); }
+.diff-hard { background: rgba(229,96,77,0.18); color: #E5604D; }
 
 /* ── XP BAR ── */
 .xp-bar-wrap { margin: 12px 0; }
