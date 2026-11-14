@@ -130,6 +130,21 @@ export default function Home() {
         <Icon d="M5 12h14M13 6l6 6-6 6" size={26} />
       </div>
 
+      <div data-testid="home-blindtest" onClick={() => navigate('/blindtest')}
+        style={{ position: 'relative', overflow: 'hidden', background: 'linear-gradient(135deg, rgba(154,123,201,.38), rgba(201,106,176,.22))', border: '1px solid rgba(154,123,201,.6)', borderRadius: 20, padding: '16px 18px', marginBottom: 14, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 14 }}>
+        <style>{`@keyframes hb-eq { 0%,100% { transform: scaleY(.25) } 50% { transform: scaleY(1) } } @media (prefers-reduced-motion: reduce) { .hb-bar { animation: none !important } }`}</style>
+        <div style={{ width: 52, height: 52, borderRadius: 16, background: '#9A7BC9', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28, flexShrink: 0 }}>🎵</div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ ...display, fontSize: 19 }}>Blind test</div>
+          <div style={{ fontSize: 13, color: 'var(--text)', opacity: .85, marginTop: 2 }}>Devine le morceau en 30 s · 7 styles</div>
+        </div>
+        <div aria-hidden="true" style={{ display: 'flex', alignItems: 'center', gap: 3, height: 34 }}>
+          {[0, 0.25, 0.1, 0.4, 0.15].map((d, k) => (
+            <div key={k} className="hb-bar" style={{ width: 4, height: '100%', borderRadius: 2, background: k % 2 ? '#C96AB0' : '#B79BE0', transformOrigin: 'center', animation: `hb-eq ${0.8 + k * 0.13}s ${d}s ease-in-out infinite` }} />
+          ))}
+        </div>
+      </div>
+
       {profile && !profile.onboarded && !(profile.quizzesPlayed > 0) && <Onboarding />}
       <DailyPanel />
 
@@ -164,20 +179,13 @@ export default function Home() {
           <Icon d={ICONS.arrow} color="var(--yellow)" size={18} />
         </div>
       ))}
-      <div data-testid="home-blindtest" onClick={() => navigate('/blindtest')} style={{ ...row, marginBottom: 10, borderColor: 'var(--purple)' }}>
-        <div style={{ fontSize: 22 }}>🎵</div>
-        <div style={{ flex: 1 }}>
-          <div style={{ ...display, fontSize: 15 }}>Blind test</div>
-          <div style={{ fontSize: 12, color: 'var(--muted)' }}>Devine le morceau · années 80, rap FR, génériques d'animes…</div>
-        </div>
-        <Icon d={ICONS.arrow} color="var(--purple)" size={18} />
-      </div>
-      <div onClick={() => navigate('/amis')} style={{ ...row, marginBottom: 16 }}>
+      <div data-testid="home-amis" onClick={() => navigate('/amis')} style={{ ...row, marginBottom: 16, background: 'rgba(143,195,159,.12)', borderColor: 'rgba(143,195,159,.45)' }}>
+        <div style={{ fontSize: 22 }}>👥</div>
         <div style={{ flex: 1 }}>
           <div style={{ ...display, fontSize: 15 }}>Mes amis</div>
           <div style={{ fontSize: 12, color: 'var(--muted)' }}>Ajoute des amis et défie-les en duel</div>
         </div>
-        <Icon d={ICONS.arrow} color="var(--yellow)" size={18} />
+        <Icon d={ICONS.arrow} color="var(--cyan)" size={18} />
       </div>
 
       {/* Quiz du jour */}
