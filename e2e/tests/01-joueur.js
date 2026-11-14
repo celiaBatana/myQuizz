@@ -65,6 +65,9 @@ t('étape 2 débloquée après 100 %', async a => {
 t('carte du thème gagnée après un quiz de chaque niveau', async a => {
   await a.go('/category/culture/theme/geographie'); await playAll(a, 'Capitales');
   const b = await a.body(); a.assert.ok(/Nouvelle carte/.test(b), b.slice(0, 400));
+  a.assert.strictEqual(await a.page.locator('[data-testid="card-reveal"]').count(), 1, 'animation de la carte');
+  await a.page.locator('[data-testid="card-reveal-close"]').click(); await a.page.waitForTimeout(300);
+  a.assert.strictEqual(await a.page.locator('[data-testid="card-reveal"]').count(), 0);
   a.assert.ok((Object.values((await a.db()).users)[0].cards || []).includes('culture:geographie'));
 });
 t('collection : carte possédée, anecdote, cartes verrouillées', async a => {

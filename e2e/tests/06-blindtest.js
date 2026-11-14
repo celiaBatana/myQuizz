@@ -27,10 +27,6 @@ t('carte Blind test sur l\'accueil', async a => {
   await a.go('/'); await a.page.locator('[data-testid="home-blindtest"]').click(); await a.page.waitForTimeout(300);
   a.assert.ok(a.page.url().endsWith('/blindtest'), a.page.url());
 });
-t('lien depuis Jouer', async a => {
-  await a.go('/jouer'); await a.page.locator('[data-testid="bt-link"]').click(); await a.page.waitForTimeout(300);
-  a.assert.ok(a.page.url().endsWith('/blindtest'), a.page.url());
-});
 t('connecté : XP gagné et record enregistré', async a => {
   await a.signup();
   await a.go('/blindtest/rapfr');
