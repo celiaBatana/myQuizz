@@ -56,7 +56,7 @@ export default function TabQuiz({ ctx }) {
                               <div style={{ flex: 1, minWidth: 0 }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 3, flexWrap: 'wrap' }}>
                                   {/* Badge difficulté en premier */}
-                                  <span style={S.tag(quiz.diff === 'easy' ? 'var(--cyan)' : quiz.diff === 'medium' ? 'var(--amber)' : 'var(--pink)')}>
+                                  <span style={S.tag(quiz.diff === 'easy' ? 'var(--cyan)' : quiz.diff === 'medium' ? 'var(--yellow)' : 'var(--pink)')}>
                                     {DIFF_LABELS[quiz.diff]}
                                   </span>
                                   <span style={{ fontWeight: 700, fontSize: 13 }}>{quiz.name}</span>
