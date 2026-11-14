@@ -29,7 +29,7 @@ export default function Jouer() {
   const chip = (active) => ({
     padding: '7px 12px', borderRadius: 20, fontSize: 12, fontWeight: 600, cursor: 'pointer',
     border: `1px solid ${active ? 'var(--purple)' : 'var(--s2)'}`,
-    background: active ? 'rgba(217,144,79,.2)' : 'var(--s1)', color: active ? '#fff' : 'var(--muted)',
+    background: active ? 'rgba(127,176,122,.2)' : 'var(--s1)', color: active ? '#fff' : 'var(--muted)',
   });
 
   async function go() {
