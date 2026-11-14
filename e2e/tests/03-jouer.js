@@ -53,4 +53,18 @@ t('plusieurs niveaux cochables en mixte, un seul en mort subite', async a => {
   await a.page.locator('button:has-text("Lancer")').click(); await a.page.waitForTimeout(1200);
   a.assert.ok(/diff=hard(&|$)/.test(a.page.url()), a.page.url());
 });
+t('mort subite : l\'écran de fin parle de série d\'affilée, pas de pourcentage', async a => {
+  await a.go('/jouer'); await a.page.locator('text=Mort subite').click();
+  await a.page.locator('[data-cat="sport"]').click(); await a.page.locator('[data-cat="cinema"]').click();
+  await a.page.locator('button:has-text("Lancer")').click(); await a.page.waitForTimeout(1500);
+  for (let k = 0; k < 8 && !/d'affilée/.test(await a.body()); k++) {
+    const bad = a.page.locator('text="F1"').or(a.page.locator('text="Fausse 1"')); await bad.first().click({ timeout: 4000 });
+    await a.page.waitForTimeout(500);
+
+    await a.page.locator('button:has-text("Question suivante"), button:has-text("Voir mes")').first().click({ timeout: 2000 }).catch(() => {});
+    await a.page.waitForTimeout(400);
+  }
+  const b = await a.body();
+  a.assert.ok(/d'affilée/.test(b) && !/vise le 100/.test(b), b.slice(0, 300));
+});
 module.exports = { tests, seed };
