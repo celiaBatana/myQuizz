@@ -34,7 +34,7 @@ export default function Play() {
   const quizData = {
     id: `${mode}_${cat}_${diff}`,
     name: `${mode === 'sudden' ? 'Mort subite' : 'Quiz mixte'} – ${label}`,
-    diff: diff === 'all' ? 'medium' : diff,
+    diff: (diff.split(',')[0] === 'all' ? 'medium' : diff.split(',')[0]),
     mode, noBest: true, questions,
   };
   return <QuizPlayInner key={`${mode}${cat}${diff}`} quizData={quizData} navigate={navigate} backTo="/jouer"
