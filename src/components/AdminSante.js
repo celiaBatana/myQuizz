@@ -87,7 +87,7 @@ function ReimportBox({ q, onSave, onCancel }) {
       <textarea data-testid="reimport-input" value={val} onChange={e => { setVal(e.target.value); setErr(''); }} rows={4}
         placeholder='Quel fleuve traverse Budapest ?,Le Danube,La Vistule,L&apos;Elbe,Le Rhin,0,"Le Danube sépare Buda et Pest."'
         style={{ width: '100%', boxSizing: 'border-box', fontSize: 12 }} />
-      {err && <div role="alert" style={{ color: '#FF4D4D', fontSize: 11, margin: '4px 0' }}>{err}</div>}
+      {err && <div role="alert" style={{ color: '#E5604D', fontSize: 11, margin: '4px 0' }}>{err}</div>}
       <div style={{ display: 'flex', gap: 6, marginTop: 6 }}>
         <button className="btn btn-primary" disabled={!val.trim()} style={{ padding: '5px 12px', fontSize: 11 }} onClick={check}>Voir l'aperçu</button>
         <button className="btn btn-secondary" style={{ padding: '5px 12px', fontSize: 11 }} onClick={onCancel}>Annuler</button>
@@ -260,7 +260,7 @@ export default function AdminSante({ questions, quizzes, cats, themes, reports, 
               <div style={{ fontSize: 12, fontWeight: 600 }}>{z.name}</div>
               <div style={{ fontSize: 10, color: 'var(--muted)' }}>{catLabel(z.catId)} › {themeLabel(z.themeId)} · {z.diff}</div>
             </div>
-            <span style={S.tag(z.n === 0 ? '#FF4D4D' : '#FFC857')}>{z.n}/{MIN_QUIZ}</span>
+            <span style={S.tag(z.n === 0 ? '#E5604D' : '#FFC857')}>{z.n}/{MIN_QUIZ}</span>
           </div>
         ))}
       </Section>
@@ -345,7 +345,7 @@ export default function AdminSante({ questions, quizzes, cats, themes, reports, 
                   </div>
                   <div style={{ fontSize: 10, color: nQuiz !== null && nQuiz <= MIN_QUIZ ? 'var(--yellow)' : 'var(--muted)', margin: '2px 0 4px' }}>
                     {nQuiz === null ? 'Dans aucun quiz (jamais jouée)' : `Son quiz compte ${nQuiz} question${nQuiz > 1 ? 's' : ''}${nQuiz <= MIN_QUIZ ? ` → ${nQuiz - 1} si tu la supprimes` : ''}`}
-                    {sameQuiz && <strong style={{ color: '#FF4D4D' }}> · doublon dans le MÊME quiz</strong>}
+                    {sameQuiz && <strong style={{ color: '#E5604D' }}> · doublon dans le MÊME quiz</strong>}
                   </div>
                   {csvId === q.id ? (
                     <ReimportBox q={q} onSave={async (qq, d) => { await onSaveQuestion(qq, d); setCsvId(null); }} onCancel={() => setCsvId(null)} />
@@ -359,7 +359,7 @@ export default function AdminSante({ questions, quizzes, cats, themes, reports, 
                       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                         <button className="btn btn-primary" style={{ padding: '5px 12px', fontSize: 11 }} onClick={() => setEditId(q.id)}>✏️ Modifier (en faire une autre)</button>
                         <button className="btn btn-primary" data-testid="csv-replace" style={{ padding: '5px 12px', fontSize: 11 }} onClick={() => setCsvId(q.id)}>📋 Remplacer par CSV</button>
-                        <button className="btn btn-secondary" style={{ padding: '5px 12px', fontSize: 11, color: '#FF4D4D' }} onClick={async () => {
+                        <button className="btn btn-secondary" style={{ padding: '5px 12px', fontSize: 11, color: '#E5604D' }} onClick={async () => {
                           const warn = nQuiz !== null && nQuiz <= MIN_QUIZ ? `\n\nAttention : son quiz passera à ${nQuiz - 1} question(s).` : '';
                           if (!window.confirm(`Supprimer cet exemplaire ?${warn}`)) return;
                           await onDeleteQuestion(q);
@@ -380,7 +380,7 @@ export default function AdminSante({ questions, quizzes, cats, themes, reports, 
           <div key={q.id} style={S.card}>
             <div style={S.row}>
               <div style={{ fontSize: 12, fontWeight: 600 }}>{q.text}</div>
-              <span style={S.tag('#FF4D4D')}>🚩 {n}</span>
+              <span style={S.tag('#E5604D')}>🚩 {n}</span>
             </div>
             <div style={{ fontSize: 10, color: 'var(--cyan)', marginTop: 3 }}>📍 {questionOrigin(q, null, cats, themes, quizzes)}</div>
           </div>
@@ -394,7 +394,7 @@ export default function AdminSante({ questions, quizzes, cats, themes, reports, 
           <div key={q.id} style={S.card}>
             <div style={S.row}>
               <div style={{ fontSize: 12, fontWeight: 600 }}>{q.text}</div>
-              <span style={S.tag(rate < 20 ? '#FF4D4D' : '#FFC857')}>{rate} %</span>
+              <span style={S.tag(rate < 20 ? '#E5604D' : '#FFC857')}>{rate} %</span>
             </div>
             <div style={{ fontSize: 10, color: 'var(--cyan)', marginTop: 3 }}>📍 {questionOrigin(q, null, cats, themes, quizzes)}</div>
             <div style={{ fontSize: 10, color: 'var(--muted)', margin: '3px 0 6px' }}>

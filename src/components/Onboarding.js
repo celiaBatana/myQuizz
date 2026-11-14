@@ -35,10 +35,10 @@ export default function Onboarding() {
             <div style={{ fontSize: 52 }}>👋</div>
             <div style={{ ...btn, fontSize: 22, margin: '6px 0 12px' }}>Bienvenue sur Quizly !</div>
             <div style={{ textAlign: 'left', fontSize: 14, lineHeight: 1.9, marginBottom: 18 }}>
-              🧠 Réponds à des quiz sur plein de thèmes<br />
-              ⚡ Gagne de l'XP et monte de niveau<br />
-              🔥 Joue chaque jour pour garder ta série<br />
-              🏅 Grimpe en ligue et défie tes amis
+              Réponds à des quiz sur plein de thèmes<br />
+              Gagne de l'XP et monte de niveau<br />
+              Joue chaque jour pour garder ta série<br />
+              Grimpe en ligue et défie tes amis
             </div>
             <button className="btn btn-primary btn-full" style={btn} onClick={() => setStep(1)}>Suivant</button>
           </div>
@@ -52,7 +52,7 @@ export default function Onboarding() {
             {DAILY_GOALS.map(n => (
               <div key={n} onClick={() => setGoal(n)} style={{
                 display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '11px 14px', marginBottom: 8, borderRadius: 12, cursor: 'pointer',
-                border: `2px solid ${goal === n ? 'var(--purple)' : 'var(--s2)'}`, background: goal === n ? 'rgba(155,109,255,.12)' : 'var(--s2)', textAlign: 'left',
+                border: `2px solid ${goal === n ? 'var(--purple)' : 'var(--s2)'}`, background: goal === n ? 'rgba(217,144,79,.12)' : 'var(--s2)', textAlign: 'left',
               }}>
                 <div><div style={{ fontWeight: 800 }}>{GOAL_TXT[n][0]}</div><div style={{ fontSize: 11, color: 'var(--muted)' }}>{GOAL_TXT[n][1]}</div></div>
                 <div style={{ fontWeight: 800, color: 'var(--yellow)' }}>{n} XP</div>
@@ -75,7 +75,7 @@ export default function Onboarding() {
                 }}>{c.icon} {c.label}</div>
               ))}
             </div>
-            <button className="btn btn-primary btn-full" style={btn} disabled={busy} onClick={() => finish(true)}>C'est parti ! 🚀</button>
+            <button className="btn btn-primary btn-full" style={btn} disabled={busy} onClick={() => finish(true)}>C'est parti !</button>
           </div>
         )}
 

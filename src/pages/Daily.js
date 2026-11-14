@@ -36,7 +36,7 @@ export default function Daily() {
   const wrap = (children) => (
     <div className="page">
       {showAuth && <AuthModal onClose={() => setShowAuth(false)} />}
-      <div className="page-title">📅 Défi du jour</div>
+      <div className="page-title">Défi du jour</div>
       {children}
     </div>
   );

@@ -71,7 +71,7 @@ export function Themes() {
             opacity: isEmpty(theme) ? 0.45 : 1,
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           }}
-          onMouseEnter={e => { if (isEmpty(theme)) return; e.currentTarget.style.borderColor = 'var(--purple)'; e.currentTarget.style.background = 'rgba(155,109,255,.07)'; }}
+          onMouseEnter={e => { if (isEmpty(theme)) return; e.currentTarget.style.borderColor = 'var(--purple)'; e.currentTarget.style.background = 'rgba(217,144,79,.07)'; }}
           onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--s2)'; e.currentTarget.style.background = 'var(--s1)'; }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -160,7 +160,7 @@ export function Quizzes() {
 
       {!loading && quizzes.length > 1 && user && (
         <div style={{ fontSize: 11, color: 'var(--muted)', marginBottom: 10 }}>
-          🗺️ Parcours : {quizzes.filter(z => (bestScores[z.id] ?? -1) >= PASS).length}/{quizzes.length} étapes validées (≥ {PASS} %)
+          Parcours : {quizzes.filter(z => (bestScores[z.id] ?? -1) >= PASS).length}/{quizzes.length} étapes validées (≥ {PASS} %)
         </div>
       )}
 
@@ -197,8 +197,8 @@ export function Quizzes() {
                 <span className={`diff-badge diff-${quiz.diff}`}>{DIFF_LABELS[quiz.diff]}</span>
               </div>
               <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', fontSize: 11, color: 'var(--muted)' }}>
-                <span>📋 {qCounts[quiz.id] ?? '…'} questions</span>
-                <span style={{ fontWeight: 600, color: 'var(--yellow)' }}>⚡ {xpBase}–{xpMax} XP/question</span>
+                <span>{qCounts[quiz.id] ?? '…'} questions</span>
+                <span style={{ fontWeight: 600, color: 'var(--yellow)' }}>{xpBase}–{xpMax} XP/question</span>
                 {best !== undefined && (
                   <span style={{ fontWeight: 700, color: best === 100 ? 'var(--cyan)' : 'var(--purple)' }}>
                     {'★'.repeat(stars)}{'☆'.repeat(3 - stars)} Meilleur : {best}%
@@ -323,7 +323,7 @@ export function QuizPlayInner({ quizData, cat, theme, catId, themeId, navigate, 
   function handleAnswer(i) {
     const result = quiz.answer(i);
     if (result?.correct) playCorrect(); else playWrong();
-    if (result?.correct) showXPToast(`+${result.xpGained} XP ⚡${result.mult > 1 ? ` · combo ×${result.mult} 🔥` : ''}`);
+    if (result?.correct) showXPToast(`+${result.xpGained} XP ⚡${result.mult > 1 ? ` · combo ×${result.mult}` : ''}`);
   }
 
   if (quiz.status === 'finished') {
@@ -338,7 +338,7 @@ export function QuizPlayInner({ quizData, cat, theme, catId, themeId, navigate, 
   return (
     <div className="page">
       <div className={`toast ${xpToast.show ? 'show' : ''}`}>{xpToast.msg}</div>
-      <style>{`@keyframes qz-shake { 0%,100% { transform: translateX(0) } 20% { transform: translateX(-7px) } 40% { transform: translateX(7px) } 60% { transform: translateX(-5px) } 80% { transform: translateX(5px) } } @keyframes qz-pulse { 0% { transform: scale(1) } 50% { transform: scale(1.03); box-shadow: 0 0 14px rgba(61,255,208,.5) } 100% { transform: scale(1) } }`}</style>
+      <style>{`@keyframes qz-shake { 0%,100% { transform: translateX(0) } 20% { transform: translateX(-7px) } 40% { transform: translateX(7px) } 60% { transform: translateX(-5px) } 80% { transform: translateX(5px) } } @keyframes qz-pulse { 0% { transform: scale(1) } 50% { transform: scale(1.03); box-shadow: 0 0 14px rgba(143,195,159,.5) } 100% { transform: scale(1) } }`}</style>
 
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12, paddingTop: 4 }}>
@@ -389,7 +389,7 @@ export function QuizPlayInner({ quizData, cat, theme, catId, themeId, navigate, 
         </span>
         {quiz.combo >= 2 && (
           <span style={{ marginLeft: 'auto', fontSize: 12, fontWeight: 700, color: 'var(--yellow)' }}>
-            🔥 ×{quiz.combo}
+            ×{quiz.combo}
           </span>
         )}
       </div>
@@ -416,13 +416,13 @@ export function QuizPlayInner({ quizData, cat, theme, catId, themeId, navigate, 
         {q?.o.map((opt, i) => {
           let borderColor = 'var(--s2)', bg = 'var(--s1)', letterBg = 'var(--s2)', letterColor = 'var(--muted)';
           if (quiz.answered) {
-            if (i === q.a)                   { borderColor = 'var(--cyan)';  bg = 'rgba(61,255,208,.07)'; letterBg = 'var(--cyan)';  letterColor = '#0f0e17'; }
-            else if (i === quiz.selectedOption) { borderColor = 'var(--pink)'; bg = 'rgba(255,95,160,.07)'; letterBg = 'var(--pink)'; letterColor = '#fff'; }
+            if (i === q.a)                   { borderColor = 'var(--cyan)';  bg = 'rgba(143,195,159,.07)'; letterBg = 'var(--cyan)';  letterColor = '#1F1A16'; }
+            else if (i === quiz.selectedOption) { borderColor = 'var(--pink)'; bg = 'rgba(229,139,115,.07)'; letterBg = 'var(--pink)'; letterColor = '#fff'; }
           }
           return (
             <div key={i} onClick={() => !quiz.answered && handleAnswer(i)}
               style={{ animation: quiz.answered ? (i === q.a ? 'qz-pulse .5s ease' : i === quiz.selectedOption ? 'qz-shake .4s ease' : undefined) : undefined, background: bg, border: `2px solid ${borderColor}`, borderRadius: 10, padding: '12px 13px', cursor: quiz.answered ? 'default' : 'pointer', transition: 'all .2s', display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, fontWeight: 500 }}
-              onMouseEnter={e => { if (!quiz.answered) { e.currentTarget.style.borderColor = 'var(--purple)'; e.currentTarget.style.background = 'rgba(155,109,255,.08)'; } }}
+              onMouseEnter={e => { if (!quiz.answered) { e.currentTarget.style.borderColor = 'var(--purple)'; e.currentTarget.style.background = 'rgba(217,144,79,.08)'; } }}
               onMouseLeave={e => { if (!quiz.answered) { e.currentTarget.style.borderColor = 'var(--s2)'; e.currentTarget.style.background = 'var(--s1)'; } }}
             >
               <div style={{ width: 25, height: 25, borderRadius: 7, background: letterBg, color: letterColor, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, flexShrink: 0 }}>
@@ -436,7 +436,7 @@ export function QuizPlayInner({ quizData, cat, theme, catId, themeId, navigate, 
 
       {/* Explication */}
       {quiz.answered && quiz.explanation && (
-        <div style={{ background: 'rgba(61,255,208,.05)', border: '1px solid rgba(61,255,208,.16)', borderRadius: 10, padding: '11px 13px', marginBottom: 12, fontSize: 12, color: 'var(--muted)', lineHeight: 1.6, animation: 'fadeIn .3s ease' }}>
+        <div style={{ background: 'rgba(143,195,159,.05)', border: '1px solid rgba(143,195,159,.16)', borderRadius: 10, padding: '11px 13px', marginBottom: 12, fontSize: 12, color: 'var(--muted)', lineHeight: 1.6, animation: 'fadeIn .3s ease' }}>
           <strong style={{ color: 'var(--cyan)' }}>
             {quiz.selectedOption === quiz.currentQuestion?.a ? '✓ Bonne réponse !' : '✗ Pas tout à fait.'}
           </strong>{' '}
@@ -446,7 +446,7 @@ export function QuizPlayInner({ quizData, cat, theme, catId, themeId, navigate, 
 
       {quiz.answered && quiz.currentQuestion?.id && (
         <div style={{ textAlign: 'right', marginBottom: 10, fontSize: 11 }}>
-          {report === 'idle' && <span style={{ color: 'var(--muted)', cursor: 'pointer' }} onClick={() => setReport('menu')}>🚩 Signaler cette question</span>}
+          {report === 'idle' && <span style={{ color: 'var(--muted)', cursor: 'pointer' }} onClick={() => setReport('menu')}>Signaler cette question</span>}
           {report === 'menu' && (
             <span style={{ display: 'inline-flex', gap: 6, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
               {['Réponse fausse', 'Question ambiguë', 'Faute / typo', 'Autre'].map(r => (
@@ -462,7 +462,7 @@ export function QuizPlayInner({ quizData, cat, theme, catId, themeId, navigate, 
 
       {quiz.answered && quiz.over && (
         <div style={{ textAlign: 'center', color: 'var(--pink)', fontWeight: 700, fontSize: 13, marginBottom: 10 }}>
-          💥 Mort subite : une erreur et c'est fini !
+          Mort subite : une erreur et c'est fini !
         </div>
       )}
 
@@ -471,7 +471,7 @@ export function QuizPlayInner({ quizData, cat, theme, catId, themeId, navigate, 
         <div style={{ position: 'sticky', bottom: 'calc(var(--bnav-height) + 10px)', zIndex: 20, paddingTop: 6 }}>
           <button className="btn btn-primary btn-full" onClick={quiz.next}
             style={{ animation: 'fadeIn .3s ease', fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 700, boxShadow: '0 6px 20px rgba(0,0,0,.5)' }}>
-            {(quiz.qIndex + 1 >= quiz.totalQuestions || quiz.over) ? 'Voir mes résultats 🏆' : 'Question suivante →'}
+            {(quiz.qIndex + 1 >= quiz.totalQuestions || quiz.over) ? 'Voir mes résultats' : 'Question suivante →'}
           </button>
         </div>
       )}
@@ -559,18 +559,18 @@ function ResultScreen({ quiz, quizData, catId, themeId, navigate, onReplay, onPr
       {quiz.rewards && (quiz.rewards.newCard || quiz.rewards.replayed || quiz.rewards.missionBonus > 0 || quiz.rewards.goalReached || quiz.rewards.milestone > 0 || quiz.rewards.newCosmetics?.length > 0 || quiz.rewards.leagueMoved || quiz.rewards.chestXP > 0 || quiz.rewards.freezeUsed || quiz.rewards.freezeGained || quiz.rewards.streak > 1) && (
         <div style={{ background: 'var(--s1)', border: '1px solid var(--s2)', borderRadius: 14, padding: '11px 14px', marginTop: 10, fontSize: 13, lineHeight: 1.7 }}>
           {quiz.rewards.newCard && <div>🃏 Nouvelle carte : <strong>{quiz.rewards.newCard.icon} {quiz.rewards.newCard.name}</strong> <Link to="/collection" style={{ color: 'var(--cyan)' }}>Voir ma collection</Link></div>}
-          {quiz.rewards.replayPct > 0 && <div>🔁 Quiz déjà réussi : XP de la partie réduit à {quiz.rewards.replayPct} % → <strong style={{ color: 'var(--yellow)' }}>+{quiz.rewards.earnedXP} XP</strong>. Améliore ton score pour gagner plus !</div>}
-          {quiz.rewards.replayPct === 0 && quiz.rewards.earnedXP === 0 && quiz.rewards.replayed && <div>🔁 Quiz déjà rejoué plusieurs fois aujourd'hui : plus d'XP sur celui-ci. Essaie un autre quiz !</div>}
-          {quiz.rewards.chestXP > 0 && <div>🎁 Coffre du jour : <strong style={{ color: 'var(--yellow)' }}>+{quiz.rewards.chestXP} XP</strong></div>}
-          {quiz.rewards.goalReached && <div>🎯 Objectif du jour atteint : <strong style={{ color: 'var(--yellow)' }}>+{quiz.rewards.goalBonus} XP</strong></div>}
-          {(quiz.rewards.missions || []).map(l => <div key={l}>✅ Mission : {l} <strong style={{ color: 'var(--yellow)' }}>+15 XP</strong></div>)}
-          {quiz.rewards.weeklyNew && <div>🏆 Mission de la semaine accomplie <strong style={{ color: 'var(--yellow)' }}>+60 XP</strong></div>}
-          {quiz.rewards.streak > 1 && <div>🔥 Série : <strong>{quiz.rewards.streak} jours</strong></div>}
-          {quiz.rewards.freezeUsed && <div>🧊 Un gel de série a sauvé ta série d'hier !</div>}
-          {quiz.rewards.freezeGained && <div>🧊 Nouveau gel de série gagné (7 jours d'affilée) !</div>}
+          {quiz.rewards.replayPct > 0 && <div>Quiz déjà réussi : XP de la partie réduit à {quiz.rewards.replayPct} % → <strong style={{ color: 'var(--yellow)' }}>+{quiz.rewards.earnedXP} XP</strong>. Améliore ton score pour gagner plus !</div>}
+          {quiz.rewards.replayPct === 0 && quiz.rewards.earnedXP === 0 && quiz.rewards.replayed && <div>Quiz déjà rejoué plusieurs fois aujourd'hui : plus d'XP sur celui-ci. Essaie un autre quiz !</div>}
+          {quiz.rewards.chestXP > 0 && <div>Coffre du jour : <strong style={{ color: 'var(--yellow)' }}>+{quiz.rewards.chestXP} XP</strong></div>}
+          {quiz.rewards.goalReached && <div>Objectif du jour atteint : <strong style={{ color: 'var(--yellow)' }}>+{quiz.rewards.goalBonus} XP</strong></div>}
+          {(quiz.rewards.missions || []).map(l => <div key={l}>Mission : {l} <strong style={{ color: 'var(--yellow)' }}>+15 XP</strong></div>)}
+          {quiz.rewards.weeklyNew && <div>Mission de la semaine accomplie <strong style={{ color: 'var(--yellow)' }}>+60 XP</strong></div>}
+          {quiz.rewards.streak > 1 && <div>Série : <strong>{quiz.rewards.streak} jours</strong></div>}
+          {quiz.rewards.freezeUsed && <div>Un gel de série a sauvé ta série d'hier !</div>}
+          {quiz.rewards.freezeGained && <div>Nouveau gel de série gagné (7 jours d'affilée) !</div>}
           {(quiz.rewards.newCosmetics || []).map(id => { const c = findCosmetic(id); return c && <div key={id}>🎨 Débloqué : {isAvatar(id) ? `avatar ${c.icon} ${c.name}` : `titre « ${c.name} »`}</div>; })}
           {quiz.rewards.leagueMoved === 'up' && <div>🏅 Tu montes en ligue <strong>{LEAGUES[quiz.rewards.league].name}</strong> {LEAGUES[quiz.rewards.league].icon}</div>}
-          {quiz.rewards.leagueMoved === 'down' && <div>📉 Tu redescends en ligue <strong>{LEAGUES[quiz.rewards.league].name}</strong>. Rejoue pour remonter !</div>}
+          {quiz.rewards.leagueMoved === 'down' && <div>Tu redescends en ligue <strong>{LEAGUES[quiz.rewards.league].name}</strong>. Rejoue pour remonter !</div>}
         </div>
       )}
 
@@ -589,7 +589,7 @@ function ResultScreen({ quiz, quizData, catId, themeId, navigate, onReplay, onPr
         {quiz.wrongCount > 0 && (
           <button className="btn btn-primary btn-full" style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 700 }}
             onClick={onPractice}>
-            🔁 Rejouer mes {quiz.wrongCount} erreur{quiz.wrongCount > 1 ? 's' : ''} (sans XP)
+            Rejouer mes {quiz.wrongCount} erreur{quiz.wrongCount > 1 ? 's' : ''} (sans XP)
           </button>
         )}
         <button className="btn btn-secondary btn-full" style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 700 }}
@@ -597,7 +597,7 @@ function ResultScreen({ quiz, quizData, catId, themeId, navigate, onReplay, onPr
             const r = await shareScore({ score: quiz.score, total: quiz.totalQuestions, name: cleanQuizName(quizData?.name) || 'Quiz', url: window.location.href });
             setShareMsg(r === 'copied' ? 'Lien copié ✓' : r === 'downloaded' ? 'Image téléchargée ✓' : r === 'shared' ? 'Partagé ✓' : '');
           }}>
-          📣 Partager mon score{shareMsg ? ` · ${shareMsg}` : ''}
+          Partager mon score{shareMsg ? ` · ${shareMsg}` : ''}
         </button>
         {!noReplay && (
           <button className={`btn ${quiz.wrongCount > 0 ? 'btn-secondary' : 'btn-primary'} btn-full`} style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 700 }}

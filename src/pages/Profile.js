@@ -113,11 +113,11 @@ export default function Profile() {
         {profile?.title && <div style={{ fontSize: 12, color: 'var(--yellow)', fontWeight: 700, marginBottom: 4 }}>{titleName(profile.title)}</div>}
         <div style={{ fontSize: 12, color: 'var(--muted)', marginBottom: 14 }}>
           {user.email}
-          {isAdmin && <span style={{ marginLeft: 8, background: 'rgba(155,109,255,.2)', color: 'var(--purple)', borderRadius: 6, padding: '1px 7px', fontSize: 10, fontWeight: 700 }}>ADMIN</span>}
+          {isAdmin && <span style={{ marginLeft: 8, background: 'rgba(217,144,79,.2)', color: 'var(--purple)', borderRadius: 6, padding: '1px 7px', fontSize: 10, fontWeight: 700 }}>ADMIN</span>}
         </div>
 
         {/* Badge niveau */}
-        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'rgba(155,109,255,.15)', border: '1px solid rgba(155,109,255,.3)', borderRadius: 12, padding: '6px 14px', marginBottom: 14 }}>
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'rgba(217,144,79,.15)', border: '1px solid rgba(217,144,79,.3)', borderRadius: 12, padding: '6px 14px', marginBottom: 14 }}>
           <span style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 800, fontSize: 18, color: 'var(--purple)' }}>Niveau {level}</span>
           <span style={{ fontSize: 12, color: 'var(--muted)' }}>{totalXP} XP total</span>
         </div>
@@ -156,7 +156,7 @@ export default function Profile() {
       {/* ── Personnalisation ── */}
       <div style={{ background: 'var(--s1)', border: '1px solid var(--s2)', borderRadius: 14, padding: '12px 14px', marginBottom: 14 }}>
         <div onClick={() => setShowCosm(v => !v)} style={{ fontSize: 13, fontWeight: 700, cursor: 'pointer', display: 'flex', justifyContent: 'space-between' }}>
-          <span>🎨 Avatar et titre</span><span style={{ color: 'var(--muted)' }}>{showCosm ? '▲' : '▼'}</span>
+          <span>Avatar et titre</span><span style={{ color: 'var(--muted)' }}>{showCosm ? '▲' : '▼'}</span>
         </div>
         {showCosm && (
           <div style={{ marginTop: 10 }}>
@@ -195,7 +195,7 @@ export default function Profile() {
       {/* ── Série + badges ── */}
       <div style={{ background: 'var(--s1)', border: '1px solid var(--s2)', borderRadius: 14, padding: '12px 14px', marginBottom: 14 }}>
         <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 8 }}>
-          🔥 Série : {streak} jour{streak > 1 ? 's' : ''} · 🧊 {freezes} gel{freezes > 1 ? 's' : ''}
+          Série : {streak} jour{streak > 1 ? 's' : ''} · {freezes} gel{freezes > 1 ? 's' : ''}
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6 }}>
           {BADGES.map(b => (
@@ -209,7 +209,7 @@ export default function Profile() {
 
       {/* ── Tabs ── */}
       <div style={{ display: 'flex', gap: 4, background: 'var(--s2)', borderRadius: 10, padding: 3, marginBottom: 14 }}>
-        {[['stats', '📊 Stats'], ['history', '📜 Historique']].map(([id, label]) => (
+        {[['stats', 'Stats'], ['history', 'Historique']].map(([id, label]) => (
           <div key={id} onClick={() => setActiveTab(id)} style={{
             flex: 1, textAlign: 'center', padding: '8px 0', borderRadius: 8, cursor: 'pointer',
             fontSize: 12, fontWeight: 600,

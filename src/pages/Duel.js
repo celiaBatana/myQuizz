@@ -117,7 +117,7 @@ function DuelInner({ id }) {
   }
   const shareBtn = (
     <button className="btn btn-secondary btn-full" style={{ marginTop: 10 }} onClick={share}>
-      {copied ? '✓ Lien copié !' : '🔗 Inviter un ami (partager le lien)'}
+      {copied ? '✓ Lien copié !' : 'Inviter un ami (partager le lien)'}
     </button>
   );
   const wrap = (children) => (

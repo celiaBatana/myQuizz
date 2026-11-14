@@ -39,7 +39,7 @@ export default function AuthModal({ onClose }) {
     <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && onClose()}>
       <div className="modal">
         <button className="modal-close" onClick={onClose}>×</button>
-        <div className="modal-title">Bienvenue 👋</div>
+        <div className="modal-title">Bienvenue</div>
         <div className="modal-sub">Sauvegarde ta progression et monte en niveau</div>
 
         <div className="modal-tabs">

@@ -60,7 +60,7 @@ export default function AdminReports({ reports, setReports, questions, cats, the
               <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                 {q && <button className="btn btn-secondary" style={{ padding: '5px 12px', fontSize: 11 }} onClick={() => setEditId(r.id)}>✏️ Corriger</button>}
                 <button className="btn btn-secondary" style={{ padding: '5px 12px', fontSize: 11 }} onClick={() => resolve(r)}>✓ Ignorer / résolu</button>
-                {q && <button className="btn btn-primary" style={{ padding: '5px 12px', fontSize: 11, background: '#FF4D4D' }} onClick={() => removeQuestion(r, q)}>Supprimer la question</button>}
+                {q && <button className="btn btn-primary" style={{ padding: '5px 12px', fontSize: 11, background: '#E5604D' }} onClick={() => removeQuestion(r, q)}>Supprimer la question</button>}
               </div>
             )}
           </div>
