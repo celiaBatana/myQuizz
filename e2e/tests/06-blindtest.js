@@ -48,4 +48,15 @@ t('connecté : XP gagné et record enregistré', async a => {
   a.assert.strictEqual(u.blindPlayed, 1);
   a.assert.ok(/XP/.test(await a.page.locator('[data-testid="bt-gain"]').innerText()));
 });
+t('classement : mes scores et ceux des autres, par style', async a => {
+  const u = Object.keys((await a.db()).users)[0];
+  await a.page.evaluate(() => { const d = window.__DB(); d.leaderboard = d.leaderboard || {}; d.leaderboard.zoe = { uid: 'zoe', name: 'Zoé', blindTotal: 15, blindBest: { rapfr: 9, animes: 6 } }; localStorage.setItem('fakedb', JSON.stringify(d)); });
+  await a.go('/blindtest'); await a.page.locator('[data-testid="bt-ranking"]').click(); await a.page.waitForTimeout(900);
+  a.assert.ok(a.page.url().endsWith('/blindtest/classement'), a.page.url());
+  a.assert.ok(await a.page.locator('[data-testid="bb-row"]').count() >= 1, (await a.body()).slice(0, 200));
+  await a.page.locator('[data-tab="animes"]').click();
+  a.assert.ok(/Zoé/.test(await a.body()) && /6\/10/.test(await a.body()));
+  await a.page.locator('[data-tab="films"]').click();
+  a.assert.ok(/Personne n'a encore/.test(await a.body()));
+});
 module.exports = { tests, seed };

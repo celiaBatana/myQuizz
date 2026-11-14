@@ -2,7 +2,8 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams, Navigate } from 'react-router-dom';
 import { BLIND_CATS, ALL_TRACKS, getBlindCat } from '../data/blindtest';
 import { fetchPreview } from '../utils/itunes';
-import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, setDoc, serverTimestamp, collection, getDocs, query, where, orderBy, limit } from 'firebase/firestore';
+import { avatarIcon } from '../data/cosmetics';
 import { db } from '../firebase';
 import { useAuth } from '../context/AuthContext';
 import { nextLeagueState } from '../utils/league';
@@ -41,6 +42,7 @@ export default function BlindHub() {
         </div>
       </div>
       <div className="page-sub">10 extraits de 30 s : devine le morceau. Choisis ton style.</div>
+      <button data-testid="bt-ranking" onClick={() => navigate('/blindtest/classement')} className="btn btn-secondary btn-full" style={{ marginBottom: 12 }}>🏆 Classement du blind test</button>
       <div data-testid="bt-cat" data-cat="mix" onClick={() => navigate('/blindtest/mix')}
         style={{ background: 'linear-gradient(135deg, rgba(232,132,74,.4), rgba(154,123,201,.32))', border: '1px solid rgba(232,132,74,.7)', borderRadius: 20, padding: '18px 18px', marginBottom: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 14 }}>
         <div style={{ width: 56, height: 56, borderRadius: 18, background: 'var(--yellow)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 30 }}>🎲</div>
@@ -137,16 +139,18 @@ export function BlindPlay() {
         const prevBest = profile.blindBest?.[info.id] || 0;
         const best = Math.max(prevBest, score);
         setGain({ xp, reduced, best, newRecord: score > prevBest && score > 0 });
+        const blindBest = { ...(profile.blindBest || {}), [info.id]: best };
+        const blindTotal = Object.values(blindBest).reduce((a, b) => a + (Number(b) || 0), 0);
         await updateProfile({
           totalXP, xpAt: serverTimestamp(), level: lvl, xpInLevel: remaining, weekKey: lg.weekKey, weekXP: lg.weekXP, league: lg.league,
-          blindBest: { ...(profile.blindBest || {}), [info.id]: best },
+          blindBest,
           blindPlayed: (profile.blindPlayed || 0) + 1,
           blindDay: { date: today, count: played + 1 },
         });
         await setDoc(doc(db, 'leaderboard', user.uid), {
           uid: user.uid, name: profile.displayName || user.displayName || 'Joueur', totalXP, level: lvl,
           weekKey: lg.weekKey, weekXP: lg.weekXP, league: lg.league,
-          avatar: profile.avatar || '', title: profile.title || '', updatedAt: serverTimestamp(),
+          avatar: profile.avatar || '', title: profile.title || '', blindBest, blindTotal, updatedAt: serverTimestamp(),
         }, { merge: true });
       } catch (e) { console.error(e); }
     })();
@@ -252,6 +256,47 @@ export function BlindPlay() {
           {i + 1 >= ROUNDS ? 'Voir mon score' : 'Extrait suivant'}
         </button>
       )}
+    </div>
+  );
+}
+
+// ── Classement : meilleurs scores par style (et total) ──
+export function BlindBoard() {
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const [rows, setRows] = useState(null);
+  const [sel, setSel] = useState('total');
+  useEffect(() => {
+    (async () => {
+      try {
+        const snap = await getDocs(query(collection(db, 'leaderboard'), where('blindTotal', '>', 0), orderBy('blindTotal', 'desc'), limit(200)));
+        setRows(snap.docs.map(d => d.data()));
+      } catch (e) { console.error(e); setRows([]); }
+    })();
+  }, []);
+  const score = r => sel === 'total' ? (r.blindTotal || 0) : (r.blindBest?.[sel] || 0);
+  const list = (rows || []).filter(r => score(r) > 0).sort((a, b) => score(b) - score(a)).slice(0, 30);
+  const MEDALS = ['🥇', '🥈', '🥉'];
+  const chip = a => ({ padding: '7px 12px', borderRadius: 20, fontSize: 12, fontWeight: 600, cursor: 'pointer', border: `1px solid ${a ? 'var(--yellow)' : 'var(--s2)'}`, background: a ? 'rgba(232,132,74,.2)' : 'var(--s1)', color: a ? '#fff' : 'var(--muted)', whiteSpace: 'nowrap' });
+  return (
+    <div className="page">
+      <div className="page-title">🏆 Classement blind test</div>
+      <div className="page-sub">{sel === 'total' ? 'Somme de tes meilleurs scores de chaque style' : 'Meilleur score sur 10'}</div>
+      <div style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 8, marginBottom: 8 }}>
+        <div data-testid="bb-tab" data-tab="total" style={chip(sel === 'total')} onClick={() => setSel('total')}>Total</div>
+        {BLIND_CATS.map(c => <div key={c.id} data-testid="bb-tab" data-tab={c.id} style={chip(sel === c.id)} onClick={() => setSel(c.id)}>{c.icon} {c.label}</div>)}
+        <div data-testid="bb-tab" data-tab="mix" style={chip(sel === 'mix')} onClick={() => setSel('mix')}>🎲 Mélangé</div>
+      </div>
+      {rows === null && <div style={{ textAlign: 'center', color: 'var(--muted)', padding: 28, fontSize: 13 }}>Chargement…</div>}
+      {rows !== null && list.length === 0 && <div style={{ textAlign: 'center', color: 'var(--muted)', padding: 28, fontSize: 13 }}>Personne n'a encore de score ici. Sois le premier !</div>}
+      {list.map((r, k) => (
+        <div key={r.uid} data-testid="bb-row" style={{ display: 'flex', alignItems: 'center', gap: 10, background: r.uid === user?.uid ? 'rgba(232,132,74,.15)' : 'var(--s1)', border: `1px solid ${r.uid === user?.uid ? 'var(--yellow)' : 'var(--s2)'}`, borderRadius: 12, padding: '10px 13px', marginBottom: 6 }}>
+          <div style={{ width: 28, textAlign: 'center', fontWeight: 800, fontSize: k < 3 ? 18 : 13, color: 'var(--muted)' }}>{MEDALS[k] || k + 1}</div>
+          <div style={{ flex: 1, minWidth: 0, fontSize: 14, fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{r.avatar ? avatarIcon(r.avatar) + ' ' : ''}{r.name}{r.uid === user?.uid && ' (toi)'}</div>
+          <div style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 800, color: 'var(--yellow)' }}>{sel === 'total' ? score(r) : `${score(r)}/10`}</div>
+        </div>
+      ))}
+      <button className="btn btn-secondary btn-full" style={{ marginTop: 10 }} onClick={() => navigate('/blindtest')}>Retour</button>
     </div>
   );
 }

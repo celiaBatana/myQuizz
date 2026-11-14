@@ -17,7 +17,7 @@ import Jouer from './pages/Jouer';
 import Play from './pages/Play';
 import Daily from './pages/Daily';
 import Amis from './pages/Amis';
-import BlindHub, { BlindPlay } from './pages/BlindTest';
+import BlindHub, { BlindPlay, BlindBoard } from './pages/BlindTest';
 import Duel from './pages/Duel';
 import Leaderboard from './pages/Leaderboard';
 import './styles/globals.css';
@@ -38,6 +38,7 @@ export default function App() {
             <Route path="/play" element={<Play />} />
             <Route path="/daily" element={<Daily />} />
             <Route path="/blindtest" element={<BlindHub />} />
+            <Route path="/blindtest/classement" element={<BlindBoard />} />
             <Route path="/blindtest/:cat" element={<BlindPlay />} />
             <Route path="/amis" element={<Amis />} />
             <Route path="/duel/:id" element={<Duel />} />
