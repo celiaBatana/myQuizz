@@ -170,6 +170,6 @@ export function getThemeList(catId) {
 export const XP_MAP        = { easy: 5, medium: 10, hard: 20 };
 export const XP_TIMER_BONUS= { easy: 10, medium: 20, hard: 30 };
 export const DIFF_LABELS   = { easy: 'Facile', medium: 'Moyen', hard: 'Expert' };
-export const DIFF_COLORS   = { easy: '#8FC39F', medium: '#E6B35A', hard: '#E58B73' };
+export const DIFF_COLORS   = { easy: '#8FC39F', medium: '#E6B35A', hard: '#E5604D' };
 export const XP_PER_LEVEL  = 200;
 export const FREE_DAILY_LIMIT = 3;
