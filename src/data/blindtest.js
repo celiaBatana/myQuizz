@@ -1,0 +1,23 @@
+// Morceaux du blind test (l'extrait de 30 s est récupéré à la volée via l'API iTunes)
+export const BLIND_TRACKS = [
+  { title: 'Get Lucky', artist: 'Daft Punk' },
+  { title: 'Billie Jean', artist: 'Michael Jackson' },
+  { title: 'Bohemian Rhapsody', artist: 'Queen' },
+  { title: 'Dancing Queen', artist: 'ABBA' },
+  { title: 'Alors on danse', artist: 'Stromae' },
+  { title: 'My Heart Will Go On', artist: 'Céline Dion' },
+  { title: 'Désenchantée', artist: 'Mylène Farmer' },
+  { title: "L'Aventurier", artist: 'Indochine' },
+  { title: 'Djadja', artist: 'Aya Nakamura' },
+  { title: 'Makeba', artist: 'Jain' },
+  { title: 'Freed from Desire', artist: 'Gala' },
+  { title: 'Blue (Da Ba Dee)', artist: 'Eiffel 65' },
+  { title: 'Umbrella', artist: 'Rihanna' },
+  { title: 'Rolling in the Deep', artist: 'Adele' },
+  { title: 'Viva la Vida', artist: 'Coldplay' },
+  { title: '...Baby One More Time', artist: 'Britney Spears' },
+  { title: 'Poker Face', artist: 'Lady Gaga' },
+  { title: 'Balance ton quoi', artist: 'Angèle' },
+  { title: 'Relax, Take It Easy', artist: 'MIKA' },
+  { title: 'Blinding Lights', artist: 'The Weeknd' },
+];
