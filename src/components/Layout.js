@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import AuthModal from './AuthModal';
 import Toast from './Toast';
 import { streakInfo } from '../utils/retention';
+import Notifs from './Notifs';
 import SoundToggle from './SoundToggle';
 
 export default function Layout() {
@@ -29,6 +30,7 @@ export default function Layout() {
 
   return (
     <div className="app">
+      <Notifs />
       {/* Navbar */}
       <nav className="navbar">
         <span className="navbar-logo" onClick={() => navigate('/')}>Quizly</span>

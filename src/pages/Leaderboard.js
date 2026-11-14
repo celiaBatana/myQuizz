@@ -44,22 +44,34 @@ export function DailyBoard({ date }) {
   ));
 }
 
-export function DuelBoard({ duelId }) {
+export function DuelBoard({ duelId, invitedUid, invitedName }) {
   const { user } = useAuth();
   const [rows, setRows] = useState(null);
+  // Actualisé toutes les 4 s : le score de l'autre apparaît dès qu'il a fini
   useEffect(() => {
-    (async () => {
+    let alive = true, n = 0;
+    const load = async () => {
       try {
         const snap = await getDocs(query(collection(db, 'duel_results'), where('duelId', '==', duelId), limit(100)));
-        setRows(snap.docs.map(d => d.data()).sort((a, b) => b.score - a.score));
-      } catch (e) { console.error(e); setRows([]); }
-    })();
+        if (alive) setRows(snap.docs.map(d => d.data()).sort((a, b) => b.score - a.score));
+      } catch (e) { console.error(e); if (alive) setRows(r => r || []); }
+    };
+    load();
+    const t = setInterval(() => { if (++n > 150) clearInterval(t); else load(); }, 4000);
+    return () => { alive = false; clearInterval(t); };
   }, [duelId]);
   if (!rows) return <Empty text="Chargement…" />;
-  if (!rows.length) return <Empty text="Pas encore de résultat." />;
-  return rows.map((r, i) => (
-    <Row key={r.uid} rank={i} name={r.name} me={r.uid === user?.uid} right={`${r.score}/${r.total}`} />
-  ));
+  const waiting = invitedUid && !rows.some(r => r.uid === invitedUid);
+  return (
+    <div data-testid="duel-board">
+      {!rows.length && <Empty text="Pas encore de résultat." />}
+      {rows.map((r, i) => (
+        <Row key={r.uid} rank={i} name={r.name} me={r.uid === user?.uid} right={`${r.score}/${r.total}`} />
+      ))}
+      {waiting && <div data-testid="duel-waiting" style={{ fontSize: 13, color: 'var(--muted)', padding: '8px 4px' }}>⏳ {invitedName || 'Ton ami'} n'a pas encore joué, son score apparaîtra ici.</div>}
+      {rows.length === 1 && !invitedUid && <div style={{ fontSize: 12, color: 'var(--muted)', padding: '8px 4px' }}>En attente des autres joueurs… le score s'affichera ici.</div>}
+    </div>
+  );
 }
 
 function LeagueBoard() {
