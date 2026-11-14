@@ -7,6 +7,7 @@ import AuthModal from '../components/AuthModal';
 import { mapQ, fetchVaried } from '../utils/questions';
 import { QuizPlayInner } from './QuizPlay';
 import { DuelBoard } from './Leaderboard';
+import { BlindPlay, decodeRounds } from './BlindTest';
 
 // Dernière manche d'un salon : on suit la chaîne nextId (jamais plus de 50 maillons)
 async function lastRound(id, first) {
@@ -99,6 +100,7 @@ function DuelInner({ id }) {
         setDuel(data);
         const done = await getDoc(doc(db, 'duel_results', `${id}_${user.uid}`));
         if (done.exists()) { setState('played'); return; }
+        if (data.type === 'blind') { setState('blind'); return; }
         const snap = await getDocs(query(collection(db, 'questions'), where(documentId(), 'in', data.questionIds.slice(0, 10))));
         const byId = Object.fromEntries(snap.docs.map(x => [x.id, mapQ(x)]));
         const qs = data.questionIds.map(qid => byId[qid]).filter(Boolean);
@@ -141,10 +143,23 @@ function DuelInner({ id }) {
       <div style={{ color: 'var(--muted)', fontSize: 13, marginBottom: 10 }}>Tu as déjà joué ce duel. Résultats :</div>
       <DuelBoard duelId={id} invitedUid={duel?.invitedUid} invitedName={duel?.invitedName} />
       {shareBtn}
-      <NextRound id={id} duel={duel} navigate={navigate} />
-      <button className="btn btn-secondary btn-full" style={{ marginTop: 8 }} onClick={() => navigate('/jouer')}>Retour</button>
+      {duel?.type !== 'blind' && <NextRound id={id} duel={duel} navigate={navigate} />}
+      <button className="btn btn-secondary btn-full" style={{ marginTop: 8 }} onClick={() => navigate(duel?.type === 'blind' ? '/blindtest' : '/jouer')}>Retour</button>
     </>
   );
+  if (state === 'blind') {
+    if (!started) return wrap(
+      <div style={{ textAlign: 'center', padding: '16px 0' }}>
+        <div style={{ fontSize: 44, marginBottom: 8 }}>🎵⚔️</div>
+        <p style={{ color: 'var(--muted)', fontSize: 14, maxWidth: 300, margin: '0 auto 18px', lineHeight: 1.6 }}>
+          <strong>{duel?.creatorName || 'Un ami'}</strong> te défie au blind test ! 10 extraits, un seul essai. Monte le son.
+        </p>
+        <button className="btn btn-primary" data-testid="bt-duel-start" onClick={() => setStarted(true)}>Relever le défi</button>
+        {shareBtn}
+      </div>
+    );
+    return <BlindPlay preset={{ styleId: duel.styleId || duel.cat, rounds: decodeRounds(duel.questionIds), duelId: id, invitedUid: duel.invitedUid, invitedName: duel.invitedName }} />;
+  }
   if (!started) return wrap(
     <div style={{ textAlign: 'center', padding: '16px 0' }}>
       <div style={{ fontSize: 44, marginBottom: 8 }}>⚔️</div>
