@@ -138,6 +138,14 @@ export default function Home() {
         </div>
       </div>
 
+      <div onClick={() => navigate('/amis')} style={{ ...row, marginBottom: 16 }}>
+        <div style={{ flex: 1 }}>
+          <div style={{ ...display, fontSize: 15 }}>Mes amis</div>
+          <div style={{ fontSize: 12, color: 'var(--muted)' }}>Ajoute des amis et défie-les en duel</div>
+        </div>
+        <Icon d={ICONS.arrow} color="var(--yellow)" size={18} />
+      </div>
+
       {/* Quiz du jour */}
       <div className="section-label">Quiz du jour</div>
       {featuredQuiz ? (
