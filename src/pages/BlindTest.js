@@ -20,23 +20,33 @@ export default function BlindHub() {
   const navigate = useNavigate();
   return (
     <div className="page">
-      <div className="page-title">🎵 Blind test</div>
+      <style>{`@keyframes bh-eq { 0%,100% { transform: scaleY(.25) } 50% { transform: scaleY(1) } } @media (prefers-reduced-motion: reduce) { .bh-bar { animation: none !important } }`}</style>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 4 }}>
+        <div className="page-title" style={{ marginBottom: 0 }}>🎵 Blind test</div>
+        <div aria-hidden="true" style={{ display: 'flex', alignItems: 'center', gap: 3, height: 26 }}>
+          {[0, 0.2, 0.1, 0.35, 0.05, 0.3].map((d, k) => (
+            <div key={k} className="bh-bar" style={{ width: 4, height: '100%', borderRadius: 2, background: ['#E8844A', '#C96AB0', '#9A7BC9'][k % 3], transformOrigin: 'center', animation: `bh-eq ${0.7 + k * 0.11}s ${d}s ease-in-out infinite` }} />
+          ))}
+        </div>
+      </div>
       <div className="page-sub">10 extraits de 30 s : devine le morceau. Choisis ton style.</div>
       <div data-testid="bt-cat" data-cat="mix" onClick={() => navigate('/blindtest/mix')}
-        style={{ ...card, borderColor: 'var(--yellow)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 12 }}>
-        <div style={{ fontSize: 28 }}>🎲</div>
+        style={{ background: 'linear-gradient(135deg, rgba(232,132,74,.4), rgba(154,123,201,.32))', border: '1px solid rgba(232,132,74,.7)', borderRadius: 20, padding: '18px 18px', marginBottom: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 14 }}>
+        <div style={{ width: 56, height: 56, borderRadius: 18, background: 'var(--yellow)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 30 }}>🎲</div>
         <div style={{ flex: 1 }}>
-          <div style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 800, fontSize: 16 }}>Tout mélangé</div>
-          <div style={{ fontSize: 12, color: 'var(--muted)' }}>Un peu de tous les styles</div>
+          <div style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 800, fontSize: 19 }}>Tout mélangé</div>
+          <div style={{ fontSize: 12, color: 'var(--text)', opacity: .85 }}>Un peu de tous les styles · {ALL_TRACKS.length} morceaux</div>
         </div>
+        <div style={{ fontSize: 22 }}>›</div>
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 10 }}>
         {BLIND_CATS.map(c => (
           <div key={c.id} data-testid="bt-cat" data-cat={c.id} onClick={() => navigate(`/blindtest/${c.id}`)}
-            style={{ ...card, marginBottom: 0, cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <div style={{ fontSize: 26 }}>{c.icon}</div>
-            <div style={{ fontWeight: 700, fontSize: 14 }}>{c.label}</div>
-            <div style={{ fontSize: 11, color: 'var(--muted)', lineHeight: 1.4 }}>{c.desc}</div>
+            style={{ background: `${c.color}2E`, border: `1px solid ${c.color}80`, borderRadius: 18, padding: 14, cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: 8, minHeight: 138 }}>
+            <div style={{ width: 46, height: 46, borderRadius: 14, background: c.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24 }}>{c.icon}</div>
+            <div style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 800, fontSize: 15, lineHeight: 1.2 }}>{c.label}</div>
+            <div style={{ fontSize: 11, color: 'var(--text)', opacity: .75, lineHeight: 1.4, flex: 1 }}>{c.desc}</div>
+            <div style={{ fontSize: 11, fontWeight: 700, color: c.color }}>{c.tracks.length} morceaux</div>
           </div>
         ))}
       </div>
@@ -55,17 +65,17 @@ function Visualizer({ playing, loading, onPlay, disabled }) {
     <div style={{ textAlign: 'center', padding: '6px 0 2px' }}>
       <style>{`
         @keyframes bt-eq { 0%,100% { transform: scaleY(.18) } 50% { transform: scaleY(1) } }
-        @keyframes bt-ring { 0% { transform: scale(.8); opacity: .55 } 100% { transform: scale(1.9); opacity: 0 } }
+        @keyframes bt-ring { 0% { transform: scale(.8); opacity: .55 } 100% { transform: scale(1.3); opacity: 0 } }
         @keyframes bt-beat { 0%,100% { transform: scale(1) } 50% { transform: scale(1.07) } }
         @media (prefers-reduced-motion: reduce) { .bt-anim { animation: none !important } }
       `}</style>
-      <div style={{ position: 'relative', width: 140, height: 140, margin: '6px auto 10px' }}>
+      <div style={{ position: 'relative', width: 190, height: 190, margin: '0 auto 8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         {playing && [0, 1, 2].map(i => (
-          <div key={i} className="bt-anim" style={{ position: 'absolute', inset: 0, borderRadius: '50%', border: '2px solid var(--yellow)', animation: `bt-ring 2.1s ${i * 0.7}s ease-out infinite` }} />
+          <div key={i} className="bt-anim" style={{ position: 'absolute', width: 140, height: 140, borderRadius: '50%', border: '2px solid var(--yellow)', animation: `bt-ring 2.1s ${i * 0.7}s ease-out infinite` }} />
         ))}
         <button data-testid="bt-play" disabled={disabled} onClick={onPlay} aria-label={playing ? 'Réécouter' : "Écouter l'extrait"}
           className={playing ? 'bt-anim' : ''}
-          style={{ position: 'relative', width: 140, height: 140, borderRadius: '50%', border: 'none', cursor: 'pointer', background: 'var(--yellow)', color: 'var(--on-primary)', fontSize: 44,
+          style={{ position: 'relative', zIndex: 1, width: 140, height: 140, borderRadius: '50%', border: 'none', cursor: 'pointer', background: 'var(--yellow)', color: 'var(--on-primary)', fontSize: 44,
             boxShadow: playing ? '0 0 34px rgba(232,132,74,.55)' : '0 6px 18px rgba(0,0,0,.35)', animation: playing ? 'bt-beat .9s ease-in-out infinite' : 'none' }}>
           {loading ? '…' : playing ? '♪' : '▶'}
         </button>
@@ -154,7 +164,7 @@ export function BlindPlay() {
     <div className="page">
       <div className="page-title">{info.icon || '🎲'} {info.label}</div>
       <div className="page-sub">Extrait {i + 1}/{ROUNDS} · {score} bonne{score > 1 ? 's' : ''} réponse{score > 1 ? 's' : ''}</div>
-      <div style={{ ...card }}>
+      <div style={{ ...card, overflow: 'hidden' }}>
         {url ? <audio ref={audio} src={url} preload="auto" onEnded={() => setPlaying(false)} /> : null}
         {url === null ? (
           <div role="alert" style={{ fontSize: 13, color: 'var(--red)', textAlign: 'center' }}>

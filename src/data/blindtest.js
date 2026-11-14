@@ -1,6 +1,6 @@
 // Blind test : catégories et morceaux (l'extrait de 30 s est récupéré à la volée via l'API iTunes)
 export const BLIND_CATS = [
-  { id: "tubes", label: "Les grands tubes", icon: "🎤", desc: "Les morceaux que tout le monde connaît", tracks: [
+  { id: "tubes", color: "#E8844A", label: "Les grands tubes", icon: "🎤", desc: "Les morceaux que tout le monde connaît", tracks: [
     { title: "Get Lucky", artist: "Daft Punk" },
     { title: "Billie Jean", artist: "Michael Jackson" },
     { title: "Bohemian Rhapsody", artist: "Queen" },
@@ -22,7 +22,7 @@ export const BLIND_CATS = [
     { title: "Relax, Take It Easy", artist: "MIKA" },
     { title: "Blinding Lights", artist: "The Weeknd" },
   ] },
-  { id: "annees80", label: "Années 80", icon: "📼", desc: "Synthés, new wave et tubes de boum", tracks: [
+  { id: "annees80", color: "#C96AB0", label: "Années 80", icon: "📼", desc: "Synthés, new wave et tubes de boum", tracks: [
     { title: "Take On Me", artist: "a-ha" },
     { title: "Thriller", artist: "Michael Jackson" },
     { title: "Like a Virgin", artist: "Madonna" },
@@ -39,7 +39,7 @@ export const BLIND_CATS = [
     { title: "Les Démons de minuit", artist: "Images" },
     { title: "Purple Rain", artist: "Prince" },
   ] },
-  { id: "annees90", label: "Années 90", icon: "📟", desc: "Boys bands, grunge et dance", tracks: [
+  { id: "annees90", color: "#6F93D8", label: "Années 90", icon: "📟", desc: "Boys bands, grunge et dance", tracks: [
     { title: "Smells Like Teen Spirit", artist: "Nirvana" },
     { title: "I Want It That Way", artist: "Backstreet Boys" },
     { title: "Wannabe", artist: "Spice Girls" },
@@ -56,7 +56,7 @@ export const BLIND_CATS = [
     { title: "Livin' la Vida Loca", artist: "Ricky Martin" },
     { title: "Creep", artist: "Radiohead" },
   ] },
-  { id: "annees2000", label: "Années 2000", icon: "💿", desc: "Skyblog, MP3 et tubes radio", tracks: [
+  { id: "annees2000", color: "#4FB3A9", label: "Années 2000", icon: "💿", desc: "Skyblog, MP3 et tubes radio", tracks: [
     { title: "Hips Don't Lie", artist: "Shakira" },
     { title: "Crazy in Love", artist: "Beyoncé" },
     { title: "Lose Yourself", artist: "Eminem" },
@@ -73,7 +73,7 @@ export const BLIND_CATS = [
     { title: "Le Chemin", artist: "Kyo" },
     { title: "La Boulette", artist: "Diam's" },
   ] },
-  { id: "rapfr", label: "Rap FR", icon: "🎧", desc: "Les classiques et les hits du rap français", tracks: [
+  { id: "rapfr", color: "#D4A23C", label: "Rap FR", icon: "🎧", desc: "Les classiques et les hits du rap français", tracks: [
     { title: "Au DD", artist: "PNL" },
     { title: "La terre est ronde", artist: "Orelsan" },
     { title: "On verra", artist: "Nekfeu" },
@@ -90,7 +90,7 @@ export const BLIND_CATS = [
     { title: "Goutte d'eau", artist: "Ninho" },
     { title: "Angela", artist: "Hatik" },
   ] },
-  { id: "animes", label: "Génériques d'animes", icon: "🍥", desc: "Openings cultes à reconnaître en 3 secondes", tracks: [
+  { id: "animes", color: "#E0678F", label: "Génériques d'animes", icon: "🍥", desc: "Openings cultes à reconnaître en 3 secondes", tracks: [
     { title: "Cha-La Head-Cha-La", artist: "Hironobu Kageyama" },
     { title: "We Are!", artist: "Hiroshi Kitadani" },
     { title: "Blue Bird", artist: "Ikimono-gakari" },
@@ -107,7 +107,7 @@ export const BLIND_CATS = [
     { title: "Sparkle", artist: "RADWIMPS" },
     { title: "Hikaru Nara", artist: "Goose house" },
   ] },
-  { id: "films", label: "Films & Disney", icon: "🎬", desc: "Bandes originales et chansons de dessins animés", tracks: [
+  { id: "films", color: "#9A7BC9", label: "Films & Disney", icon: "🎬", desc: "Bandes originales et chansons de dessins animés", tracks: [
     { title: "Let It Go", artist: "Idina Menzel" },
     { title: "Circle of Life", artist: "Elton John" },
     { title: "You'll Be in My Heart", artist: "Phil Collins" },
