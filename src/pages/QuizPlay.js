@@ -8,7 +8,7 @@ import { useAuth } from '../context/AuthContext';
 import { useQuiz } from '../hooks/useQuiz';
 import { LEAGUES } from '../utils/league';
 import { shareScore } from '../utils/share';
-import { pickResultMessage } from '../utils/resultMessages';
+import { pickResultMessage, pickSuddenMessage } from '../utils/resultMessages';
 import Confetti from '../components/Confetti';
 import { playCorrect, playWrong, playWin, playLose } from '../utils/sound';
 import { findCosmetic, isAvatar } from '../data/cosmetics';
@@ -483,12 +483,14 @@ export function QuizPlayInner({ quizData, cat, theme, catId, themeId, navigate, 
 // ── ResultScreen ──────────────────────────────────────────────────────────────
 function ResultScreen({ quiz, quizData, catId, themeId, navigate, onReplay, onPractice, backTo, extra, noReplay }) {
   const pct   = quiz.score / quiz.totalQuestions;
-  const msg = React.useMemo(() => pickResultMessage(pct), []);
+  const sudden = quiz.mode === 'sudden';
+  const maxRun = quizData?.questions?.length || quiz.totalQuestions;
+  const msg = React.useMemo(() => sudden ? pickSuddenMessage(quiz.score, quiz.score === quiz.totalQuestions) : pickResultMessage(pct), []);
   const { emoji, title } = msg;
   const [xpBarWidth, setXpBarWidth] = React.useState(0);
   const [shareMsg, setShareMsg] = React.useState('');
   const [celebrate, setCelebrate] = React.useState(true);
-  React.useEffect(() => { if (pct >= 0.6) playWin(); else playLose(); }, []); // eslint-disable-line
+  React.useEffect(() => { if (sudden ? quiz.score >= 5 : pct >= 0.6) playWin(); else playLose(); }, []); // eslint-disable-line
   const { profile } = useAuth();
   const [nextQuiz, setNextQuiz] = React.useState(null);
   const canSeek = !!(catId && themeId && quizData?.id && quizData.id !== 'review');
@@ -532,8 +534,8 @@ function ResultScreen({ quiz, quizData, catId, themeId, navigate, onReplay, onPr
 
       <div style={{ background: 'var(--s1)', border: '1px solid var(--s2)', borderRadius: 16, padding: 16, margin: '14px 0', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6, textAlign: 'center' }}>
         <div>
-          <div style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontSize: 22, fontWeight: 800, color: 'var(--yellow)' }}>{quiz.score}/{quiz.totalQuestions}</div>
-          <div style={{ fontSize: 10, color: 'var(--muted)', marginTop: 2 }}>Score</div>
+          <div style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontSize: 22, fontWeight: 800, color: 'var(--yellow)' }}>{sudden ? quiz.score : `${quiz.score}/${quiz.totalQuestions}`}</div>
+          <div style={{ fontSize: 10, color: 'var(--muted)', marginTop: 2 }}>{sudden ? `d'affilée (max ${maxRun})` : 'Score'}</div>
         </div>
         <div>
           <div style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontSize: 22, fontWeight: 800, color: 'var(--cyan)' }}>+{quiz.totalXP}</div>

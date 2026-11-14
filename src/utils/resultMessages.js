@@ -50,3 +50,19 @@ export function pickResultMessage(pct) {
   try { localStorage.setItem(KEY, title); } catch (e) { /* sans stockage */ }
   return { emoji: band.emoji, title, sub };
 }
+
+// Mort subite : le score est une série de bonnes réponses d'affilée (pas un pourcentage)
+const SUDDEN = [
+  { min: 40, emoji: '👑', list: [['Légendaire !', 'Une série de folie, personne ne t\'arrête.']] },
+  { min: 20, emoji: '🏆', list: [['Incroyable !', 'Plus de 20 d\'affilée : tu es redoutable.'], ['Machine de guerre !', 'Une longue série sans faute, chapeau.']] },
+  { min: 10, emoji: '🔥', list: [['Très belle série !', 'Dix bonnes réponses ou plus sans te tromper.'], ['Tu es en feu !', 'Encore un peu et tu atteins les 20.']] },
+  { min: 5,  emoji: '👍', list: [['Bien joué !', 'Une série solide, vise les 10 d\'affilée.'], ['Pas mal !', 'Tu peux aller plus loin, retente.']] },
+  { min: 1,  emoji: '😬', list: [['Dommage…', 'La série s\'arrête vite, la revanche t\'attend.'], ['Aïe, trop tôt !', 'Une erreur et c\'est fini, retente.']] },
+  { min: 0,  emoji: '💥', list: [['Boum, dès la première !', 'La mort subite ne pardonne pas, rejoue.']] },
+];
+export function pickSuddenMessage(streak, ranAll) {
+  if (ranAll) return { emoji: '👑', title: 'Sans-faute total !', sub: 'Tu as répondu juste à toutes les questions, du jamais vu.' };
+  const band = SUDDEN.find(b => streak >= b.min) || SUDDEN[SUDDEN.length - 1];
+  const [title, sub] = band.list[Math.floor(Math.random() * band.list.length)];
+  return { emoji: band.emoji, title, sub };
+}
