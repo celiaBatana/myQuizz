@@ -31,4 +31,21 @@ t('lien depuis Jouer', async a => {
   await a.go('/jouer'); await a.page.locator('[data-testid="bt-link"]').click(); await a.page.waitForTimeout(300);
   a.assert.ok(a.page.url().endsWith('/blindtest'), a.page.url());
 });
+t('connecté : XP gagné et record enregistré', async a => {
+  await a.signup();
+  await a.go('/blindtest/rapfr');
+  await a.page.evaluate(() => { window.__ITUNES_MOCK = async () => 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA='; });
+  await a.page.locator('[data-testid="bt-start"]').click();
+  for (let k = 0; k < 10; k++) {
+    await a.page.locator('[data-testid="bt-play"]').waitFor({ timeout: 4000 });
+    await a.page.locator('[data-testid="bt-opt"]').first().click();
+    await a.page.locator('[data-testid="bt-next"]').click();
+  }
+  await a.page.locator('[data-testid="bt-gain"]').waitFor({ timeout: 4000 });
+  await a.page.waitForTimeout(800);
+  const d = await a.db(); const u = Object.values(d.users)[0];
+  a.assert.ok(u.blindBest && typeof u.blindBest.rapfr === 'number', JSON.stringify(u.blindBest));
+  a.assert.strictEqual(u.blindPlayed, 1);
+  a.assert.ok(/XP/.test(await a.page.locator('[data-testid="bt-gain"]').innerText()));
+});
 module.exports = { tests, seed };

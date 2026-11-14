@@ -2,6 +2,15 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams, Navigate } from 'react-router-dom';
 import { BLIND_CATS, ALL_TRACKS, getBlindCat } from '../data/blindtest';
 import { fetchPreview } from '../utils/itunes';
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { db } from '../firebase';
+import { useAuth } from '../context/AuthContext';
+import { nextLeagueState } from '../utils/league';
+import { dayKey } from '../hooks/useQuiz';
+
+const XP_PER_LEVEL = 200;
+const XP_PER_GOOD = 8;      // 10 bonnes réponses = 80 XP
+const FULL_GAMES_PER_DAY = 3; // ensuite 25 % (anti-farm)
 
 const ROUNDS = 10;
 const label = t => `${t.title} — ${t.artist}`;
@@ -18,6 +27,8 @@ function build(pool) {
 // ── Choix du type de blind test ──
 export default function BlindHub() {
   const navigate = useNavigate();
+  const { profile } = useAuth();
+  const rec = id => profile?.blindBest?.[id];
   return (
     <div className="page">
       <style>{`@keyframes bh-eq { 0%,100% { transform: scaleY(.25) } 50% { transform: scaleY(1) } } @media (prefers-reduced-motion: reduce) { .bh-bar { animation: none !important } }`}</style>
@@ -46,7 +57,7 @@ export default function BlindHub() {
             <div style={{ width: 46, height: 46, borderRadius: 14, background: c.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24 }}>{c.icon}</div>
             <div style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 800, fontSize: 15, lineHeight: 1.2 }}>{c.label}</div>
             <div style={{ fontSize: 11, color: 'var(--text)', opacity: .75, lineHeight: 1.4, flex: 1 }}>{c.desc}</div>
-            <div style={{ fontSize: 11, fontWeight: 700, color: c.color }}>{c.tracks.length} morceaux</div>
+            <div style={{ fontSize: 11, fontWeight: 700, color: c.color }}>{rec(c.id) ? `Record : ${rec(c.id)}/10` : `${c.tracks.length} morceaux`}</div>
           </div>
         ))}
       </div>
@@ -105,6 +116,42 @@ export function BlindPlay() {
   const [url, setUrl] = useState(undefined); // undefined = chargement, null = indisponible
   const [playing, setPlaying] = useState(false);
   const audio = useRef(null);
+  const { user, profile, updateProfile } = useAuth();
+  const awarded = useRef(false);
+  const [gain, setGain] = useState(null); // { xp, reduced, best }
+
+  // Fin de partie : XP, record du style, classement hebdo
+  useEffect(() => {
+    if (!rounds || i < ROUNDS || awarded.current) return;
+    awarded.current = true;
+    if (!user || !profile) { setGain({ xp: 0, guest: true }); return; }
+    (async () => {
+      try {
+        const today = dayKey();
+        const played = profile.blindDay?.date === today ? (profile.blindDay.count || 0) : 0;
+        const reduced = played >= FULL_GAMES_PER_DAY;
+        const xp = Math.round(score * XP_PER_GOOD * (reduced ? 0.25 : 1));
+        const totalXP = (profile.totalXP || 0) + xp;
+        let lvl = 1, remaining = totalXP; while (remaining >= XP_PER_LEVEL) { remaining -= XP_PER_LEVEL; lvl++; }
+        const lg = nextLeagueState(profile, xp);
+        const prevBest = profile.blindBest?.[info.id] || 0;
+        const best = Math.max(prevBest, score);
+        setGain({ xp, reduced, best, newRecord: score > prevBest && score > 0 });
+        await updateProfile({
+          totalXP, xpAt: serverTimestamp(), level: lvl, xpInLevel: remaining, weekKey: lg.weekKey, weekXP: lg.weekXP, league: lg.league,
+          blindBest: { ...(profile.blindBest || {}), [info.id]: best },
+          blindPlayed: (profile.blindPlayed || 0) + 1,
+          blindDay: { date: today, count: played + 1 },
+        });
+        await setDoc(doc(db, 'leaderboard', user.uid), {
+          uid: user.uid, name: profile.displayName || user.displayName || 'Joueur', totalXP, level: lvl,
+          weekKey: lg.weekKey, weekXP: lg.weekXP, league: lg.league,
+          avatar: profile.avatar || '', title: profile.title || '', updatedAt: serverTimestamp(),
+        }, { merge: true });
+      } catch (e) { console.error(e); }
+    })();
+    // eslint-disable-next-line
+  }, [rounds, i]);
 
   useEffect(() => {
     if (!rounds || i >= ROUNDS) return undefined;
@@ -129,7 +176,7 @@ export function BlindPlay() {
     // on laisse l'extrait finir : on peut encore l'écouter après la réponse
   }
   function next() { if (audio.current) audio.current.pause(); setPicked(null); setI(x => x + 1); }
-  function restart() { setRounds(build(info.tracks)); setI(0); setScore(0); setPicked(null); }
+  function restart() { awarded.current = false; setGain(null); setRounds(build(info.tracks)); setI(0); setScore(0); setPicked(null); }
 
   if (!rounds) {
     return (
@@ -153,6 +200,18 @@ export function BlindPlay() {
           <div style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontSize: 44, fontWeight: 800, color: 'var(--yellow)' }}>{score}/{ROUNDS}</div>
           <div style={{ fontSize: 14, color: 'var(--muted)' }}>{score >= 8 ? 'Quelle oreille ! 🎧' : score >= 5 ? 'Pas mal du tout !' : 'Tu feras mieux à la prochaine écoute.'}</div>
         </div>
+        {gain && (
+          <div data-testid="bt-gain" style={{ ...card, textAlign: 'center', borderColor: gain.xp ? 'var(--yellow)' : 'var(--s2)' }}>
+            {gain.guest ? <div style={{ fontSize: 13, color: 'var(--muted)' }}>Connecte-toi pour gagner de l'XP et enregistrer tes records.</div> : (
+              <>
+                <div style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontSize: 22, fontWeight: 800, color: 'var(--yellow)' }}>+{gain.xp} XP</div>
+                {gain.newRecord && <div style={{ fontSize: 13, color: 'var(--cyan)', marginTop: 4 }}>🏆 Nouveau record sur ce style : {gain.best}/{ROUNDS}</div>}
+                {!gain.newRecord && gain.best > 0 && <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 4 }}>Ton record sur ce style : {gain.best}/{ROUNDS}</div>}
+                {gain.reduced && <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 4 }}>XP réduit : tu as déjà fait {FULL_GAMES_PER_DAY} parties complètes aujourd'hui.</div>}
+              </>
+            )}
+          </div>
+        )}
         <button className="btn btn-primary btn-full" onClick={restart}>Rejouer ce style</button>
         <button className="btn btn-secondary btn-full" style={{ marginTop: 8 }} onClick={() => navigate('/blindtest')}>Changer de style</button>
       </div>
