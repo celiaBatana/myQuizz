@@ -139,7 +139,7 @@ function DuelInner({ id }) {
   if (state === 'played') return wrap(
     <>
       <div style={{ color: 'var(--muted)', fontSize: 13, marginBottom: 10 }}>Tu as déjà joué ce duel. Résultats :</div>
-      <DuelBoard duelId={id} />
+      <DuelBoard duelId={id} invitedUid={duel?.invitedUid} invitedName={duel?.invitedName} />
       {shareBtn}
       <NextRound id={id} duel={duel} navigate={navigate} />
       <button className="btn btn-secondary btn-full" style={{ marginTop: 8 }} onClick={() => navigate('/jouer')}>Retour</button>
@@ -157,5 +157,5 @@ function DuelInner({ id }) {
 
   const quizData = { id: `duel_${id}`, name: `Duel de ${duel?.creatorName || 'un ami'}`, diff: 'medium', mode: 'duel', duelId: id, noBest: true, questions };
   return <QuizPlayInner quizData={quizData} navigate={navigate} backTo="/jouer" tagLabel="Duel" noReplay
-    extra={<div style={{ marginTop: 14 }}><div className="section-label">Résultats du duel</div><DuelBoard duelId={id} />{shareBtn}<NextRound id={id} duel={duel} navigate={navigate} /></div>} />;
+    extra={<div style={{ marginTop: 14 }}><div className="section-label">Résultats du duel</div><DuelBoard duelId={id} invitedUid={duel?.invitedUid} invitedName={duel?.invitedName} />{shareBtn}<NextRound id={id} duel={duel} navigate={navigate} /></div>} />;
 }
