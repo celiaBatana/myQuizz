@@ -39,4 +39,18 @@ t('ajout par pseudo exact', async a => {
   await a.page.locator('[data-testid="friend-add"]').click(); await a.page.waitForTimeout(800);
   a.assert.ok(Object.keys((await a.db()).friend_requests).some(k => k.endsWith('_max')));
 });
+t('Défier crée un duel avec invitedUid', async a => {
+  await a.go('/amis'); await a.page.waitForTimeout(600);
+  await a.page.locator('[data-testid="friend-challenge"]').first().click(); await a.page.waitForTimeout(500);
+  a.assert.ok(/duel=bob/.test(a.page.url()), a.page.url());
+  await a.page.getByText('Créer le duel').click(); await a.page.waitForTimeout(1500);
+  const d = Object.values((await a.db()).duels || {});
+  a.assert.ok(d.some(x => x.invitedUid === 'bob'), JSON.stringify(d).slice(0, 200));
+});
+t('invitation visible sur l\'accueil', async a => {
+  const u = await uid(a);
+  await a.page.evaluate(u => { const d = window.__DB(); d.duels = d.duels || {}; d.duels.inv1 = { questionIds: [], cat: 'all', diff: 'all', creatorUid: 'zoe', creatorName: 'Zoé', invitedUid: u }; localStorage.setItem('fakedb', JSON.stringify(d)); }, u);
+  await a.go('/'); await a.page.waitForTimeout(800);
+  a.assert.strictEqual(await a.page.locator('[data-testid="duel-invite"]').count(), 1);
+});
 module.exports = { tests, seed };
