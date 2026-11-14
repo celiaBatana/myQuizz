@@ -9,7 +9,7 @@ export default function TabLier({ ctx }) {
   return (
     <>
         <div>
-          <div style={{ background: 'rgba(217,144,79,.08)', border: '1px solid rgba(217,144,79,.3)', borderRadius: 12, padding: 14, marginBottom: 16 }}>
+          <div style={{ background: 'rgba(127,176,122,.08)', border: '1px solid rgba(127,176,122,.3)', borderRadius: 12, padding: 14, marginBottom: 16 }}>
             <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 4 }}>🔗 Lier des questions à un quiz</div>
             <div style={{ fontSize: 12, color: 'var(--muted)' }}>
               Sélectionne un quiz cible, filtre les questions sans quiz, coche celles à lier, puis clique sur Lier.
@@ -55,7 +55,7 @@ export default function TabLier({ ctx }) {
                 ③ Sélectionner les questions ({linkSelected.length} sélectionnée(s))
               </label>
               <div style={{ display: 'flex', gap: 6 }}>
-                <button style={{ ...S.iconBtn('var(--cyan)'), fontSize: 11, padding: '4px 8px', border: '1px solid rgba(143,195,159,.3)', borderRadius: 6 }}
+                <button style={{ ...S.iconBtn('var(--cyan)'), fontSize: 11, padding: '4px 8px', border: '1px solid rgba(127,200,192,.3)', borderRadius: 6 }}
                   onClick={() => setLinkSelected(linkFilteredQ.map(q => q.id))}>
                   Tout sélectionner
                 </button>
@@ -77,14 +77,14 @@ export default function TabLier({ ctx }) {
                     <div key={q.id} onClick={() => toggleLinkSelect(q.id)} style={{
                       padding: '10px 13px', borderBottom: '1px solid rgba(255,255,255,.04)',
                       cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 10,
-                      background: sel ? 'rgba(217,144,79,.12)' : 'transparent', transition: 'background .15s',
+                      background: sel ? 'rgba(127,176,122,.12)' : 'transparent', transition: 'background .15s',
                     }}>
                       <div style={S.checkbox(sel)}>{sel ? '✓' : ''}</div>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ fontSize: 12, fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{q.text}</div>
                         <div style={{ display: 'flex', gap: 5, marginTop: 2 }}>
                           <span style={S.tag('var(--purple)')}>{q.category}</span>
-                          <span style={S.tag(q.diff === 'easy' ? 'var(--cyan)' : q.diff === 'medium' ? 'var(--yellow)' : 'var(--pink)')}>{DIFF_LABELS[q.diff]}</span>
+                          <span style={S.tag(q.diff === 'easy' ? 'var(--cyan)' : q.diff === 'medium' ? 'var(--amber)' : 'var(--pink)')}>{DIFF_LABELS[q.diff]}</span>
                         </div>
                       </div>
                     </div>

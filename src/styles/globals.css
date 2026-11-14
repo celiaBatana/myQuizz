@@ -5,15 +5,16 @@
   --s1: #2A231E;
   --s2: #3A312A;
   --s3: #4A3F36;
-  --yellow: #F2A65A;
+  --yellow: #8FBF8A;
   --pink: #E58B73;
-  --cyan: #8FC39F;
-  --purple: #D9904F;
+  --cyan: #7FC8C0;
+  --purple: #7FB07A;
   --orange: #E07A3D;
   --red: #E5604D;
   --text: #F3EBE2;
   --muted: #B8A99A;
-  --on-primary: #2A1A0C;
+  --on-primary: #16241A;
+  --amber: #E6B35A;
   --radius: 18px;
   --radius-sm: 12px;
   --radius-xs: 8px;
@@ -142,8 +143,8 @@ body {
   font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
   display: inline-flex; align-items: center;
 }
-.diff-easy { background: rgba(143,195,159,0.16); color: var(--cyan); }
-.diff-medium { background: rgba(242,166,90,0.16); color: var(--yellow); }
+.diff-easy { background: rgba(127,200,192,0.16); color: var(--cyan); }
+.diff-medium { background: rgba(230,179,90,0.16); color: #E6B35A; }
 .diff-hard { background: rgba(229,139,115,0.16); color: var(--pink); }
 
 /* ── XP BAR ── */
