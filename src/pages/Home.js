@@ -8,6 +8,7 @@ import { dayKey } from '../hooks/useQuiz';
 import { dueReviewIds } from '../utils/league';
 import DailyPanel from '../components/DailyPanel';
 import Onboarding from '../components/Onboarding';
+import { streakInfo } from '../utils/retention';
 import { cleanQuizName } from '../utils/quizName';
 
 const Icon = ({ d, size = 22, color = 'currentColor' }) => (
@@ -92,68 +93,89 @@ export default function Home() {
   const level = profile?.level || 1;
   const xpInLevel = profile?.xpInLevel || 0;
   const xpPct = Math.min(1, xpInLevel / XP_PER_LEVEL);
+  const streak = streakInfo(profile);
   const firstName = (profile?.displayName || '').split(' ')[0];
 
   return (
     <div className="page">
-      <div style={{ background: 'var(--s1)', borderRadius: 24, padding: 20, marginBottom: 14, display: 'flex', alignItems: 'center', gap: 18 }}>
-        <div style={{ position: 'relative', width: 92, height: 92, flexShrink: 0 }}>
-          <svg width="92" height="92" viewBox="0 0 92 92" aria-hidden="true">
-            <circle cx="46" cy="46" r={RING_R} fill="none" stroke="var(--s2)" strokeWidth="8" />
-            <circle cx="46" cy="46" r={RING_R} fill="none" stroke="var(--yellow)" strokeWidth="8" strokeLinecap="round"
-              strokeDasharray={RING_C} strokeDashoffset={RING_C * (1 - xpPct)} transform="rotate(-90 46 46)" />
-          </svg>
-          <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-            <div style={{ ...display, fontSize: 28, lineHeight: 1 }}>{level}</div>
-            <div style={{ fontSize: 11, color: 'var(--muted)' }}>niveau</div>
+      <div className="home-top">
+      <div className="home-hero" style={{ background: 'linear-gradient(135deg, var(--s1), #33291F)', border: '1px solid var(--s2)', borderRadius: 24, padding: 20, marginBottom: 14 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+          <div style={{ position: 'relative', width: 92, height: 92, flexShrink: 0 }}>
+            <svg width="92" height="92" viewBox="0 0 92 92" aria-hidden="true">
+              <circle cx="46" cy="46" r={RING_R} fill="none" stroke="var(--s2)" strokeWidth="8" />
+              <circle cx="46" cy="46" r={RING_R} fill="none" stroke="var(--yellow)" strokeWidth="8" strokeLinecap="round"
+                strokeDasharray={RING_C} strokeDashoffset={RING_C * (1 - xpPct)} transform="rotate(-90 46 46)" style={{ transition: 'stroke-dashoffset .8s' }} />
+            </svg>
+            <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+              <div style={{ ...display, fontSize: 28, lineHeight: 1 }}>{level}</div>
+              <div style={{ fontSize: 11, color: 'var(--muted)' }}>niveau</div>
+            </div>
+          </div>
+          <div style={{ minWidth: 0, flex: 1 }}>
+            <div style={{ fontSize: 13, color: 'var(--muted)' }}>{firstName ? `Bonjour ${firstName}` : 'Bienvenue'}</div>
+            <div style={{ ...display, fontSize: 21, lineHeight: 1.2, marginTop: 2 }}>
+              {profile ? `${XP_PER_LEVEL - xpInLevel} XP avant le niveau ${level + 1}` : 'Teste tes connaissances'}
+            </div>
+            {profile && (
+              <div style={{ display: 'flex', gap: 8, marginTop: 8, flexWrap: 'wrap' }}>
+                <span data-testid="home-streak" style={{ fontSize: 12, fontWeight: 800, padding: '3px 10px', borderRadius: 20, background: 'rgba(232,132,74,.18)', color: 'var(--yellow)' }}>🔥 {streak.count} jour{streak.count > 1 ? 's' : ''}</span>
+                <span style={{ fontSize: 12, fontWeight: 700, padding: '3px 10px', borderRadius: 20, background: 'var(--s2)', color: 'var(--text)' }}>⭐ {profile.totalXP || 0} XP</span>
+              </div>
+            )}
           </div>
         </div>
-        <div style={{ minWidth: 0 }}>
-          <div style={{ fontSize: 13, color: 'var(--muted)' }}>{firstName ? `Bonjour ${firstName}` : 'Bienvenue'}</div>
-          <div style={{ ...display, fontSize: 21, lineHeight: 1.2, marginTop: 2 }}>
-            {profile ? `${XP_PER_LEVEL - xpInLevel} XP avant le niveau ${level + 1}` : 'Teste tes connaissances'}
+        <div style={{ height: 8, borderRadius: 6, background: 'var(--s2)', margin: '16px 0 14px', overflow: 'hidden' }}>
+          <div style={{ width: `${xpPct * 100}%`, height: '100%', background: 'linear-gradient(90deg, var(--yellow), var(--amber))', borderRadius: 6, transition: 'width .8s' }} />
+        </div>
+        <div style={{ display: 'flex', gap: 10 }}>
+          <button className="btn btn-primary" data-testid="home-play" style={{ flex: 1 }} onClick={() => navigate('/jouer')}>▶ Jouer</button>
+          <button className="btn btn-secondary" data-testid="home-daily" style={{ flex: 1 }} onClick={() => navigate('/daily')}>Défi du jour</button>
+        </div>
+        <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 10 }}>
+          {categories.length} catégories · {totalThemes} thèmes · {totalQuizzes} quiz · {totalQuestions} questions
+        </div>
+      </div>
+      </div>
+
+      <div className="section-label">Modes de jeu</div>
+      <style>{`
+        @keyframes hb-eq { 0%,100% { transform: scaleY(.25) } 50% { transform: scaleY(1) } }
+        @keyframes hb-boss { 0%,100% { transform: translateY(0) rotate(-4deg) } 50% { transform: translateY(-6px) rotate(4deg) } }
+        @keyframes hb-swing { 0%,100% { transform: rotate(-12deg) } 50% { transform: rotate(12deg) } }
+        .mode-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-bottom: 18px }
+        .mode-card { position: relative; overflow: hidden; border-radius: 20px; padding: 14px; cursor: pointer; min-height: 188px; display: flex; flex-direction: column; justify-content: flex-end; transition: transform .15s }
+        .mode-card:hover { transform: translateY(-2px) }
+        .mode-art { position: absolute; top: 10px; right: 10px; width: 56px; height: 56px; display: flex; align-items: center; justify-content: center }
+        @media (prefers-reduced-motion: reduce) { .mode-art, .mode-art * { animation: none !important } }
+      `}</style>
+      <div className="mode-grid">
+        <div className="mode-card" data-testid="home-boss" onClick={() => navigate('/boss')} style={{ background: 'linear-gradient(145deg, rgba(229,96,77,.42), rgba(201,163,79,.16))', border: '1px solid rgba(229,96,77,.6)' }}>
+          <div className="mode-art" style={{ fontSize: 46, animation: 'hb-boss 2.2s ease-in-out infinite' }}>🐉</div>
+          <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: '.1em', color: '#FF9C8A' }}>BOSS FIGHT</div>
+          <div style={{ ...display, fontSize: 17, marginTop: 2 }}>Affronte les boss</div>
+          <div style={{ fontSize: 12, opacity: .8, marginTop: 3, lineHeight: 1.35 }}>Chaque bonne réponse frappe, chaque erreur coûte un cœur.</div>
+        </div>
+        <div className="mode-card" data-testid="home-blindtest" onClick={() => navigate('/blindtest')} style={{ background: 'linear-gradient(145deg, rgba(154,123,201,.45), rgba(201,106,176,.18))', border: '1px solid rgba(154,123,201,.6)' }}>
+          <div className="mode-art" aria-hidden="true" style={{ gap: 4 }}>
+            {[0, 0.25, 0.1, 0.4, 0.15].map((d, k) => <div key={k} style={{ width: 6, height: 44, borderRadius: 3, background: k % 2 ? '#C96AB0' : '#B79BE0', transformOrigin: 'center', animation: `hb-eq ${0.8 + k * 0.13}s ${d}s ease-in-out infinite` }} />)}
           </div>
-          <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 4 }}>
-            {categories.length} catégories · {totalThemes} thèmes · {totalQuizzes} quiz · {totalQuestions} questions
-          </div>
+          <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: '.1em', color: '#C8B1EE' }}>BLIND TEST</div>
+          <div style={{ ...display, fontSize: 17, marginTop: 2 }}>D'où vient ce son ?</div>
+          <div style={{ fontSize: 12, opacity: .8, marginTop: 3, lineHeight: 1.35 }}>Devine le morceau en 30 s · 7 styles.</div>
         </div>
-      </div>
-
-      <div
-        onClick={() => navigate('/daily')}
-        style={{ background: 'var(--yellow)', color: 'var(--on-primary)', borderRadius: 20, padding: '16px 18px', marginBottom: 14, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 12 }}
-      >
-        <div style={{ flex: 1 }}>
-          <div style={{ ...display, fontSize: 19 }}>Défi du jour</div>
-          <div style={{ fontSize: 13, marginTop: 2 }}>5 questions pour tous · un seul essai · classement</div>
+        <div className="mode-card" data-testid="home-amis" onClick={() => navigate('/amis')} style={{ background: 'linear-gradient(145deg, rgba(143,195,159,.36), rgba(143,195,159,.1))', border: '1px solid rgba(143,195,159,.55)' }}>
+          <div className="mode-art" style={{ fontSize: 42 }}><span style={{ display: 'inline-block', animation: 'hb-swing 1.6s ease-in-out infinite' }}>⚔️</span></div>
+          <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: '.1em', color: '#A9D8B8' }}>DUELS</div>
+          <div style={{ ...display, fontSize: 17, marginTop: 2 }}>Défie tes amis</div>
+          <div style={{ fontSize: 12, opacity: .8, marginTop: 3, lineHeight: 1.35 }}>Ajoute des amis, lance un duel, compare vos scores.</div>
         </div>
-        <Icon d="M5 12h14M13 6l6 6-6 6" size={26} />
-      </div>
-
-      <div data-testid="home-blindtest" onClick={() => navigate('/blindtest')}
-        style={{ position: 'relative', overflow: 'hidden', background: 'linear-gradient(135deg, rgba(154,123,201,.38), rgba(201,106,176,.22))', border: '1px solid rgba(154,123,201,.6)', borderRadius: 20, padding: '16px 18px', marginBottom: 14, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 14 }}>
-        <style>{`@keyframes hb-eq { 0%,100% { transform: scaleY(.25) } 50% { transform: scaleY(1) } } @media (prefers-reduced-motion: reduce) { .hb-bar { animation: none !important } }`}</style>
-        <div style={{ width: 52, height: 52, borderRadius: 16, background: '#9A7BC9', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28, flexShrink: 0 }}>🎵</div>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ ...display, fontSize: 19 }}>Blind test</div>
-          <div style={{ fontSize: 13, color: 'var(--text)', opacity: .85, marginTop: 2 }}>Devine le morceau en 30 s · 7 styles</div>
+        <div className="mode-card" data-testid="home-modes" onClick={() => navigate('/jouer')} style={{ background: 'linear-gradient(145deg, rgba(232,132,74,.38), rgba(230,179,90,.12))', border: '1px solid rgba(232,132,74,.6)' }}>
+          <div className="mode-art" style={{ fontSize: 42 }}>⚡</div>
+          <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: '.1em', color: '#F2A877' }}>QUIZ</div>
+          <div style={{ ...display, fontSize: 17, marginTop: 2 }}>Mixte & mort subite</div>
+          <div style={{ fontSize: 12, opacity: .8, marginTop: 3, lineHeight: 1.35 }}>Mélange les catégories ou tiens le plus longtemps.</div>
         </div>
-        <div aria-hidden="true" style={{ display: 'flex', alignItems: 'center', gap: 3, height: 34 }}>
-          {[0, 0.25, 0.1, 0.4, 0.15].map((d, k) => (
-            <div key={k} className="hb-bar" style={{ width: 4, height: '100%', borderRadius: 2, background: k % 2 ? '#C96AB0' : '#B79BE0', transformOrigin: 'center', animation: `hb-eq ${0.8 + k * 0.13}s ${d}s ease-in-out infinite` }} />
-          ))}
-        </div>
-      </div>
-
-      <div data-testid="home-boss" onClick={() => navigate('/boss')}
-        style={{ position: 'relative', overflow: 'hidden', background: 'linear-gradient(135deg, rgba(229,96,77,.34), rgba(201,163,79,.18))', border: '1px solid rgba(229,96,77,.6)', borderRadius: 20, padding: '16px 18px', marginBottom: 14, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 14 }}>
-        <style>{`@keyframes hb-boss { 0%,100% { transform: translateY(0) rotate(-4deg) } 50% { transform: translateY(-5px) rotate(4deg) } } @media (prefers-reduced-motion: reduce) { .hb-boss { animation: none !important } }`}</style>
-        <div className="hb-boss" style={{ width: 52, height: 52, borderRadius: 16, background: '#E5604D', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28, flexShrink: 0, animation: 'hb-boss 2.2s ease-in-out infinite' }}>🐉</div>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ ...display, fontSize: 19 }}>Combats de boss <span style={{ color: 'var(--yellow)', fontSize: 11 }}>NOUVEAU</span></div>
-          <div style={{ fontSize: 13, color: 'var(--text)', opacity: .85, marginTop: 2 }}>Chaque bonne réponse est une attaque</div>
-        </div>
-        <Icon d={ICONS.arrow} color="#E5604D" size={18} />
       </div>
 
       {profile && !profile.onboarded && !(profile.quizzesPlayed > 0) && <Onboarding />}
@@ -190,15 +212,6 @@ export default function Home() {
           <Icon d={ICONS.arrow} color="var(--yellow)" size={18} />
         </div>
       ))}
-      <div data-testid="home-amis" onClick={() => navigate('/amis')} style={{ ...row, marginBottom: 16, background: 'rgba(143,195,159,.12)', borderColor: 'rgba(143,195,159,.45)' }}>
-        <div style={{ fontSize: 22 }}>👥</div>
-        <div style={{ flex: 1 }}>
-          <div style={{ ...display, fontSize: 15 }}>Mes amis</div>
-          <div style={{ fontSize: 12, color: 'var(--muted)' }}>Ajoute des amis et défie-les en duel</div>
-        </div>
-        <Icon d={ICONS.arrow} color="var(--cyan)" size={18} />
-      </div>
-
       {/* Quiz du jour */}
       <div className="section-label">Quiz du jour</div>
       {featuredQuiz ? (
