@@ -287,3 +287,16 @@ body {
 @media (min-width: 1000px) { .cat-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
 @media (min-width: 1500px) { .cat-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); } }
 @media (prefers-reduced-motion: reduce) { .cat-card { transition: none } .cat-card:hover { transform: none } }
+
+/* Grilles de pages (téléphone d'abord, puis ordinateur) */
+.boss-grid { display: grid; gap: 10px; }
+.bt-grid, .shop-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.coll-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+@media (min-width: 1000px) {
+  .page-narrow { max-width: 760px; margin-left: auto; margin-right: auto; }
+  .boss-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .bt-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .shop-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .page-narrow .shop-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .coll-grid { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+}

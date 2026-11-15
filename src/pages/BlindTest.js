@@ -70,7 +70,7 @@ export default function BlindHub() {
         </div>
         <div style={{ fontSize: 22 }}>›</div>
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 10 }}>
+      <div className="bt-grid">
         {BLIND_CATS.map(c => (
           <div key={c.id} data-testid="bt-cat" data-cat={c.id} onClick={() => navigate(`/blindtest/${c.id}`)}
             style={{ background: `${c.color}2E`, border: `1px solid ${c.color}80`, borderRadius: 18, padding: 14, cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: 8, minHeight: 138 }}>

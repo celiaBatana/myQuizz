@@ -63,7 +63,7 @@ export default function Jouer() {
   }
 
   return (
-    <div className="page">
+    <div className="page page-narrow">
       {showAuth && <AuthModal onClose={() => setShowAuth(false)} />}
       <div className="page-title">Jouer</div>
       <div className="page-sub">Modes spéciaux</div>

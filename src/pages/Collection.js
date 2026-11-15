@@ -63,7 +63,7 @@ export default function Collection() {
 
       <div style={{ marginBottom: 16 }}>
         <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 8 }}>🐉 Trophées de boss <span style={{ color: 'var(--muted)', fontWeight: 400 }}>· {BOSSES.filter(b => (profile?.bossWins || {})[b.id] > 0).length}/{BOSSES.length}</span></div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+        <div className="coll-grid">
           {BOSSES.map(b => {
             const n = (profile?.bossWins || {})[b.id] || 0;
             return (
@@ -82,7 +82,7 @@ export default function Collection() {
       {cats.map(({ cat, items }) => (
         <div key={cat.id} style={{ marginBottom: 16 }}>
           <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 8 }}>{cat.icon} {cat.label} <span style={{ color: 'var(--muted)', fontWeight: 400 }}>· {items.filter(x => owned.has(x.key) || x.st.earned).length}/{items.length}</span></div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+          <div className="coll-grid">
             {items.map(({ key, t, st }) => {
               const got = owned.has(key) || st.earned;
               return (

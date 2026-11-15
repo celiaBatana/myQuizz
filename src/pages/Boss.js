@@ -26,7 +26,7 @@ export default function BossHub() {
     <div className="page">
       <div className="page-title">⚔️ Combats de boss</div>
       <div className="page-sub">Chaque bonne réponse est une attaque. 3 cœurs, une barre de vie à vider.</div>
-      <div style={{ display: 'grid', gap: 10 }}>
+      <div className="boss-grid">
         {BOSSES.map(b => (
           <div key={b.id} data-testid="boss-card" data-boss={b.id} onClick={() => navigate(`/boss/${b.id}`)}
             style={{ display: 'flex', alignItems: 'center', gap: 14, background: `${b.color}26`, border: `1px solid ${b.color}80`, borderRadius: 18, padding: 14, cursor: 'pointer' }}>
