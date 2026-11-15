@@ -145,6 +145,17 @@ export default function Home() {
         </div>
       </div>
 
+      <div data-testid="home-boss" onClick={() => navigate('/boss')}
+        style={{ position: 'relative', overflow: 'hidden', background: 'linear-gradient(135deg, rgba(229,96,77,.34), rgba(201,163,79,.18))', border: '1px solid rgba(229,96,77,.6)', borderRadius: 20, padding: '16px 18px', marginBottom: 14, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 14 }}>
+        <style>{`@keyframes hb-boss { 0%,100% { transform: translateY(0) rotate(-4deg) } 50% { transform: translateY(-5px) rotate(4deg) } } @media (prefers-reduced-motion: reduce) { .hb-boss { animation: none !important } }`}</style>
+        <div className="hb-boss" style={{ width: 52, height: 52, borderRadius: 16, background: '#E5604D', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28, flexShrink: 0, animation: 'hb-boss 2.2s ease-in-out infinite' }}>🐉</div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ ...display, fontSize: 19 }}>Combats de boss <span style={{ color: 'var(--yellow)', fontSize: 11 }}>NOUVEAU</span></div>
+          <div style={{ fontSize: 13, color: 'var(--text)', opacity: .85, marginTop: 2 }}>Chaque bonne réponse est une attaque</div>
+        </div>
+        <Icon d={ICONS.arrow} color="#E5604D" size={18} />
+      </div>
+
       {profile && !profile.onboarded && !(profile.quizzesPlayed > 0) && <Onboarding />}
       <DailyPanel />
 
