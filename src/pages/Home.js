@@ -9,6 +9,7 @@ import { dueReviewIds } from '../utils/league';
 import DailyPanel from '../components/DailyPanel';
 import Onboarding from '../components/Onboarding';
 import { rankFor } from '../utils/rank';
+import { BOSSES } from '../data/bosses';
 import { gemsBalance } from '../utils/gems';
 import { streakInfo } from '../utils/retention';
 import { cleanQuizName } from '../utils/quizName';
@@ -99,12 +100,16 @@ export default function Home() {
   const xpPct = Math.min(1, xpInLevel / XP_PER_LEVEL);
   const streak = streakInfo(profile);
   const rank = rankFor(level);
+  const bossDone = BOSSES.filter(b => (profile?.bossWins || {})[b.id] > 0).length;
+  const blindRec = Math.max(0, ...Object.values(profile?.blindBest || {}).filter(x => typeof x === 'number'));
+  const nCards = (profile?.cards || []).length;
   const firstName = (profile?.displayName || '').split(' ')[0];
 
   return (
     <div className="page">
       <div className="home-top">
-      <div className="home-hero" style={{ background: 'linear-gradient(135deg, var(--s1), #33291F)', border: '1px solid var(--s2)', borderRadius: 24, padding: 20, marginBottom: 14 }}>
+      <div className="home-hero hero-grid" style={{ background: 'linear-gradient(135deg, var(--s1), #33291F)', border: '1px solid var(--s2)', borderRadius: 24, padding: 20, marginBottom: 14 }}>
+        <div className="hero-main">
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
           <div style={{ position: 'relative', width: 92, height: 92, flexShrink: 0 }}>
             <svg width="92" height="92" viewBox="0 0 92 92" aria-hidden="true">
@@ -141,6 +146,14 @@ export default function Home() {
         <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 10 }}>
           {categories.length} catégories · {totalThemes} thèmes · {totalQuizzes} quiz · {totalQuestions} questions
         </div>
+        </div>
+        {profile && (
+          <div className="hero-stats" data-testid="hero-stats">
+            {[['🐉', `${bossDone}/${BOSSES.length}`, 'boss vaincus'], ['🃏', nCards, 'cartes'], ['🎵', blindRec ? `${blindRec}/10` : '—', 'record blind test'], ['🎯', profile.quizzesPlayed || 0, 'quiz joués']].map(([ic, v, l]) => (
+              <div key={l} className="hero-stat"><div style={{ fontSize: 22 }}>{ic}</div><div style={{ ...display, fontSize: 22, lineHeight: 1.1 }}>{v}</div><div style={{ fontSize: 11, color: 'var(--muted)' }}>{l}</div></div>
+            ))}
+          </div>
+        )}
       </div>
       </div>
 
@@ -161,6 +174,7 @@ export default function Home() {
           <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: '.1em', color: '#FF9C8A' }}>BOSS FIGHT</div>
           <div style={{ ...display, fontSize: 17, marginTop: 2 }}>Affronte les boss</div>
           <div style={{ fontSize: 12, opacity: .8, marginTop: 3, lineHeight: 1.35 }}>Chaque bonne réponse frappe, chaque erreur coûte un cœur.</div>
+          {profile && <div className="mode-stat">{bossDone}/{BOSSES.length} vaincus</div>}
         </div>
         <div className="mode-card" data-testid="home-blindtest" onClick={() => navigate('/blindtest')} style={{ background: 'linear-gradient(145deg, rgba(154,123,201,.45), rgba(201,106,176,.18))', border: '1px solid rgba(154,123,201,.6)' }}>
           <div className="mode-art" aria-hidden="true" style={{ gap: 4 }}>
@@ -169,6 +183,7 @@ export default function Home() {
           <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: '.1em', color: '#C8B1EE' }}>BLIND TEST</div>
           <div style={{ ...display, fontSize: 17, marginTop: 2 }}>D'où vient ce son ?</div>
           <div style={{ fontSize: 12, opacity: .8, marginTop: 3, lineHeight: 1.35 }}>Devine le morceau en 30 s · 7 styles.</div>
+          {profile && blindRec > 0 && <div className="mode-stat">Record : {blindRec}/10</div>}
         </div>
         <div className="mode-card" data-testid="home-amis" onClick={() => navigate('/amis')} style={{ background: 'linear-gradient(145deg, rgba(143,195,159,.36), rgba(143,195,159,.1))', border: '1px solid rgba(143,195,159,.55)' }}>
           <div className="mode-art" style={{ fontSize: 42 }}><span style={{ display: 'inline-block', animation: 'hb-swing 1.6s ease-in-out infinite' }}>⚔️</span></div>
@@ -181,6 +196,7 @@ export default function Home() {
           <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: '.1em', color: '#F2A877' }}>QUIZ</div>
           <div style={{ ...display, fontSize: 17, marginTop: 2 }}>Mixte & mort subite</div>
           <div style={{ fontSize: 12, opacity: .8, marginTop: 3, lineHeight: 1.35 }}>Mélange les catégories ou tiens le plus longtemps.</div>
+          {profile && profile.suddenBest > 0 && <div className="mode-stat">Record : {profile.suddenBest} d'affilée</div>}
         </div>
       </div>
 

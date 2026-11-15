@@ -35,7 +35,7 @@ export default function DailyPanel() {
   const nextMs = Object.keys(MILESTONES).map(Number).find(n => n > s.count);
 
   return (
-    <div>
+    <div className="daily-panel">
       {/* Série */}
       <div style={{ ...card, borderColor: s.danger ? 'var(--yellow)' : 'var(--s2)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
