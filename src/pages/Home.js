@@ -9,6 +9,7 @@ import { dueReviewIds } from '../utils/league';
 import DailyPanel from '../components/DailyPanel';
 import Onboarding from '../components/Onboarding';
 import { rankFor } from '../utils/rank';
+import InstallPrompt from '../components/InstallPrompt';
 import { useChampions } from '../hooks/useChampions';
 import { weeklyBoss, weeklyCat, weeklyEnds, WEEKLY_MULT, WEEKLY_BOSS_GEMS } from '../utils/weekly';
 import { BOSSES } from '../data/bosses';
@@ -111,6 +112,7 @@ export default function Home() {
 
   return (
     <div className="page">
+      <InstallPrompt />
       <div className="home-top">
       <div className="home-hero hero-grid" style={{ background: 'linear-gradient(135deg, var(--s1), #33291F)', border: '1px solid var(--s2)', borderRadius: 24, padding: 20, marginBottom: 14 }}>
         <div className="hero-main">
