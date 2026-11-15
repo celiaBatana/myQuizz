@@ -257,3 +257,24 @@ body {
     border-radius: 18px 18px 0 0; border-left: 1px solid rgba(255,255,255,0.06); border-right: 1px solid rgba(255,255,255,0.06);
   }
 }
+
+/* Extras de la barre latérale : visibles seulement sur grand écran */
+.bnav-extra, .bnav-sep { display: none; }
+.bnav-emoji { font-size: 20px; line-height: 1; }
+
+/* ── ORDINATEUR LARGE : barre latérale à gauche ── */
+@media (min-width: 1000px) {
+  .app { padding-left: 220px; }
+  .bottom-nav {
+    top: 0; bottom: auto; left: 0; right: auto; width: 220px; height: 100vh; transform: none;
+    flex-direction: column; justify-content: flex-start; gap: 4px; padding: 76px 12px 16px;
+    border-radius: 0; border-top: none; border-right: 1px solid var(--s2); border-left: none; box-shadow: none; overflow-y: auto;
+  }
+  .bnav-item { flex-direction: row; justify-content: flex-start; gap: 12px; padding: 11px 14px; font-size: 14px; min-width: 0; }
+  .bnav-extra { display: flex; }
+  .bnav-sep { display: block; height: 1px; background: var(--s2); margin: 8px 6px; }
+  .page { max-width: 980px; padding-bottom: 40px; }
+  .navbar { padding-left: 24px; padding-right: 24px; }
+  .home-top { max-width: 720px; }
+  .mode-grid { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; }
+}
