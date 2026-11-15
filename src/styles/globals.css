@@ -317,4 +317,10 @@ body {
 }
 .daily-panel { margin-bottom: 12px; }
 .xp-badge { white-space: nowrap; }
-@media (max-width: 480px) { .xp-badge.nav-dup { display: none; } }
+@media (max-width: 480px) {
+  .navbar { padding-left: 12px; padding-right: 12px; }
+  .navbar-logo { font-size: 19px; }
+  .navbar-right { gap: 4px !important; }
+  .navbar-right .xp-badge { font-size: 11px; padding: 4px 7px; }
+  .navbar-right .btn { padding: 4px 9px !important; max-width: 64px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+}
