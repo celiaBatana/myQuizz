@@ -146,7 +146,7 @@ export const CATEGORIES = {
     },
   },
   anime_manga: {
-    id: 'anime_manga', label: 'Animes & Mangas', icon: '🍥',
+    id: 'anime_manga', label: 'Animes & Mangas', icon: '🎌',
     color: '#E0678F',
     gradient: 'linear-gradient(135deg, rgba(224,103,143,.26), rgba(224,103,143,.08))',
     themes: {

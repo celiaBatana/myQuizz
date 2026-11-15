@@ -54,6 +54,7 @@ export default function Home() {
   const [totalQuizzes, setTotalQuizzes] = useState('...');
   const [totalQuestions, setTotalQuestions] = useState('...');
   const [featuredQuiz, setFeaturedQuiz] = useState(null);
+  const [catQuizzes, setCatQuizzes] = useState([]);
 
   const totalThemes = categories.reduce((s, c) => s + Object.keys(c.themes).length, 0);
 
@@ -65,6 +66,7 @@ export default function Home() {
           getDocs(collection(db, 'questions')),
         ]);
         setTotalQuizzes(quizSnap.size);
+        setCatQuizzes(quizSnap.docs.map(d => ({ id: d.id, catId: d.data().catId })));
         setTotalQuestions(qSnap.size);
 
         // Quiz du jour : premier quiz avec des questions
@@ -238,20 +240,27 @@ export default function Home() {
 
       {/* Catégories */}
       <div className="section-label" style={{ marginTop: 20 }}>Catégories</div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 10, marginBottom: 24 }}>
+      <div className="cat-grid">
         {categories.map(cat => {
           const themeCount = Object.keys(cat.themes).length;
+          const col = cat.color || '#888888';
+          const list = catQuizzes.filter(z => z.catId === cat.id);
+          const done = list.filter(z => (profile?.bestScores?.[z.id] ?? -1) >= 60).length;
+          const pct = list.length ? Math.round(100 * done / list.length) : 0;
           return (
-            <div
-              key={cat.id}
-              style={{ background: (cat.color || '#888888') + '24', border: `1px solid ${(cat.color || '#888888')}55`, borderRadius: 18, padding: '14px 14px', cursor: 'pointer', transition: 'border-color .2s' }}
-              onClick={() => navigate(`/category/${cat.id}`)}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = cat.color || 'var(--yellow)'; }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = (cat.color || '#888888') + '55'; }}
-            >
-              <span style={{ fontSize: 24, marginBottom: 8, display: 'block' }}>{cat.icon}</span>
-              <div style={{ ...display, fontSize: 14, marginBottom: 2 }}>{cat.label}</div>
-              <div style={{ fontSize: 11, color: 'var(--muted)' }}>{themeCount} thèmes</div>
+            <div key={cat.id} className="cat-card" data-testid="cat-card" style={{ '--cc': col, background: `linear-gradient(160deg, ${col}38, ${col}10)`, border: `1px solid ${col}55` }}
+              onClick={() => navigate(`/category/${cat.id}`)}>
+              <div className="cat-icon" style={{ background: col + '40', boxShadow: `0 0 0 1px ${col}66 inset` }}>{cat.icon}</div>
+              <div style={{ ...display, fontSize: 14, marginTop: 10 }}>{cat.label}</div>
+              <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 2 }}>{themeCount} thèmes{list.length ? ` · ${list.length} quiz` : ''}</div>
+              {profile && list.length > 0 && (
+                <div style={{ marginTop: 10 }}>
+                  <div style={{ height: 5, borderRadius: 4, background: 'rgba(255,255,255,.1)', overflow: 'hidden' }}>
+                    <div data-testid="cat-progress" style={{ width: `${pct}%`, height: '100%', background: col, transition: 'width .6s' }} />
+                  </div>
+                  <div style={{ fontSize: 10, color: pct === 100 ? col : 'var(--muted)', fontWeight: pct === 100 ? 800 : 400, marginTop: 4 }}>{pct === 100 ? '✓ Terminée' : `${done}/${list.length} réussis`}</div>
+                </div>
+              )}
             </div>
           );
         })}

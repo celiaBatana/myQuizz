@@ -278,3 +278,12 @@ body {
   .mode-grid { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; }
   .hero-actions .btn { flex: 0 0 auto !important; min-width: 190px; padding-left: 28px; padding-right: 28px; }
 }
+
+/* Catégories de l'accueil */
+.cat-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-bottom: 24px; }
+.cat-card { border-radius: 18px; padding: 14px; cursor: pointer; transition: transform .18s, box-shadow .18s; }
+.cat-card:hover { transform: translateY(-3px); box-shadow: 0 8px 22px color-mix(in srgb, var(--cc) 35%, transparent); }
+.cat-icon { width: 46px; height: 46px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 26px; }
+@media (min-width: 1000px) { .cat-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+@media (min-width: 1500px) { .cat-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); } }
+@media (prefers-reduced-motion: reduce) { .cat-card { transition: none } .cat-card:hover { transform: none } }
