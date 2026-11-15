@@ -276,4 +276,5 @@ body {
   .page { max-width: 980px; padding-bottom: 40px; }
   .navbar { padding-left: 24px; padding-right: 24px; }
   .mode-grid { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; }
+  .hero-actions .btn { flex: 0 0 auto !important; min-width: 190px; padding-left: 28px; padding-right: 28px; }
 }

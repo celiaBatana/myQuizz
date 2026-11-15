@@ -132,7 +132,7 @@ export default function Home() {
         <div style={{ height: 8, borderRadius: 6, background: 'var(--s2)', margin: '16px 0 14px', overflow: 'hidden' }}>
           <div style={{ width: `${xpPct * 100}%`, height: '100%', background: 'linear-gradient(90deg, var(--yellow), var(--amber))', borderRadius: 6, transition: 'width .8s' }} />
         </div>
-        <div style={{ display: 'flex', gap: 10 }}>
+        <div className="hero-actions" style={{ display: 'flex', gap: 10 }}>
           <button className="btn btn-primary" data-testid="home-play" style={{ flex: 1 }} onClick={() => navigate('/jouer')}>▶ Jouer</button>
           <button className="btn btn-secondary" data-testid="home-daily" style={{ flex: 1 }} onClick={() => navigate('/daily')}>Défi du jour</button>
         </div>
