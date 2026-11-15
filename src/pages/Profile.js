@@ -5,6 +5,8 @@ import AuthModal from '../components/AuthModal';
 import { DIFF_LABELS, DIFF_COLORS } from '../data/quizData';
 import { doc, setDoc } from 'firebase/firestore';
 import { db } from '../firebase';
+import { useChampions } from '../hooks/useChampions';
+import { getCategoryList } from '../data/quizData';
 import { rankFor } from '../utils/rank';
 import { gemsBalance } from '../utils/gems';
 import { AVATARS, TITLES, ownedIds, avatarIcon, titleName } from '../data/cosmetics';
@@ -14,6 +16,8 @@ const XP_PER_LEVEL = 200;
 
 export default function Profile() {
   const { user, profile, logout, isAdmin, updateProfile } = useAuth();
+  const champs = useChampions(getCategoryList().map(c => c.id));
+  const crowns = champs && user ? Object.entries(champs).filter(([, v]) => v && v.uid === user.uid).map(([id]) => id) : [];
   const [showCosm, setShowCosm] = useState(false);
   const navigate = useNavigate();
   const [showAuth, setShowAuth] = useState(false);
@@ -112,6 +116,7 @@ export default function Profile() {
           {profile?.avatar ? avatarIcon(profile.avatar) : levelEmoji(level)}
           <div style={{ position: 'absolute', bottom: -6, right: -6, minWidth: 30, height: 30, padding: '0 6px', borderRadius: 15, background: 'var(--yellow)', color: 'var(--on-primary)', fontSize: 13, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '3px solid var(--s1)' }}>{level}</div>
         </div>
+        {crowns.length > 0 && <div data-testid="profile-crowns" style={{ marginBottom: 6, fontSize: 12, fontWeight: 800, color: '#FFD166' }}>👑 Champion × {crowns.length} : {crowns.map(id => getCategoryList().find(c => c.id === id)?.label).join(', ')}</div>}
         <div data-testid="profile-rank" style={{ display: 'inline-flex', gap: 6, alignItems: 'center', fontSize: 12, fontWeight: 800, padding: '3px 11px', borderRadius: 20, background: rankFor(level).color + '2A', color: rankFor(level).color, marginBottom: 6 }}>{rankFor(level).icon} {rankFor(level).name}{rankFor(level).next ? <span style={{ opacity: .7, fontWeight: 600 }}> · prochain rang niv. {rankFor(level).next.from}</span> : null}</div>
         <div style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontSize: 20, fontWeight: 800, marginBottom: 2 }}>
           {displayName}

@@ -9,6 +9,8 @@ import { dueReviewIds } from '../utils/league';
 import DailyPanel from '../components/DailyPanel';
 import Onboarding from '../components/Onboarding';
 import { rankFor } from '../utils/rank';
+import { useChampions } from '../hooks/useChampions';
+import { weeklyBoss, weeklyCat, weeklyEnds, WEEKLY_MULT, WEEKLY_BOSS_GEMS } from '../utils/weekly';
 import { BOSSES } from '../data/bosses';
 import { gemsBalance } from '../utils/gems';
 import { streakInfo } from '../utils/retention';
@@ -100,6 +102,8 @@ export default function Home() {
   const xpPct = Math.min(1, xpInLevel / XP_PER_LEVEL);
   const streak = streakInfo(profile);
   const rank = rankFor(level);
+  const champs = useChampions(categories.map(c => c.id));
+  const wBoss = weeklyBoss(), wCat = weeklyCat();
   const bossDone = BOSSES.filter(b => (profile?.bossWins || {})[b.id] > 0).length;
   const blindRec = Math.max(0, ...Object.values(profile?.blindBest || {}).filter(x => typeof x === 'number'));
   const nCards = (profile?.cards || []).length;
@@ -200,6 +204,25 @@ export default function Home() {
         </div>
       </div>
 
+      <div data-testid="weekly" className="weekly-grid">
+        <div className="weekly-card" onClick={() => navigate(`/boss/${wBoss.id}`)} style={{ borderColor: wBoss.color + '99' }}>
+          <div style={{ fontSize: 34 }}>{wBoss.emoji}</div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: '.1em', color: '#FFD166' }}>⭐ BOSS DE LA SEMAINE · {weeklyEnds()} j</div>
+            <div style={{ ...display, fontSize: 15 }}>{wBoss.name}</div>
+            <div style={{ fontSize: 12, color: 'var(--muted)' }}>XP ×{String(WEEKLY_MULT).replace('.', ',')} · +{WEEKLY_BOSS_GEMS} 💎 à la 1ʳᵉ victoire</div>
+          </div>
+        </div>
+        <div className="weekly-card" onClick={() => navigate(`/category/${wCat.id}`)} style={{ borderColor: (wCat.color || '#888') + '99' }}>
+          <div style={{ fontSize: 34 }}>{wCat.icon}</div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: '.1em', color: '#FFD166' }}>⭐ CATÉGORIE DE LA SEMAINE · {weeklyEnds()} j</div>
+            <div style={{ ...display, fontSize: 15 }}>{wCat.label}</div>
+            <div style={{ fontSize: 12, color: 'var(--muted)' }}>XP ×{String(WEEKLY_MULT).replace('.', ',')} sur ses quiz</div>
+          </div>
+        </div>
+      </div>
+
       {profile && !profile.onboarded && !(profile.quizzesPlayed > 0) && <Onboarding />}
       <DailyPanel />
 
@@ -269,6 +292,11 @@ export default function Home() {
               <div className="cat-icon" style={{ background: col + '40', boxShadow: `0 0 0 1px ${col}66 inset` }}>{cat.icon}</div>
               <div style={{ ...display, fontSize: 14, marginTop: 10 }}>{cat.label}</div>
               <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 2 }}>{themeCount} thèmes{list.length ? ` · ${list.length} quiz` : ''}</div>
+              {champs && (
+                <div data-testid="champion" data-mine={champs[cat.id] && champs[cat.id].uid === user?.uid ? '1' : '0'} style={{ marginTop: 8, fontSize: 11, fontWeight: 700, color: champs[cat.id] ? '#FFD166' : 'var(--muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  {champs[cat.id] ? `👑 ${champs[cat.id].uid === user?.uid ? 'C\'est toi !' : champs[cat.id].name} · ${champs[cat.id].xp} XP` : '👑 Couronne à prendre'}
+                </div>
+              )}
               {profile && list.length > 0 && (
                 <div style={{ marginTop: 10 }}>
                   <div style={{ height: 5, borderRadius: 4, background: 'rgba(255,255,255,.1)', overflow: 'hidden' }}>

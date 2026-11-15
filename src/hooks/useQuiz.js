@@ -1,3 +1,4 @@
+import { weeklyCat, WEEKLY_MULT } from '../utils/weekly';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { doc, updateDoc, setDoc, writeBatch, increment, serverTimestamp, collection, getDocs, query, where } from 'firebase/firestore';
 import { PASS as CARD_PASS, cardKey, cardInfo, themeStatus } from '../data/cards';
@@ -242,7 +243,8 @@ export function useQuiz(quiz) {
         if (pct0 > prev0) replayFactor = Math.max(0.25, (pct0 - prev0) / (100 - prev0));
         else replayFactor = replayCount < 2 ? 0.25 : 0;
       }
-      const earnedXP = Math.round(finalXP * replayFactor);
+      const weekMult = isPathQuiz && quiz.catId && quiz.catId === weeklyCat()?.id ? WEEKLY_MULT : 1;
+      const earnedXP = Math.round(finalXP * replayFactor * weekMult);
       const newReplays = isPathQuiz ? { date: todayKey, n: { ...rp, [quiz.id]: replayCount + 1 } } : (profile?.replays || null);
       // Collection : carte du thème gagnée quand un quiz de chaque niveau existant est réussi
       let newCards = profile?.cards || [];
@@ -257,6 +259,7 @@ export function useQuiz(quiz) {
           }
         } catch (e) { console.warn('Carte non évaluée', e); }
       }
+      const newCatXP = (isPathQuiz && quiz.catId && earnedXP > 0) ? { ...(profile?.catXP || {}), [quiz.catId]: ((profile?.catXP || {})[quiz.catId] || 0) + earnedXP } : (profile?.catXP || {});
       const newDayStats = updateDayStats(profile, { perfect: perfectNow, correct: finalScore, xp: earnedXP, quizId: isPathQuiz ? quiz.id : undefined, maxCombo: maxComboRef.current, mode: quiz.id === 'review' ? 'review' : mode });
       const newActiveDays = addActiveDay(profile?.activeDays, todayKey);
       const mis = newlyCompleted(profile, newDayStats, newActiveDays);
@@ -317,6 +320,7 @@ export function useQuiz(quiz) {
         freezes,
         lastChestDate:  todayKey,
         suddenBest:     newSudden,
+        catXP:          newCatXP,
         weekKey:        lg.weekKey,
         weekXP:         lg.weekXP,
         league:         lg.league,
@@ -374,7 +378,7 @@ export function useQuiz(quiz) {
       // Envoyées ensemble, sans bloquer l'écran de résultat (hors-ligne : partent au retour du réseau)
       const pub = [setDoc(doc(db, 'leaderboard', user.uid), {
         uid: user.uid, name, totalXP: newTotalXP, level: lvl, streak: newStreak,
-        weekKey: lg.weekKey, weekXP: lg.weekXP, league: lg.league,
+        weekKey: lg.weekKey, weekXP: lg.weekXP, league: lg.league, catXP: newCatXP,
         avatar: profile?.avatar || '', title: profile?.title || '', updatedAt: serverTimestamp(),
       }, { merge: true })];
       for (const code of (profile?.groups || [])) {

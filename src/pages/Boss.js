@@ -8,6 +8,7 @@ import { fetchVaried, shuffle } from '../utils/questions';
 import { nextLeagueState } from '../utils/league';
 import { dayKey } from '../hooks/useQuiz';
 import { CATEGORIES } from '../data/quizData';
+import { weeklyBoss, WEEKLY_MULT, WEEKLY_BOSS_GEMS, weekKeyNow } from '../utils/weekly';
 import CardReveal from '../components/CardReveal';
 import Confetti from '../components/Confetti';
 
@@ -20,6 +21,7 @@ const disp = { fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 800 
 // ── Liste des boss ──
 export default function BossHub() {
   const navigate = useNavigate();
+  const wb = weeklyBoss();
   const { profile } = useAuth();
   const wins = profile?.bossWins || {};
   return (
@@ -32,7 +34,7 @@ export default function BossHub() {
             style={{ display: 'flex', alignItems: 'center', gap: 14, background: `${b.color}26`, border: `1px solid ${b.color}80`, borderRadius: 18, padding: 14, cursor: 'pointer' }}>
             <div style={{ width: 62, height: 62, borderRadius: 18, background: b.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 36, flexShrink: 0 }}>{b.emoji}</div>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ ...disp, fontSize: 16 }}>{b.name}</div>
+              <div style={{ ...disp, fontSize: 16 }}>{b.name}{b.id === wb.id && <span data-testid="weekly-boss" style={{ marginLeft: 8, fontSize: 10, fontWeight: 800, padding: '2px 7px', borderRadius: 10, background: '#FFD16633', color: '#FFD166', verticalAlign: 2 }}>⭐ BOSS DE LA SEMAINE</span>}</div>
               <div style={{ fontSize: 12, color: 'var(--text)', opacity: .75, lineHeight: 1.4 }}>{b.desc}</div>
               <div style={{ fontSize: 11, fontWeight: 700, color: b.color, marginTop: 4 }}>{wins[b.id] ? `🏅 Vaincu ×${wins[b.id]}` : `${b.hp} PV · à vaincre`}</div>
             </div>
@@ -101,14 +103,18 @@ export function BossFight() {
         const win = over === 'win';
         let xp = win ? WIN_XP + hearts * HEART_XP : Math.min(20, correct * 2);
         if (win && repeat) xp = Math.round(xp * 0.25);
+        const weekly = win && boss.id === weeklyBoss().id;
+        if (weekly) xp = Math.round(xp * WEEKLY_MULT);
+        const wkBonus = weekly && profile.weeklyBossWeek !== weekKeyNow();
         const firstWin = win && !(profile.bossWins?.[boss.id] > 0);
         const totalXP = (profile.totalXP || 0) + xp;
         let lvl = 1, rem = totalXP; while (rem >= XP_PER_LEVEL) { rem -= XP_PER_LEVEL; lvl++; }
         const lg = nextLeagueState(profile, xp);
-        setGain({ xp, win, repeat, firstWin });
+        setGain({ xp, win, repeat, firstWin, weekly, wkBonus });
         if (firstWin) setShowCard(true);
         await updateProfile({
           totalXP, xpAt: serverTimestamp(), level: lvl, xpInLevel: rem, weekKey: lg.weekKey, weekXP: lg.weekXP, league: lg.league,
+          ...(wkBonus ? { gemsBonus: (profile.gemsBonus || 0) + WEEKLY_BOSS_GEMS, weeklyBossWeek: weekKeyNow() } : {}),
           ...(win ? { bossWins: { ...(profile.bossWins || {}), [boss.id]: (profile.bossWins?.[boss.id] || 0) + 1 }, bossDay: { date: today, wins: { ...(bd.wins || {}), [boss.id]: true } } } : {}),
         });
         await setDoc(doc(db, 'leaderboard', user.uid), {
@@ -184,6 +190,7 @@ export function BossFight() {
               <>
                 <div style={{ ...disp, fontSize: 24, color: 'var(--yellow)' }}>+{gain.xp} XP</div>
                 {gain.win && gain.repeat && <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 4 }}>XP réduit : déjà vaincu aujourd'hui.</div>}
+                {gain.weekly && <div style={{ fontSize: 12, color: '#FFD166', marginTop: 4 }}>⭐ Boss de la semaine : XP ×1,5{gain.wkBonus ? ` · +${WEEKLY_BOSS_GEMS} 💎` : ''}</div>}
                 {gain.firstWin && <div style={{ fontSize: 13, color: 'var(--cyan)', marginTop: 4 }}>🏅 Première victoire : trophée débloqué !</div>}
               </>
             )}

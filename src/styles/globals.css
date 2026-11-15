@@ -324,3 +324,8 @@ body {
   .navbar-right .xp-badge { font-size: 11px; padding: 4px 7px; }
   .navbar-right .btn { padding: 4px 9px !important; max-width: 64px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 }
+
+/* Semaine */
+.weekly-grid { display: grid; grid-template-columns: 1fr; gap: 10px; margin-bottom: 14px; }
+.weekly-card { display: flex; align-items: center; gap: 12px; background: var(--s1); border: 1px solid var(--s2); border-radius: 18px; padding: 12px 14px; cursor: pointer; }
+@media (min-width: 760px) { .weekly-grid { grid-template-columns: 1fr 1fr; } }
