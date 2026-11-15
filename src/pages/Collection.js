@@ -4,6 +4,7 @@ import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useAuth } from '../context/AuthContext';
 import { CATEGORIES } from '../data/quizData';
+import { BOSSES } from '../data/bosses';
 import { cardKey, cardInfo, themeStatus, DIFFS, DIFF_SHORT } from '../data/cards';
 
 export default function Collection() {
@@ -57,6 +58,24 @@ export default function Collection() {
         <div style={{ fontWeight: 800, fontFamily: "'Bricolage Grotesque', sans-serif" }}>{have} / {total} cartes</div>
         <div style={{ height: 6, background: 'var(--s2)', borderRadius: 6, marginTop: 8, overflow: 'hidden' }}>
           <div style={{ height: '100%', width: `${total ? (100 * have) / total : 0}%`, background: 'var(--purple)', transition: 'width .6s' }} />
+        </div>
+      </div>
+
+      <div style={{ marginBottom: 16 }}>
+        <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 8 }}>🐉 Trophées de boss <span style={{ color: 'var(--muted)', fontWeight: 400 }}>· {BOSSES.filter(b => (profile?.bossWins || {})[b.id] > 0).length}/{BOSSES.length}</span></div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+          {BOSSES.map(b => {
+            const n = (profile?.bossWins || {})[b.id] || 0;
+            return (
+              <div key={b.id} data-trophy={b.id} data-trophy-owned={n ? "1" : "0"} onClick={() => !n && navigate(`/boss/${b.id}`)}
+                style={{ borderRadius: 14, padding: '12px 6px 10px', textAlign: 'center', cursor: n ? 'default' : 'pointer', minHeight: 104,
+                  background: n ? `linear-gradient(135deg, ${b.color}55, ${b.color}18)` : 'var(--s1)', border: `1px solid ${n ? b.color : 'var(--s2)'}`, opacity: n ? 1 : 0.75 }}>
+                <div style={{ fontSize: 28, filter: n ? 'none' : 'grayscale(1)', opacity: n ? 1 : 0.5 }}>{n ? b.emoji : '🔒'}</div>
+                <div style={{ fontSize: 11, fontWeight: 700, margin: '6px 0 2px' }}>{b.name}</div>
+                <div style={{ fontSize: 10, color: n ? b.color : 'var(--muted)' }}>{n ? `Vaincu ×${n}` : 'À vaincre'}</div>
+              </div>
+            );
+          })}
         </div>
       </div>
 

@@ -8,6 +8,7 @@ import { useAuth } from '../context/AuthContext';
 import { useQuiz } from '../hooks/useQuiz';
 import { LEAGUES } from '../utils/league';
 import { shareScore } from '../utils/share';
+import { gemsEarned } from '../utils/gems';
 import { pickResultMessage, pickSuddenMessage } from '../utils/resultMessages';
 import Confetti from '../components/Confetti';
 import { playCorrect, playWrong, playWin, playLose } from '../utils/sound';
@@ -553,13 +554,14 @@ function ResultScreen({ quiz, quizData, catId, themeId, navigate, onReplay, onPr
         </div>
       )}
     <div className="page">
-      <div style={{ textAlign: 'center', padding: '20px 0' }}>
-        <div style={{ fontSize: 50, marginBottom: 10, animation: 'popIn .5s cubic-bezier(.175,.885,.32,1.275)' }}>{emoji}</div>
-        <div style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontSize: 26, fontWeight: 800, marginBottom: 4 }}>{title}</div>
+      <div style={{ textAlign: 'center', padding: '22px 0 8px' }}>
+        <div style={{ width: 96, height: 96, margin: '0 auto 12px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 52,
+          background: `radial-gradient(circle, ${(sudden ? quiz.score >= 5 : pct >= 0.6) ? 'rgba(143,195,159,.35)' : 'rgba(232,132,74,.3)'}, transparent 70%)`, animation: 'popIn .5s cubic-bezier(.175,.885,.32,1.275)' }}>{emoji}</div>
+        <div style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontSize: 28, fontWeight: 800, marginBottom: 4 }}>{title}</div>
         <div style={{ color: 'var(--muted)', fontSize: 13 }}>{msg.sub}</div>
       </div>
 
-      <div style={{ background: 'var(--s1)', border: '1px solid var(--s2)', borderRadius: 16, padding: 16, margin: '14px 0', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6, textAlign: 'center' }}>
+      <div data-testid="result-stats" style={{ background: 'linear-gradient(135deg, var(--s1), #33291F)', border: '1px solid var(--s2)', borderRadius: 20, padding: 18, margin: '14px 0', display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6, textAlign: 'center' }}>
         <div>
           <div style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontSize: 22, fontWeight: 800, color: 'var(--yellow)' }}>{sudden ? quiz.score : `${quiz.score}/${quiz.totalQuestions}`}</div>
           <div style={{ fontSize: 10, color: 'var(--muted)', marginTop: 2 }}>{sudden ? `d'affilée (max ${maxRun})` : 'Score'}</div>
@@ -567,6 +569,10 @@ function ResultScreen({ quiz, quizData, catId, themeId, navigate, onReplay, onPr
         <div>
           <div style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontSize: 22, fontWeight: 800, color: 'var(--cyan)' }}>+{quiz.totalXP}</div>
           <div style={{ fontSize: 10, color: 'var(--muted)', marginTop: 2 }}>{quiz.practice ? 'XP (révision)' : 'XP gagnés'}</div>
+        </div>
+        <div>
+          <div data-testid="result-gems" style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontSize: 22, fontWeight: 800, color: '#7FD6E8' }}>+{quiz.practice ? 0 : gemsEarned(quiz.totalXP)}</div>
+          <div style={{ fontSize: 10, color: 'var(--muted)', marginTop: 2 }}>💎 éclats</div>
         </div>
         <div>
           <div style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontSize: 22, fontWeight: 800, color: 'var(--purple)' }}>

@@ -11,13 +11,34 @@ const MEDALS = ['🥇', '🥈', '🥉'];
 
 function Row({ rank, name, right, sub, me, avatar, title }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: me ? 'rgba(207,122,69,.15)' : 'var(--s1)', border: `1px solid ${me ? 'var(--purple)' : 'var(--s2)'}`, borderRadius: 12, padding: '10px 13px', marginBottom: 6 }}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: me ? 'linear-gradient(90deg, rgba(232,132,74,.22), rgba(232,132,74,.06))' : 'var(--s1)', border: `1px solid ${me ? 'var(--yellow)' : 'var(--s2)'}`, borderRadius: 14, padding: '11px 14px', marginBottom: 6 }}>
       <div style={{ width: 28, textAlign: 'center', fontWeight: 800, fontSize: rank < 3 ? 18 : 13, color: 'var(--muted)' }}>{MEDALS[rank] || rank + 1}</div>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontSize: 14, fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{avatar ? avatarIcon(avatar) + ' ' : ''}{name}{me && ' (toi)'}</div>
         {(title || sub) && <div style={{ fontSize: 10, color: 'var(--muted)' }}>{[title && titleName(title), sub].filter(Boolean).join(' · ')}</div>}
       </div>
       <div style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 800, color: 'var(--yellow)' }}>{right}</div>
+    </div>
+  );
+}
+
+// Podium des 3 premiers (2e · 1er · 3e)
+function Podium({ rows, me, valueOf, subOf }) {
+  const order = [1, 0, 2].filter(i => rows[i]);
+  const H = [92, 120, 76], C = ['#C9D2DA', '#E6B35A', '#D08A4E'];
+  return (
+    <div data-testid="podium" style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'center', gap: 8, margin: '6px 0 14px' }}>
+      {order.map(i => {
+        const r = rows[i];
+        return (
+          <div key={r.uid} style={{ flex: 1, maxWidth: 130, textAlign: 'center', minWidth: 0 }}>
+            <div style={{ fontSize: i === 0 ? 38 : 30, lineHeight: 1 }}>{r.avatar ? avatarIcon(r.avatar) : '🙂'}</div>
+            <div style={{ fontSize: 12, fontWeight: 800, margin: '4px 0 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{r.name}{r.uid === me ? ' (toi)' : ''}</div>
+            <div style={{ fontSize: 11, color: 'var(--muted)', marginBottom: 5 }}>{valueOf(r)}{subOf ? ` · ${subOf(r)}` : ''}</div>
+            <div style={{ height: H[i], borderRadius: '12px 12px 0 0', background: `linear-gradient(180deg, ${C[i]}88, ${C[i]}22)`, border: `1px solid ${C[i]}`, borderBottom: 'none', display: 'flex', alignItems: 'flex-start', justifyContent: 'center', paddingTop: 8, fontSize: 24 }}>{MEDALS[i]}</div>
+          </div>
+        );
+      })}
     </div>
   );
 }
@@ -103,9 +124,10 @@ function LeagueBoard() {
       {!user && <Empty text="Connecte-toi pour rejoindre une ligue." />}
       {user && !rows && <Empty text="Chargement…" />}
       {user && rows && list.length === 0 && <Empty text="Personne dans ta ligue cette semaine. Lance un quiz pour ouvrir le classement !" />}
-      {user && list.map((r, i) => (
+      {user && list.length >= 3 && <Podium rows={list} me={user.uid} valueOf={r => `${r.weekXP || 0} XP`} />}
+      {user && list.slice(list.length >= 3 ? 3 : 0).map((r, k) => { const i = k + (list.length >= 3 ? 3 : 0); return (
         <Row key={r.uid} rank={i} avatar={r.avatar} title={r.title} name={r.name} me={r.uid === user.uid} right={`${r.weekXP || 0} XP`} sub={`Niveau ${r.level}`} />
-      ))}
+      ); })}
       {user && rows && !inList && list.length > 0 && <Empty text="Joue un quiz cette semaine pour apparaître dans le classement." />}
     </div>
   );
@@ -143,9 +165,12 @@ export default function Leaderboard() {
       {tab === 'week' ? <LeagueBoard /> : tab === 'xp' ? (
         !rows ? <Empty text="Chargement…" /> :
         rows.length === 0 ? <Empty text="Le classement se remplit dès qu'un joueur termine un quiz." /> :
-        rows.map((r, i) => (
-          <Row key={r.uid} rank={i} avatar={r.avatar} title={r.title} name={r.name} me={r.uid === user?.uid} right={`${r.totalXP} XP`} sub={`Niveau ${r.level}${r.streak > 1 ? ` · ${r.streak} j` : ''}`} />
-        ))
+        <>
+          {rows.length >= 3 && <Podium rows={rows} me={user?.uid} valueOf={r => `${r.totalXP} XP`} subOf={r => `Niv. ${r.level}`} />}
+          {rows.slice(rows.length >= 3 ? 3 : 0).map((r, k) => { const i = k + (rows.length >= 3 ? 3 : 0); return (
+            <Row key={r.uid} rank={i} avatar={r.avatar} title={r.title} name={r.name} me={r.uid === user?.uid} right={`${r.totalXP} XP`} sub={`Niveau ${r.level}${r.streak > 1 ? ` · ${r.streak} j` : ''}`} />
+          ); })}
+        </>
       ) : <DailyBoard date={dayKey()} />}
     </div>
   );

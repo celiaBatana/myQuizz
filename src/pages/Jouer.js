@@ -8,9 +8,9 @@ import { getCategoryList, DIFF_LABELS } from '../data/quizData';
 import { fetchVaried } from '../utils/questions';
 
 const MODES = [
-  { id: 'mix',    icon: '🎲', name: 'Quiz mixte',   desc: '10 questions au hasard' },
-  { id: 'sudden', icon: '💥', name: 'Mort subite',  desc: 'Une erreur et c\'est fini' },
-  { id: 'duel',   icon: '⚔️', name: 'Duel',         desc: 'Défie un ami par lien' },
+  { id: 'mix',    icon: '🎲', name: 'Quiz mixte',   desc: '10 questions au hasard', color: '#E8844A' },
+  { id: 'sudden', icon: '💥', name: 'Mort subite',  desc: 'Une erreur et c\'est fini', color: '#E5604D' },
+  { id: 'duel',   icon: '⚔️', name: 'Duel',         desc: 'Défie un ami par lien', color: '#8FC39F' },
 ];
 
 export default function Jouer() {
@@ -32,7 +32,7 @@ export default function Jouer() {
   const [showAuth, setShowAuth] = useState(false);
 
   const chip = (active) => ({
-    padding: '7px 12px', borderRadius: 20, fontSize: 12, fontWeight: 600, cursor: 'pointer',
+    padding: '8px 13px', borderRadius: 20, fontSize: 12, fontWeight: 600, cursor: 'pointer',
     border: `1px solid ${active ? 'var(--purple)' : 'var(--s2)'}`,
     background: active ? 'rgba(207,122,69,.2)' : 'var(--s1)', color: active ? '#fff' : 'var(--muted)',
   });
@@ -74,10 +74,24 @@ export default function Jouer() {
         </div>
       )}
 
-      <div onClick={() => navigate('/daily')} style={{ background: 'var(--yellow)', color: 'var(--on-primary)', borderRadius: 16, padding: 16, marginBottom: 14, cursor: 'pointer' }}>
-        <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.12em', textTransform: 'uppercase', opacity: .85 }}>Chaque jour</div>
-        <div style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 800, fontSize: 18 }}>Défi du jour</div>
-        <div style={{ fontSize: 12, opacity: .85 }}>5 questions, un seul essai, classement du jour</div>
+      <div onClick={() => navigate('/daily')} data-testid="jouer-daily" style={{ background: 'linear-gradient(135deg, #E8844A, #E6B35A)', color: 'var(--on-primary)', borderRadius: 20, padding: '16px 18px', marginBottom: 14, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 12 }}>
+        <div style={{ fontSize: 34 }}>📅</div>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: '.12em', textTransform: 'uppercase', opacity: .8 }}>Chaque jour</div>
+          <div style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 800, fontSize: 19 }}>Défi du jour</div>
+          <div style={{ fontSize: 12, opacity: .85 }}>5 questions, un seul essai, classement du jour</div>
+        </div>
+        <div style={{ fontSize: 22, fontWeight: 800 }}>›</div>
+      </div>
+
+      <div className="section-label">Boss, blind test…</div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 8, marginBottom: 14 }}>
+        <div onClick={() => navigate('/boss')} style={{ padding: '12px 14px', borderRadius: 16, cursor: 'pointer', background: 'linear-gradient(145deg, rgba(229,96,77,.38), rgba(201,163,79,.12))', border: '1px solid rgba(229,96,77,.55)' }}>
+          <div style={{ fontSize: 26 }}>🐉</div><div style={{ fontWeight: 800, fontSize: 14, marginTop: 2 }}>Boss</div><div style={{ fontSize: 11, color: 'var(--muted)' }}>Vide leur barre de vie</div>
+        </div>
+        <div onClick={() => navigate('/blindtest')} style={{ padding: '12px 14px', borderRadius: 16, cursor: 'pointer', background: 'linear-gradient(145deg, rgba(154,123,201,.4), rgba(201,106,176,.14))', border: '1px solid rgba(154,123,201,.55)' }}>
+          <div style={{ fontSize: 26 }}>🎵</div><div style={{ fontWeight: 800, fontSize: 14, marginTop: 2 }}>Blind test</div><div style={{ fontSize: 11, color: 'var(--muted)' }}>Devine le morceau</div>
+        </div>
       </div>
 
       <div className="section-label">Mode</div>
@@ -85,9 +99,11 @@ export default function Jouer() {
         {MODES.map(m => (
           <div key={m.id} onClick={() => { setMode(m.id); if (m.id === 'sudden') setDiffs(d => d.slice(0, 1)); }} style={{
             textAlign: 'center', padding: '12px 6px', borderRadius: 14, cursor: 'pointer',
-            background: 'var(--s1)', border: `2px solid ${mode === m.id ? 'var(--purple)' : 'var(--s2)'}`,
+            background: mode === m.id ? `linear-gradient(160deg, ${m.color}40, ${m.color}12)` : 'var(--s1)',
+            border: `2px solid ${mode === m.id ? m.color : 'var(--s2)'}`,
+            boxShadow: mode === m.id ? `0 0 18px ${m.color}40` : 'none', transition: 'all .2s',
           }}>
-            <div style={{ fontSize: 24 }}>{m.icon}</div>
+            <div style={{ fontSize: 28 }}>{m.icon}</div>
             <div style={{ fontSize: 12, fontWeight: 700, marginTop: 2 }}>{m.name}</div>
             <div style={{ fontSize: 10, color: 'var(--muted)' }}>{m.desc}</div>
           </div>

@@ -8,6 +8,8 @@ import { dayKey } from '../hooks/useQuiz';
 import { dueReviewIds } from '../utils/league';
 import DailyPanel from '../components/DailyPanel';
 import Onboarding from '../components/Onboarding';
+import { rankFor } from '../utils/rank';
+import { gemsBalance } from '../utils/gems';
 import { streakInfo } from '../utils/retention';
 import { cleanQuizName } from '../utils/quizName';
 
@@ -94,6 +96,7 @@ export default function Home() {
   const xpInLevel = profile?.xpInLevel || 0;
   const xpPct = Math.min(1, xpInLevel / XP_PER_LEVEL);
   const streak = streakInfo(profile);
+  const rank = rankFor(level);
   const firstName = (profile?.displayName || '').split(' ')[0];
 
   return (
@@ -120,7 +123,8 @@ export default function Home() {
             {profile && (
               <div style={{ display: 'flex', gap: 8, marginTop: 8, flexWrap: 'wrap' }}>
                 <span data-testid="home-streak" style={{ fontSize: 12, fontWeight: 800, padding: '3px 10px', borderRadius: 20, background: 'rgba(232,132,74,.18)', color: 'var(--yellow)' }}>🔥 {streak.count} jour{streak.count > 1 ? 's' : ''}</span>
-                <span style={{ fontSize: 12, fontWeight: 700, padding: '3px 10px', borderRadius: 20, background: 'var(--s2)', color: 'var(--text)' }}>⭐ {profile.totalXP || 0} XP</span>
+                <span data-testid="home-rank" style={{ fontSize: 12, fontWeight: 800, padding: '3px 10px', borderRadius: 20, background: rank.color + '2A', color: rank.color }}>{rank.icon} {rank.name}</span>
+                <span onClick={() => navigate('/boutique')} style={{ fontSize: 12, fontWeight: 700, padding: '3px 10px', borderRadius: 20, background: 'rgba(127,214,232,.16)', color: '#7FD6E8', cursor: 'pointer' }}>💎 {gemsBalance(profile)}</span>
               </div>
             )}
           </div>
