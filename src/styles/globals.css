@@ -275,6 +275,5 @@ body {
   .bnav-sep { display: block; height: 1px; background: var(--s2); margin: 8px 6px; }
   .page { max-width: 980px; padding-bottom: 40px; }
   .navbar { padding-left: 24px; padding-right: 24px; }
-  .home-top { max-width: 720px; }
   .mode-grid { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; }
 }
