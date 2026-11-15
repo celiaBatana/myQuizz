@@ -25,7 +25,7 @@ function Row({ rank, name, right, sub, me, avatar, title }) {
 // Podium des 3 premiers (2e · 1er · 3e)
 function Podium({ rows, me, valueOf, subOf }) {
   const order = [1, 0, 2].filter(i => rows[i]);
-  const H = [92, 120, 76], C = ['#C9D2DA', '#E6B35A', '#D08A4E'];
+  const H = [120, 92, 76], C = ['#E6B35A', '#C9D2DA', '#D08A4E'];
   return (
     <div data-testid="podium" style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'center', gap: 8, margin: '6px 0 14px' }}>
       {order.map(i => {
@@ -150,7 +150,7 @@ export default function Leaderboard() {
   }, [tab]);
 
   return (
-    <div className="page">
+    <div className="page page-narrow">
       <div className="page-title">Classement</div>
       <div style={{ display: 'flex', gap: 4, background: 'var(--s2)', borderRadius: 10, padding: 3, margin: '12px 0' }}>
         {[['week', 'Ligue'], ['xp', 'Général'], ['daily', 'Défi']].map(([id, label]) => (

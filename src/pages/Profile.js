@@ -21,7 +21,7 @@ export default function Profile() {
 
   // ── Non connecté ──────────────────────────────────────────────────────────
   if (!user) return (
-    <div className="page">
+    <div className="page page-narrow">
       {showAuth && <AuthModal onClose={() => setShowAuth(false)} />}
       <div style={{ textAlign: 'center', padding: '48px 16px' }}>
         <div style={{ fontSize: 56, marginBottom: 12 }}>👤</div>
@@ -104,7 +104,7 @@ export default function Profile() {
 
   // ── Render ────────────────────────────────────────────────────────────────
   return (
-    <div className="page">
+    <div className="page page-narrow">
 
       {/* ── Hero profil ── */}
       <div style={{ background: `linear-gradient(160deg, ${rankFor(level).color}30, var(--s1) 55%)`, border: `1px solid ${rankFor(level).color}66`, borderRadius: 24, padding: '22px 16px', marginBottom: 14, textAlign: 'center' }}>

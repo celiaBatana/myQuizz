@@ -65,7 +65,7 @@ export default function Amis() {
 
   if (!user) {
     return (
-      <div className="page">
+      <div className="page page-narrow">
         <h1 className="page-title">Mes amis</h1>
         <p style={{ color: 'var(--muted)', fontSize: 14, marginBottom: 14 }}>Connecte-toi pour ajouter des amis et les défier en duel.</p>
         <button style={btn(true)} onClick={() => setShowAuth(true)}>Se connecter</button>
@@ -124,7 +124,7 @@ export default function Amis() {
   }
 
   return (
-    <div className="page">
+    <div className="page page-narrow">
       <h1 className="page-title">Mes amis</h1>
 
       <div style={box}>

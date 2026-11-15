@@ -90,7 +90,7 @@ export const BLIND_CATS = [
     { title: "Goutte d'eau", artist: "Ninho" },
     { title: "Angela", artist: "Hatik" },
   ] },
-  { id: "animes", color: "#E0678F", label: "Génériques d'animes", icon: "🍥", desc: "Openings cultes à reconnaître en 3 secondes", tracks: [
+  { id: "animes", color: "#E0678F", label: "Génériques d'animes", icon: "🎌", desc: "Openings cultes à reconnaître en 3 secondes", tracks: [
     { title: "Cha-La Head-Cha-La", artist: "Hironobu Kageyama" },
     { title: "We Are!", artist: "Hiroshi Kitadani" },
     { title: "Blue Bird", artist: "Ikimono-gakari" },

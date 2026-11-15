@@ -40,7 +40,7 @@ export default function Boutique() {
   );
 
   return (
-    <div className="page">
+    <div className="page page-narrow">
       <div className="page-title">💎 Boutique</div>
       <div className="page-sub">Tes éclats : 1 pour 10 XP gagnés</div>
       <div data-testid="shop-balance" style={{ background: 'linear-gradient(135deg, rgba(127,214,232,.25), rgba(232,132,74,.15))', border: '1px solid rgba(127,214,232,.45)', borderRadius: 20, padding: '18px 20px', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 14 }}>
@@ -63,7 +63,7 @@ export default function Boutique() {
 
       {locked.length > 0 && <>
         <div className="section-label" style={{ marginTop: 18 }}>Cosmétiques</div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 10 }}>
+        <div className="shop-grid">
           {locked.map(c => (
             <div key={c.id} data-testid="shop-item" style={{ ...tile, marginBottom: 0, flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: 6 }}>
               <div style={{ fontSize: 34 }}>{c.icon || '🏷️'}</div>
