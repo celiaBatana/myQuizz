@@ -5,6 +5,8 @@ import AuthModal from '../components/AuthModal';
 import { DIFF_LABELS, DIFF_COLORS } from '../data/quizData';
 import { doc, setDoc } from 'firebase/firestore';
 import { db } from '../firebase';
+import { rankFor } from '../utils/rank';
+import { gemsBalance } from '../utils/gems';
 import { AVATARS, TITLES, ownedIds, avatarIcon, titleName } from '../data/cosmetics';
 import { cleanQuizName } from '../utils/quizName';
 
@@ -105,8 +107,12 @@ export default function Profile() {
     <div className="page">
 
       {/* ── Hero profil ── */}
-      <div style={{ background: 'var(--s1)', border: '1px solid var(--s2)', borderRadius: 20, padding: '20px 16px', marginBottom: 14, textAlign: 'center' }}>
-        <div style={{ fontSize: 48, marginBottom: 6 }}>{profile?.avatar ? avatarIcon(profile.avatar) : levelEmoji(level)}</div>
+      <div style={{ background: `linear-gradient(160deg, ${rankFor(level).color}30, var(--s1) 55%)`, border: `1px solid ${rankFor(level).color}66`, borderRadius: 24, padding: '22px 16px', marginBottom: 14, textAlign: 'center' }}>
+        <div style={{ position: 'relative', width: 88, height: 88, margin: '0 auto 10px', borderRadius: '50%', background: 'var(--s2)', border: `3px solid ${rankFor(level).color}`, boxShadow: `0 0 22px ${rankFor(level).color}55`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 46 }}>
+          {profile?.avatar ? avatarIcon(profile.avatar) : levelEmoji(level)}
+          <div style={{ position: 'absolute', bottom: -6, right: -6, minWidth: 30, height: 30, padding: '0 6px', borderRadius: 15, background: 'var(--yellow)', color: 'var(--on-primary)', fontSize: 13, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '3px solid var(--s1)' }}>{level}</div>
+        </div>
+        <div data-testid="profile-rank" style={{ display: 'inline-flex', gap: 6, alignItems: 'center', fontSize: 12, fontWeight: 800, padding: '3px 11px', borderRadius: 20, background: rankFor(level).color + '2A', color: rankFor(level).color, marginBottom: 6 }}>{rankFor(level).icon} {rankFor(level).name}{rankFor(level).next ? <span style={{ opacity: .7, fontWeight: 600 }}> · prochain rang niv. {rankFor(level).next.from}</span> : null}</div>
         <div style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontSize: 20, fontWeight: 800, marginBottom: 2 }}>
           {displayName}
         </div>
@@ -120,6 +126,7 @@ export default function Profile() {
         <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'rgba(207,122,69,.15)', border: '1px solid rgba(207,122,69,.3)', borderRadius: 12, padding: '6px 14px', marginBottom: 14 }}>
           <span style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 800, fontSize: 18, color: 'var(--purple)' }}>Niveau {level}</span>
           <span style={{ fontSize: 12, color: 'var(--muted)' }}>{totalXP} XP total</span>
+          <span onClick={() => navigate('/boutique')} style={{ fontSize: 12, color: '#7FD6E8', cursor: 'pointer', fontWeight: 700 }}>💎 {gemsBalance(profile)}</span>
         </div>
 
         {/* Barre XP */}
