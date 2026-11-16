@@ -9,6 +9,7 @@ import { dueReviewIds } from '../utils/league';
 import DailyPanel from '../components/DailyPanel';
 import Onboarding from '../components/Onboarding';
 import { rankFor } from '../utils/rank';
+import ActivityFeed from '../components/ActivityFeed';
 import InstallPrompt from '../components/InstallPrompt';
 import { useChampions } from '../hooks/useChampions';
 import { weeklyBoss, weeklyCat, weeklyEnds, WEEKLY_MULT, WEEKLY_BOSS_GEMS } from '../utils/weekly';
@@ -224,6 +225,8 @@ export default function Home() {
           </div>
         </div>
       </div>
+
+      <ActivityFeed />
 
       {profile && !profile.onboarded && !(profile.quizzesPlayed > 0) && <Onboarding />}
       <DailyPanel />

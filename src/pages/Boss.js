@@ -9,6 +9,8 @@ import { nextLeagueState } from '../utils/league';
 import { dayKey } from '../hooks/useQuiz';
 import { CATEGORIES } from '../data/quizData';
 import { weeklyBoss, WEEKLY_MULT, WEEKLY_BOSS_GEMS, weekKeyNow } from '../utils/weekly';
+import { addEvent } from '../utils/activity';
+import ShareButton from '../components/ShareButton';
 import CardReveal from '../components/CardReveal';
 import Confetti from '../components/Confetti';
 
@@ -112,14 +114,16 @@ export function BossFight() {
         const lg = nextLeagueState(profile, xp);
         setGain({ xp, win, repeat, firstWin, weekly, wkBonus });
         if (firstWin) setShowCard(true);
+        const events = win ? addEvent(profile, { k: boss.emoji, t: `a vaincu ${boss.name}` }) : (profile.events || []);
         await updateProfile({
+          events,
           totalXP, xpAt: serverTimestamp(), level: lvl, xpInLevel: rem, weekKey: lg.weekKey, weekXP: lg.weekXP, league: lg.league,
           ...(wkBonus ? { gemsBonus: (profile.gemsBonus || 0) + WEEKLY_BOSS_GEMS, weeklyBossWeek: weekKeyNow() } : {}),
           ...(win ? { bossWins: { ...(profile.bossWins || {}), [boss.id]: (profile.bossWins?.[boss.id] || 0) + 1 }, bossDay: { date: today, wins: { ...(bd.wins || {}), [boss.id]: true } } } : {}),
         });
         await setDoc(doc(db, 'leaderboard', user.uid), {
           uid: user.uid, name: profile.displayName || user.displayName || 'Joueur', totalXP, level: lvl,
-          weekKey: lg.weekKey, weekXP: lg.weekXP, league: lg.league, avatar: profile.avatar || '', title: profile.title || '', updatedAt: serverTimestamp(),
+          weekKey: lg.weekKey, weekXP: lg.weekXP, league: lg.league, events, avatar: profile.avatar || '', title: profile.title || '', updatedAt: serverTimestamp(),
         }, { merge: true });
       } catch (e) { console.error(e); }
     })();
@@ -196,6 +200,7 @@ export function BossFight() {
             )}
           </div>
         )}
+        {win && <ShareButton title={`J'ai vaincu ${boss.name}`} big={`${hearts} ❤️ restants`} sub={`+${gain?.xp ?? 0} XP`} emoji={boss.emoji} color={boss.color} style={{ marginBottom: 8 }} />}
         <button className="btn btn-primary btn-full" data-testid="boss-retry" onClick={load}>{win ? 'Le combattre à nouveau' : 'Réessayer'}</button>
         <button className="btn btn-secondary btn-full" style={{ marginTop: 8 }} onClick={() => navigate('/boss')}>Autres boss</button>
         {showCard && <CardReveal card={{ icon: boss.emoji, name: boss.name, color: boss.color, gradient: `linear-gradient(135deg, ${boss.color}55, ${boss.color}15)`, catLabel: 'Carte de boss', fact: `Tu as vaincu ${boss.name} ! ${boss.desc}` }} title="Trophée de boss !" onClose={() => setShowCard(false)} />}

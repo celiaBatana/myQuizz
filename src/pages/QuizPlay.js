@@ -8,6 +8,7 @@ import { useAuth } from '../context/AuthContext';
 import { useQuiz } from '../hooks/useQuiz';
 import { LEAGUES } from '../utils/league';
 import { shareScore } from '../utils/share';
+import ShareButton from '../components/ShareButton';
 import { gemsEarned } from '../utils/gems';
 import { pickResultMessage, pickSuddenMessage } from '../utils/resultMessages';
 import Confetti from '../components/Confetti';
@@ -611,6 +612,8 @@ function ResultScreen({ quiz, quizData, catId, themeId, navigate, onReplay, onPr
       )}
 
       {extra && (quiz.saved ? extra : <div style={{ textAlign: 'center', color: 'var(--muted)', fontSize: 12, padding: 14 }}>Enregistrement du score…</div>)}
+
+      {!quiz.practice && <ShareButton title={`${sudden ? 'Mort subite' : (quiz.name || quiz.title || 'Quiz')}`} big={sudden ? `${quiz.score} d'affilée` : `${quiz.score}/${quiz.totalQuestions}`} sub={`+${quiz.totalXP} XP`} emoji={emoji} style={{ marginTop: 8 }} />}
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 8 }}>
         {nextQuiz && passedNow && !quiz.practice && (

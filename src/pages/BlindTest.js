@@ -1,3 +1,5 @@
+import ShareButton from '../components/ShareButton';
+import { addEvent } from '../utils/activity';
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams, Navigate } from 'react-router-dom';
 import { BLIND_CATS, ALL_TRACKS, getBlindCat } from '../data/blindtest';
@@ -165,7 +167,9 @@ export function BlindPlay({ preset }) {
         setGain({ xp, reduced, best, newRecord: score > prevBest && score > 0 });
         const blindBest = { ...(profile.blindBest || {}), [info.id]: best };
         const blindTotal = Object.values(blindBest).reduce((a, b) => a + (Number(b) || 0), 0);
+        const events = best > prevBest && best >= 5 ? addEvent(profile, { k: '🎵', t: `nouveau record au blind test (${best}/10)` }) : (profile.events || []);
         await updateProfile({
+          events,
           totalXP, xpAt: serverTimestamp(), level: lvl, xpInLevel: remaining, weekKey: lg.weekKey, weekXP: lg.weekXP, league: lg.league,
           blindBest,
           blindPlayed: (profile.blindPlayed || 0) + 1,
@@ -175,7 +179,7 @@ export function BlindPlay({ preset }) {
         await setDoc(doc(db, 'leaderboard', user.uid), {
           uid: user.uid, name: profile.displayName || user.displayName || 'Joueur', totalXP, level: lvl,
           weekKey: lg.weekKey, weekXP: lg.weekXP, league: lg.league,
-          avatar: profile.avatar || '', title: profile.title || '', blindBest, blindTotal, updatedAt: serverTimestamp(),
+          avatar: profile.avatar || '', title: profile.title || '', blindBest, blindTotal, events, updatedAt: serverTimestamp(),
         }, { merge: true });
       } catch (e) { console.error(e); }
     })();
@@ -296,6 +300,7 @@ export function BlindPlay({ preset }) {
           </>
         ) : (
           <>
+            <ShareButton title={`Blind test · ${info.label}`} big={`${score}/${ROUNDS}`} sub={gain ? `+${gain.xp} XP` : ''} emoji="🎵" color={info.color} style={{ marginBottom: 8 }} />
             <button className="btn btn-primary btn-full" onClick={restart}>Rejouer ce style</button>
             <button className="btn btn-secondary btn-full" style={{ marginTop: 8 }} onClick={() => navigate('/blindtest')}>Changer de style</button>
           </>
