@@ -509,7 +509,8 @@ function ResultScreen({ quiz, quizData, catId, themeId, navigate, onReplay, onPr
       } catch (e) { /* hors-ligne : pas de bouton */ }
     })();
   }, [canSeek, catId, themeId, quizData?.id]); // eslint-disable-line
-  const passedNow = pct * 100 >= PASS || (profile?.bestScores?.[quizData?.id] ?? -1) >= PASS;
+  const bestPct = profile?.bestScores?.[quizData?.id] ?? -1;
+  const passedNow = (quiz.practice ? false : pct * 100 >= PASS) || bestPct >= PASS; // en révision, seul le score du vrai quiz compte
   const xpInLevel = profile?.xpInLevel || 0;
   const level     = profile?.level || 1;
 
@@ -616,7 +617,7 @@ function ResultScreen({ quiz, quizData, catId, themeId, navigate, onReplay, onPr
       {!quiz.practice && <ShareButton title={`${sudden ? 'Mort subite' : (quiz.name || quiz.title || 'Quiz')}`} big={sudden ? `${quiz.score} d'affilée` : `${quiz.score}/${quiz.totalQuestions}`} sub={`+${quiz.totalXP} XP`} emoji={emoji} style={{ marginTop: 8 }} />}
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 8 }}>
-        {nextQuiz && passedNow && !quiz.practice && (
+        {nextQuiz && passedNow && (
           <button className="btn btn-primary btn-full" style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 700 }}
             onClick={() => navigate(`/quiz/${catId}/${themeId}/${nextQuiz.id}`)}>
             Quiz suivant : {cleanQuizName(nextQuiz.name)} →
