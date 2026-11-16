@@ -33,6 +33,13 @@ export const TITLES = [
   { id: 't_hunter',  name: 'Chasseur de trésors', chest: true },
   { id: 't_night',   name: 'Noctambule',          chest: true },
   { id: 't_master',  name: 'Maître du savoir',    chest: true },
+  { id: 't_h_gardien',   name: 'Briseur de statues',     hint: 'Gardien en héroïque' },
+  { id: 't_h_dragon',    name: 'Tueur de dragon',        hint: 'Dragon en héroïque' },
+  { id: 't_h_spectre',   name: 'Chasseur de spectres',   hint: 'Spectre en héroïque' },
+  { id: 't_h_minotaure', name: 'Dompteur de minotaure',  hint: 'Minotaure en héroïque' },
+  { id: 't_h_oni',       name: "Exorciste d'oni",        hint: 'Oni en héroïque' },
+  { id: 't_h_sphinx',    name: "Briseur d'énigmes",      hint: 'Sphinx en héroïque' },
+  { id: 't_h_all',       name: 'Héros des boss',         hint: 'Les 6 boss en héroïque' },
   { id: 't_s1_fan',  name: 'Pionnier',            hint: 'Saison 1 · palier 4' },
   { id: 't_s1_top',  name: 'Légende de saison 1', hint: 'Saison 1 · palier 10' },
 ];
@@ -44,6 +51,10 @@ export const FRAMES = [
   { id: 'f_s1_b',   name: 'Émeraude', hint: 'Saison 1 · palier 6', style: { border: '3px solid #8FC39F', boxShadow: '0 0 22px #8FC39FAA' } },
   { id: 'f_s1_c',   name: 'Aurore',   hint: 'Saison 1 · palier 8', style: { border: '3px solid #FFD166', boxShadow: '0 0 12px #FFD166, 0 0 30px #E8844A99' } },
 ];
+FRAMES.push(
+  { id: 'f_dragon', name: 'Écailles de dragon', hint: 'Dragon en héroïque', style: { border: '3px solid #E5604D', boxShadow: '0 0 14px #E5604D, 0 0 32px #5FA8A0AA' } },
+  { id: 'f_hero',   name: 'Héros',              hint: 'Les 6 boss en héroïque', style: { border: '3px solid #FFD166', boxShadow: '0 0 14px #FFD166, 0 0 34px #E5604DAA' } },
+);
 export const frameStyle = id => FRAMES.find(f => f.id === id)?.style || null;
 
 const ALL = [...AVATARS, ...TITLES, ...FRAMES];

@@ -211,6 +211,15 @@ export default function Home() {
         </div>
       </div>
 
+      <div data-testid="home-rush" className="weekly-card" onClick={() => navigate('/rush')} style={{ borderColor: 'rgba(230,179,90,.7)', marginBottom: 10 }}>
+        <div style={{ fontSize: 34 }}>⚡</div>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: '.1em', color: '#E6B35A' }}>RUSH 60 S · CLASSEMENT DU JOUR</div>
+          <div style={{ ...display, fontSize: 15 }}>Combien de bonnes réponses en 1 minute ?</div>
+          <div style={{ fontSize: 12, color: 'var(--muted)' }}>{profile?.rushDay?.date === dayKey() ? `Ton meilleur du jour : ${profile.rushDay.best}` : 'Court, intense, addictif'}</div>
+        </div>
+      </div>
+
       <div data-testid="weekly" className="weekly-grid">
         <div className="weekly-card" onClick={() => navigate(`/boss/${wBoss.id}`)} style={{ borderColor: wBoss.color + '99' }}>
           <div style={{ fontSize: 34 }}>{wBoss.emoji}</div>

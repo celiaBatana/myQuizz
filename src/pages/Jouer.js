@@ -89,6 +89,9 @@ export default function Jouer() {
         <div onClick={() => navigate('/boss')} style={{ padding: '12px 14px', borderRadius: 16, cursor: 'pointer', background: 'linear-gradient(145deg, rgba(229,96,77,.38), rgba(201,163,79,.12))', border: '1px solid rgba(229,96,77,.55)' }}>
           <div style={{ fontSize: 26 }}>🐉</div><div style={{ fontWeight: 800, fontSize: 14, marginTop: 2 }}>Boss</div><div style={{ fontSize: 11, color: 'var(--muted)' }}>Vide leur barre de vie</div>
         </div>
+        <div onClick={() => navigate('/rush')} data-testid="jouer-rush" style={{ padding: '12px 14px', borderRadius: 16, cursor: 'pointer', background: 'linear-gradient(145deg, rgba(230,179,90,.4), rgba(232,132,74,.14))', border: '1px solid rgba(230,179,90,.6)' }}>
+          <div style={{ fontSize: 26 }}>⚡</div><div style={{ fontWeight: 800, fontSize: 14, marginTop: 2 }}>Rush 60 s</div><div style={{ fontSize: 11, color: 'var(--muted)' }}>Classement du jour</div>
+        </div>
         <div onClick={() => navigate('/blindtest')} style={{ padding: '12px 14px', borderRadius: 16, cursor: 'pointer', background: 'linear-gradient(145deg, rgba(154,123,201,.4), rgba(201,106,176,.14))', border: '1px solid rgba(154,123,201,.55)' }}>
           <div style={{ fontSize: 26 }}>🎵</div><div style={{ fontWeight: 800, fontSize: 14, marginTop: 2 }}>Blind test</div><div style={{ fontSize: 11, color: 'var(--muted)' }}>Devine le morceau</div>
         </div>

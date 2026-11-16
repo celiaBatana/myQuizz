@@ -9,3 +9,10 @@ export const BOSSES = [
 ];
 export const getBoss = id => BOSSES.find(b => b.id === id);
 export const DAMAGE = { easy: 10, medium: 14, hard: 20 };
+
+// Mode héroïque : PV ×2, questions plus dures. Victoire = récompense exclusive (titre), cadre « Tueur de dragon » pour le Dragon
+export const HERO_HP_MULT = 2;
+export const HERO_XP_MULT = 2;
+export const HERO_GEMS = 30;
+export const HERO_TITLES = { gardien: 't_h_gardien', dragon: 't_h_dragon', spectre: 't_h_spectre', minotaure: 't_h_minotaure', oni: 't_h_oni', sphinx: 't_h_sphinx' };
+export const HERO_FRAMES = { dragon: 'f_dragon' };
