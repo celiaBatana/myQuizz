@@ -13,10 +13,10 @@ import { dayKey } from '../hooks/useQuiz';
 import Avatar from '../components/Avatar';
 
 const XP_PER_LEVEL = 200;
-const XP_PER_GOOD = 8;      // 10 bonnes réponses = 80 XP
+const XP_PER_GOOD = 4;      // 20 bonnes réponses = 80 XP
 const FULL_GAMES_PER_DAY = 3; // ensuite 25 % (anti-farm)
 
-const ROUNDS = 10;
+const ROUNDS = 20;
 const label = t => `${t.title} — ${t.artist}`;
 const shuffle = a => { const r = [...a]; for (let i = r.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [r[i], r[j]] = [r[j], r[i]]; } return r; };
 const card = { background: 'var(--s1)', border: '1px solid var(--s2)', borderRadius: 16, padding: 16, marginBottom: 12 };
@@ -61,7 +61,7 @@ export default function BlindHub() {
           ))}
         </div>
       </div>
-      <div className="page-sub">10 extraits de 30 s : devine le morceau. Choisis ton style.</div>
+      <div className="page-sub">20 extraits de 30 s : devine le morceau. Choisis ton style.</div>
       <button data-testid="bt-ranking" onClick={() => navigate('/blindtest/classement')} className="btn btn-secondary btn-full" style={{ marginBottom: 12 }}>🏆 Classement du blind test</button>
       <div data-testid="bt-cat" data-cat="mix" onClick={() => navigate('/blindtest/mix')}
         style={{ background: 'linear-gradient(135deg, rgba(232,132,74,.4), rgba(154,123,201,.32))', border: '1px solid rgba(232,132,74,.7)', borderRadius: 20, padding: '18px 18px', marginBottom: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 14 }}>
@@ -79,7 +79,7 @@ export default function BlindHub() {
             <div style={{ width: 46, height: 46, borderRadius: 14, background: c.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24 }}>{c.icon}</div>
             <div style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 800, fontSize: 15, lineHeight: 1.2 }}>{c.label}</div>
             <div style={{ fontSize: 11, color: 'var(--text)', opacity: .75, lineHeight: 1.4, flex: 1 }}>{c.desc}</div>
-            <div style={{ fontSize: 11, fontWeight: 700, color: c.color }}>{rec(c.id) ? `Record : ${rec(c.id)}/10` : `${c.tracks.length} morceaux`}</div>
+            <div style={{ fontSize: 11, fontWeight: 700, color: c.color }}>{rec(c.id) ? `Record : ${rec(c.id)}/${ROUNDS}` : `${c.tracks.length} morceaux`}</div>
           </div>
         ))}
       </div>
@@ -167,7 +167,7 @@ export function BlindPlay({ preset }) {
         setGain({ xp, reduced, best, newRecord: score > prevBest && score > 0 });
         const blindBest = { ...(profile.blindBest || {}), [info.id]: best };
         const blindTotal = Object.values(blindBest).reduce((a, b) => a + (Number(b) || 0), 0);
-        const events = best > prevBest && best >= 5 ? addEvent(profile, { k: '🎵', t: `nouveau record au blind test (${best}/10)` }) : (profile.events || []);
+        const events = best > prevBest && best >= 10 ? addEvent(profile, { k: '🎵', t: `nouveau record au blind test (${best}/${ROUNDS})` }) : (profile.events || []);
         await updateProfile({
           events,
           totalXP, xpAt: serverTimestamp(), level: lvl, xpInLevel: remaining, weekKey: lg.weekKey, weekXP: lg.weekXP, league: lg.league,
@@ -245,14 +245,14 @@ export function BlindPlay({ preset }) {
     return (
       <div className="page">
         <div className="page-title">{info.icon || '🎲'} {info.label}</div>
-        <div className="page-sub">10 extraits, 4 choix chacun</div>
+        <div className="page-sub">20 extraits, 4 choix chacun</div>
         <div style={card}>
           <div style={{ fontSize: 14, lineHeight: 1.6, marginBottom: 12 }}>Tu écoutes un extrait de 30 secondes, puis tu choisis le bon morceau. Monte le son !</div>
           <button className="btn btn-primary btn-full" data-testid="bt-start" onClick={restart}>Commencer</button>
         </div>
         <div style={card}>
           <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 6 }}>⚔️ Défier un ami</div>
-          <div style={{ fontSize: 12, color: 'var(--muted)', marginBottom: 10, lineHeight: 1.5 }}>Mêmes 10 extraits pour vous deux, les scores s'affichent à la fin.</div>
+          <div style={{ fontSize: 12, color: 'var(--muted)', marginBottom: 10, lineHeight: 1.5 }}>Mêmes 20 extraits pour vous deux, les scores s'affichent à la fin.</div>
           {!user ? <div style={{ fontSize: 12, color: 'var(--muted)' }}>Connecte-toi pour créer un duel.</div> : (
             <>
               {friends.length > 0 && (
@@ -278,7 +278,7 @@ export function BlindPlay({ preset }) {
         <div className="page-title">🎵 Blind test terminé</div>
         <div style={{ ...card, textAlign: 'center' }}>
           <div style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontSize: 44, fontWeight: 800, color: 'var(--yellow)' }}>{score}/{ROUNDS}</div>
-          <div style={{ fontSize: 14, color: 'var(--muted)' }}>{score >= 8 ? 'Quelle oreille ! 🎧' : score >= 5 ? 'Pas mal du tout !' : 'Tu feras mieux à la prochaine écoute.'}</div>
+          <div style={{ fontSize: 14, color: 'var(--muted)' }}>{score >= 16 ? 'Quelle oreille ! 🎧' : score >= 10 ? 'Pas mal du tout !' : 'Tu feras mieux à la prochaine écoute.'}</div>
         </div>
         {gain && (
           <div data-testid="bt-gain" style={{ ...card, textAlign: 'center', borderColor: gain.xp ? 'var(--yellow)' : 'var(--s2)' }}>
@@ -368,7 +368,7 @@ export function BlindBoard() {
   return (
     <div className="page">
       <div className="page-title">🏆 Classement blind test</div>
-      <div className="page-sub">{sel === 'total' ? 'Somme de tes meilleurs scores de chaque style' : 'Meilleur score sur 10'}</div>
+      <div className="page-sub">{sel === 'total' ? 'Somme de tes meilleurs scores de chaque style' : 'Meilleur score sur 20'}</div>
       <div style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 8, marginBottom: 8 }}>
         <div data-testid="bb-tab" data-tab="total" style={chip(sel === 'total')} onClick={() => setSel('total')}>Total</div>
         {BLIND_CATS.map(c => <div key={c.id} data-testid="bb-tab" data-tab={c.id} style={chip(sel === c.id)} onClick={() => setSel(c.id)}>{c.icon} {c.label}</div>)}
@@ -380,7 +380,7 @@ export function BlindBoard() {
         <div key={r.uid} data-testid="bb-row" style={{ display: 'flex', alignItems: 'center', gap: 10, background: r.uid === user?.uid ? 'rgba(232,132,74,.15)' : 'var(--s1)', border: `1px solid ${r.uid === user?.uid ? 'var(--yellow)' : 'var(--s2)'}`, borderRadius: 12, padding: '10px 13px', marginBottom: 6 }}>
           <div style={{ width: 28, textAlign: 'center', fontWeight: 800, fontSize: k < 3 ? 18 : 13, color: 'var(--muted)' }}>{MEDALS[k] || k + 1}</div>
           <div style={{ flex: 1, minWidth: 0, fontSize: 14, fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}><Avatar id={r.avatar} frame={r.frame} size={24} />{r.name}{r.uid === user?.uid && ' (toi)'}</div>
-          <div style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 800, color: 'var(--yellow)' }}>{sel === 'total' ? score(r) : `${score(r)}/10`}</div>
+          <div style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 800, color: 'var(--yellow)' }}>{sel === 'total' ? score(r) : `${score(r)}/${ROUNDS}`}</div>
         </div>
       ))}
       <button className="btn btn-secondary btn-full" style={{ marginTop: 10 }} onClick={() => navigate('/blindtest')}>Retour</button>

@@ -159,7 +159,7 @@ export default function Home() {
         </div>
         {profile && (
           <div className="hero-stats" data-testid="hero-stats">
-            {[['🐉', `${bossDone}/${BOSSES.length}`, 'boss vaincus'], ['🃏', nCards, 'cartes'], ['🎵', blindRec ? `${blindRec}/10` : '—', 'record blind test'], ['🎯', profile.quizzesPlayed || 0, 'quiz joués']].map(([ic, v, l]) => (
+            {[['🐉', `${bossDone}/${BOSSES.length}`, 'boss vaincus'], ['🃏', nCards, 'cartes'], ['🎵', blindRec ? `${blindRec}/20` : '—', 'record blind test'], ['🎯', profile.quizzesPlayed || 0, 'quiz joués']].map(([ic, v, l]) => (
               <div key={l} className="hero-stat"><div style={{ fontSize: 22 }}>{ic}</div><div style={{ ...display, fontSize: 22, lineHeight: 1.1 }}>{v}</div><div style={{ fontSize: 11, color: 'var(--muted)' }}>{l}</div></div>
             ))}
           </div>
@@ -195,7 +195,7 @@ export default function Home() {
           <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: '.1em', color: '#C8B1EE' }}>BLIND TEST</div>
           <div style={{ ...display, fontSize: 17, marginTop: 2 }}>D'où vient ce son ?</div>
           <div style={{ fontSize: 12, opacity: .8, marginTop: 3, lineHeight: 1.35 }}>Devine le morceau en 30 s · 7 styles.</div>
-          {profile && blindRec > 0 && <div className="mode-stat">Record : {blindRec}/10</div>}
+          {profile && blindRec > 0 && <div className="mode-stat">Record : {blindRec}/20</div>}
         </div>
         <div className="mode-card" data-testid="home-amis" onClick={() => navigate('/amis')} style={{ background: 'linear-gradient(145deg, rgba(143,195,159,.36), rgba(143,195,159,.1))', border: '1px solid rgba(143,195,159,.55)' }}>
           <div className="mode-art" style={{ fontSize: 42 }}><span style={{ display: 'inline-block', animation: 'hb-swing 1.6s ease-in-out infinite' }}>⚔️</span></div>
