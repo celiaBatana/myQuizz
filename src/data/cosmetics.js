@@ -18,6 +18,7 @@ export const AVATARS = [
   { id: 'a_octo',   icon: '🐙', name: 'Pieuvre',       chest: true },
   { id: 'a_rocket', icon: '🚀', name: 'Fusée',         chest: true },
   { id: 'a_crown',  icon: '👑', name: 'Couronne',      chest: true },
+  { id: 'a_phoenix', icon: '🦅', name: 'Phénix',        hint: 'Saison 1 · palier 9' },
 ];
 
 export const TITLES = [
@@ -32,9 +33,20 @@ export const TITLES = [
   { id: 't_hunter',  name: 'Chasseur de trésors', chest: true },
   { id: 't_night',   name: 'Noctambule',          chest: true },
   { id: 't_master',  name: 'Maître du savoir',    chest: true },
+  { id: 't_s1_fan',  name: 'Pionnier',            hint: 'Saison 1 · palier 4' },
+  { id: 't_s1_top',  name: 'Légende de saison 1', hint: 'Saison 1 · palier 10' },
 ];
 
-const ALL = [...AVATARS, ...TITLES];
+// Cadres d'avatar (récompenses de saison)
+export const FRAMES = [
+  { id: 'f_none',   name: 'Aucun',    free: true, style: null },
+  { id: 'f_s1_a',   name: 'Bronze',   hint: 'Saison 1 · palier 2', style: { border: '3px solid #CD7F32', boxShadow: '0 0 18px #CD7F3288' } },
+  { id: 'f_s1_b',   name: 'Émeraude', hint: 'Saison 1 · palier 6', style: { border: '3px solid #8FC39F', boxShadow: '0 0 22px #8FC39FAA' } },
+  { id: 'f_s1_c',   name: 'Aurore',   hint: 'Saison 1 · palier 8', style: { border: '3px solid #FFD166', boxShadow: '0 0 12px #FFD166, 0 0 30px #E8844A99' } },
+];
+export const frameStyle = id => FRAMES.find(f => f.id === id)?.style || null;
+
+const ALL = [...AVATARS, ...TITLES, ...FRAMES];
 export const findCosmetic = id => ALL.find(c => c.id === id);
 export const isAvatar = id => AVATARS.some(a => a.id === id);
 
