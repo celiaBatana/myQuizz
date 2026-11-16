@@ -28,6 +28,7 @@ export default function DailyChest() {
     setRes(r); setPhase('shaking');
     // On enregistre tout de suite : impossible de retirer en rechargeant la page
     const patch = { chestDay: today, gemsBonus: (profile.gemsBonus || 0) + r.gems };
+    if (r.dupe) { patch.gemsBonus += r.dupe.gems; patch.cardDupes = { ...(profile.cardDupes || {}), [r.dupe.key]: ((profile.cardDupes || {})[r.dupe.key] || 0) + 1 }; }
     if (r.card) patch.cards = [...(profile.cards || []), r.card];
     if (r.cosmetic) patch.unlocked = [...new Set([...(profile.unlocked || []), r.cosmetic])];
     try { await updateProfile(patch); } catch (e) { console.warn('Coffre non enregistré', e); }
@@ -47,6 +48,7 @@ export default function DailyChest() {
   );
 
   const cInfo = res?.card ? cardInfo(res.card) : null;
+  const dupeInfo = res?.dupe ? cardInfo(res.dupe.key) : null;
   const cos = res?.cosmetic ? findCosmetic(res.cosmetic) : null;
   return (
     <>
@@ -70,6 +72,7 @@ export default function DailyChest() {
               <div className="ch-a" style={{ ...display, fontSize: 26, marginBottom: 14, animation: 'ch-rise .5s both' }}>{res.tier.label}</div>
               <div className="ch-a" data-testid="chest-gems" style={{ ...display, fontSize: 64, color: '#7FD6E8', animation: 'ch-pop .6s .1s both' }}>+{res.gems} 💎</div>
               {cos && <div className="ch-a" style={{ marginTop: 14, fontSize: 16, animation: 'ch-rise .5s .5s both' }}>{cos.icon || '🏷️'} Nouveau : <strong>{cos.name}</strong></div>}
+              {dupeInfo && <div data-testid="chest-dupe" className="ch-a" style={{ marginTop: 14, fontSize: 15, color: dupeInfo.rarity.color, animation: 'ch-rise .5s .7s both' }}>🃏 Doublon : {dupeInfo.icon} {dupeInfo.name} ({dupeInfo.rarity.label})<br /><span style={{ color: '#7FD6E8' }}>+{res.dupe.gems} 💎 en plus</span></div>}
               {cInfo && <div className="ch-a" style={{ marginTop: 14, fontSize: 16, color: '#FFD166', animation: 'ch-rise .5s .7s both' }}>🃏 Une carte rare t'attend !</div>}
               <button className="btn btn-primary" data-testid="chest-close" style={{ marginTop: 28 }} onClick={() => { if (cInfo) setShowCard(true); else setPhase('idle'); }}>{cInfo ? 'Voir la carte' : 'Super !'}</button>
             </>

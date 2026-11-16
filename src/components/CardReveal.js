@@ -3,7 +3,7 @@ import Confetti from './Confetti';
 
 // Révélation animée d'une carte gagnée (carte = { icon, name, color, gradient, catLabel, fact })
 export default function CardReveal({ card, title = 'Nouvelle carte !', onClose, onCollection }) {
-  const c = card.color || '#E8844A';
+  const c = card.rarity ? card.rarity.color : (card.color || '#E8844A');
   return (
     <div data-testid="card-reveal" onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 1200, background: 'rgba(12,8,5,.92)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: 24 }}>
       <style>{`
@@ -20,6 +20,7 @@ export default function CardReveal({ card, title = 'Nouvelle carte !', onClose, 
         <div className="cr-anim" style={{ position: 'absolute', top: 0, bottom: 0, width: 60, left: 0, background: 'linear-gradient(100deg, transparent, rgba(255,255,255,.22), transparent)', animation: 'cr-shine 2.4s 1s ease-in-out infinite' }} />
         <div style={{ fontSize: 64 }}>{card.icon}</div>
         <div style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 800, fontSize: 21 }}>{card.name}</div>
+        {card.rarity && <div data-testid="card-rarity" style={{ fontSize: 11, fontWeight: 800, letterSpacing: '.1em', textTransform: 'uppercase', padding: '2px 10px', borderRadius: 10, background: c + '33', color: c }}>{card.rarity.label}</div>}
         {card.catLabel && <div style={{ fontSize: 12, color: c, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.08em' }}>{card.catLabel}</div>}
         {card.fact && <div style={{ fontSize: 12, color: 'var(--muted)', lineHeight: 1.5 }}>{card.fact}</div>}
       </div>

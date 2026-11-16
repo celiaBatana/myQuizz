@@ -5,7 +5,7 @@ import { db } from '../firebase';
 import { useAuth } from '../context/AuthContext';
 import { CATEGORIES } from '../data/quizData';
 import { BOSSES } from '../data/bosses';
-import { cardKey, cardInfo, themeStatus, DIFFS, DIFF_SHORT } from '../data/cards';
+import { cardKey, cardInfo, themeStatus, rarityOf, RARITIES, DIFFS, DIFF_SHORT } from '../data/cards';
 
 export default function Collection() {
   const { user, profile, updateProfile } = useAuth();
@@ -61,6 +61,14 @@ export default function Collection() {
         </div>
       </div>
 
+      <div data-testid="rarity-counts" style={{ display: 'flex', gap: 6, marginBottom: 14, flexWrap: 'wrap' }}>
+        {RARITIES.map(r => {
+          const all = cats.flatMap(c => c.items).filter(x => rarityOf(x.key).id === r.id);
+          const n = all.filter(x => owned.has(x.key) || x.st.earned).length;
+          return <span key={r.id} style={{ fontSize: 11, fontWeight: 700, padding: '4px 10px', borderRadius: 20, background: r.color + '22', color: r.color, border: `1px solid ${r.color}66` }}>{r.label} {n}/{all.length}</span>;
+        })}
+      </div>
+
       <div style={{ marginBottom: 16 }}>
         <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 8 }}>🐉 Trophées de boss <span style={{ color: 'var(--muted)', fontWeight: 400 }}>· {BOSSES.filter(b => (profile?.bossWins || {})[b.id] > 0).length}/{BOSSES.length}</span></div>
         <div className="coll-grid">
@@ -89,7 +97,8 @@ export default function Collection() {
                 <div key={key} data-card={key} data-owned={got ? '1' : '0'}
                   onClick={() => (got ? setOpen(key) : navigate(`/category/${cat.id}/theme/${t.id}`))}
                   style={{ borderRadius: 14, padding: '12px 6px 10px', textAlign: 'center', cursor: 'pointer', minHeight: 104,
-                    background: got ? cat.gradient : 'var(--s1)', border: `1px solid ${got ? cat.color : 'var(--s2)'}`, opacity: got ? 1 : 0.75 }}>
+                    background: got ? cat.gradient : 'var(--s1)', border: `${got && rarityOf(key).id !== 'common' ? 2 : 1}px solid ${got ? rarityOf(key).id === 'common' ? cat.color : rarityOf(key).color : 'var(--s2)'}`, boxShadow: got && rarityOf(key).id === 'legendary' ? '0 0 14px #FFD16688' : 'none', opacity: got ? 1 : 0.75, position: 'relative' }}>
+                  {got && (profile?.cardDupes?.[key] || 0) > 0 && <span data-testid="dupe-badge" style={{ position: 'absolute', top: 4, right: 6, fontSize: 10, fontWeight: 800, color: rarityOf(key).color }}>×{(profile.cardDupes[key] || 0) + 1}</span>}
                   <div style={{ fontSize: 28, filter: got ? 'none' : 'grayscale(1)', opacity: got ? 1 : 0.5 }}>{got ? t.icon : '🔒'}</div>
                   <div style={{ fontSize: 11, fontWeight: 700, margin: '6px 0' }}>{t.label}</div>
                   {!got && (
@@ -111,7 +120,8 @@ export default function Collection() {
           <div onClick={e => e.stopPropagation()} style={{ background: info.gradient, border: `2px solid ${info.color}`, borderRadius: 20, padding: 24, maxWidth: 320, textAlign: 'center' }}>
             <div style={{ fontSize: 56 }}>{info.icon}</div>
             <div style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 900, fontSize: 20, margin: '8px 0 2px' }}>{info.name}</div>
-            <div style={{ fontSize: 11, color: 'var(--muted)', marginBottom: 12 }}>{info.catLabel}</div>
+            <div style={{ fontSize: 11, fontWeight: 800, color: info.rarity.color, marginBottom: 2, textTransform: 'uppercase', letterSpacing: '.08em' }}>{info.rarity.label}</div>
+            <div style={{ fontSize: 11, color: 'var(--muted)', marginBottom: 12 }}>{info.catLabel}{(profile?.cardDupes?.[info.key] || 0) > 0 ? ` · ${(profile.cardDupes[info.key] || 0) + 1} exemplaires` : ''}</div>
             <div style={{ fontSize: 13, lineHeight: 1.5 }}>{info.fact}</div>
             <button className="btn btn-secondary" style={{ marginTop: 16 }} onClick={() => setOpen(null)}>Fermer</button>
           </div>
