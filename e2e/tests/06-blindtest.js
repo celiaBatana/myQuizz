@@ -4,7 +4,7 @@ const t = (n, f) => tests.push([n, f]);
 const seed = b => b();
 t('20 extraits → écran de score', async a => {
   await a.go('/blindtest');
-  a.assert.strictEqual(await a.page.locator('[data-testid="bt-cat"]').count(), 8);
+  a.assert.strictEqual(await a.page.locator('[data-testid="bt-cat"]').count(), 12);
   await a.page.locator('[data-cat="rapfr"]').click();
   await a.page.evaluate(() => { window.__ITUNES_MOCK = async () => 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA='; });
   await a.page.locator('[data-testid="bt-start"]').click();
