@@ -9,7 +9,7 @@ import { useChampions } from '../hooks/useChampions';
 import { getCategoryList } from '../data/quizData';
 import { rankFor } from '../utils/rank';
 import { gemsBalance } from '../utils/gems';
-import { AVATARS, TITLES, ownedIds, avatarIcon, titleName } from '../data/cosmetics';
+import { AVATARS, TITLES, FRAMES, frameStyle, ownedIds, avatarIcon, titleName } from '../data/cosmetics';
 import { cleanQuizName } from '../utils/quizName';
 
 const XP_PER_LEVEL = 200;
@@ -112,7 +112,7 @@ export default function Profile() {
 
       {/* ── Hero profil ── */}
       <div style={{ background: `linear-gradient(160deg, ${rankFor(level).color}30, var(--s1) 55%)`, border: `1px solid ${rankFor(level).color}66`, borderRadius: 24, padding: '22px 16px', marginBottom: 14, textAlign: 'center' }}>
-        <div style={{ position: 'relative', width: 88, height: 88, margin: '0 auto 10px', borderRadius: '50%', background: 'var(--s2)', border: `3px solid ${rankFor(level).color}`, boxShadow: `0 0 22px ${rankFor(level).color}55`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 46 }}>
+        <div style={{ position: 'relative', width: 88, height: 88, margin: '0 auto 10px', borderRadius: '50%', background: 'var(--s2)', border: `3px solid ${rankFor(level).color}`, boxShadow: `0 0 22px ${rankFor(level).color}55`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 46, ...(frameStyle(profile?.frame) || {}) }}>
           {profile?.avatar ? avatarIcon(profile.avatar) : levelEmoji(level)}
           <div style={{ position: 'absolute', bottom: -6, right: -6, minWidth: 30, height: 30, padding: '0 6px', borderRadius: 15, background: 'var(--yellow)', color: 'var(--on-primary)', fontSize: 13, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '3px solid var(--s1)' }}>{level}</div>
         </div>
@@ -183,6 +183,19 @@ export default function Profile() {
                       opacity: has ? 1 : 0.3, filter: has ? 'none' : 'grayscale(1)',
                       border: `2px solid ${profile?.avatar === a.id ? 'var(--purple)' : 'transparent'}`, background: 'var(--s2)' }}>
                     {has ? a.icon : '🔒'}
+                  </div>
+                );
+              })}
+            </div>
+            <div style={{ fontSize: 11, color: 'var(--muted)', marginBottom: 6 }}>Cadres — récompenses de la saison</div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 12 }} data-testid="frames">
+              {FRAMES.map(f => {
+                const has = owned.has(f.id);
+                return (
+                  <div key={f.id} onClick={() => has && equip('frame', f.id)}
+                    style={{ fontSize: 11, fontWeight: 600, padding: '5px 10px', borderRadius: 20, cursor: has ? 'pointer' : 'default',
+                      background: (profile?.frame || 'f_none') === f.id ? 'var(--purple)' : 'var(--s2)', color: has ? '#fff' : 'var(--muted)', opacity: has ? 1 : 0.5 }}>
+                    {has ? f.name : `🔒 ${f.hint}`}
                   </div>
                 );
               })}

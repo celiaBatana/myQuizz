@@ -9,6 +9,8 @@ import { dueReviewIds } from '../utils/league';
 import DailyPanel from '../components/DailyPanel';
 import Onboarding from '../components/Onboarding';
 import { rankFor } from '../utils/rank';
+import DailyChest from '../components/DailyChest';
+import SeasonCard from '../components/SeasonCard';
 import ActivityFeed from '../components/ActivityFeed';
 import InstallPrompt from '../components/InstallPrompt';
 import { useChampions } from '../hooks/useChampions';
@@ -164,6 +166,8 @@ export default function Home() {
       </div>
       </div>
 
+      <DailyChest />
+
       <div className="section-label">Modes de jeu</div>
       <style>{`
         @keyframes hb-eq { 0%,100% { transform: scaleY(.25) } 50% { transform: scaleY(1) } }
@@ -226,6 +230,7 @@ export default function Home() {
         </div>
       </div>
 
+      <SeasonCard />
       <ActivityFeed />
 
       {profile && !profile.onboarded && !(profile.quizzesPlayed > 0) && <Onboarding />}
