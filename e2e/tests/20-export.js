@@ -14,7 +14,8 @@ t('export : CSV réimportable et inventaire', async a => {
   await a.go('/admin'); await a.page.locator('text=Ajouter').first().click(); await a.page.waitForTimeout(700);
   const [dl] = await Promise.all([a.page.waitForEvent('download'), a.page.locator('[data-testid="export-questions"]').click()]);
   const txt = require('fs').readFileSync(await dl.path(), 'utf8');
-  a.assert.ok(txt.includes('categorie,theme,difficulte,question'), 'entête');
+  a.assert.ok(txt.includes('categorie,theme,difficulte,question') && /,quiz,id/.test(txt), 'entête avec id');
+  a.assert.ok(/,e1\r?\n|,e1$|,e2/.test(txt), 'id exporté');
   a.assert.ok(txt.includes('"Combien de joueurs, ""en tout"" ?"'), 'échappement');
   a.assert.ok(txt.includes('"Quiz, ""foot"""'), 'nom du quiz');
   const [dl2] = await Promise.all([a.page.waitForEvent('download'), a.page.locator('[data-testid="export-inventory"]').click()]);

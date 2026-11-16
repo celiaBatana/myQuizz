@@ -67,7 +67,8 @@ export default function TabAjouter({ ctx }) {
           <div style={S.divider} />
           <div style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 700, fontSize: 14, marginBottom: 6 }}>Import CSV questions</div>
           <div style={{ fontSize: 11, color: 'var(--muted)', marginBottom: 12, fontFamily: 'monospace', background: 'var(--s2)', borderRadius: 8, padding: '8px 10px' }}>
-            categorie,theme,difficulte,question,optA,optB,optC,optD,reponse(0-3),explication,quiz (optionnel : nom du quiz, créé automatiquement s'il n'existe pas)
+            categorie,theme,difficulte,question,optA,optB,optC,optD,reponse(0-3),explication,quiz (optionnel : nom du quiz, créé automatiquement s'il n'existe pas),id (optionnel),ancienne_question (optionnel)
+            <div style={{ marginTop: 6, fontFamily: 'Inter, sans-serif' }}>✏️ Pour <strong>corriger</strong> des questions : renseigne l'<strong>id</strong> (présent dans l'export) ou l'<strong>ancienne_question</strong> (texte exact avant correction) : la question est mise à jour au lieu d'être recréée.</div>
           </div>
           <div onClick={() => document.getElementById('csv-q-in').click()}
             style={{ border: '2px dashed var(--s3)', borderRadius: 12, padding: 24, textAlign: 'center', cursor: 'pointer', marginBottom: 10 }}

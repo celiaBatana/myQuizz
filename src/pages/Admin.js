@@ -37,6 +37,10 @@ export default function Admin() {
   const [filterCat,    setFilterCat]    = useState('');
   const [filterDiff,   setFilterDiff]   = useState('');
   const [filterLinked, setFilterLinked] = useState(''); // '' | 'linked' | 'unlinked'
+  const [filterTheme,  setFilterTheme]  = useState('');
+  const [filterQuiz,   setFilterQuiz]   = useState('');
+  const [search,       setSearch]       = useState('');
+  const [shown,        setShown]        = useState(60);
   const [editQ,        setEditQ]        = useState(null);
   const [confirmDel,   setConfirmDel]   = useState(null);
   const [selectedQ,    setSelectedQ]    = useState([]); // ids sélectionnés pour suppression en masse
@@ -104,6 +108,12 @@ export default function Admin() {
   // ── Questions ────────────────────────────────────────────────────────────────
   const filtered = questions.filter(q => {
     if (filterCat    && q.category !== filterCat)   return false;
+    if (filterTheme  && q.theme    !== filterTheme) return false;
+    if (filterQuiz   && q.quizId   !== filterQuiz)  return false;
+    if (search.trim()) {
+      const hay = normText([q.text, ...(q.options || []), q.explanation, quizzes.find(z => z.id === q.quizId)?.name].join(' '));
+      if (!search.trim().split(/\s+/).every(w => hay.includes(normText(w)))) return false;
+    }
     if (filterDiff   && q.diff     !== filterDiff)  return false;
     if (filterLinked === 'linked'   && !q.quizId)   return false;
     if (filterLinked === 'unlinked' &&  q.quizId)   return false;
@@ -167,8 +177,18 @@ export default function Admin() {
     let n = 0; let linked = 0; let created = 0; const notFound = [];
     const known = [...quizzes]; // quiz connus, enrichis au fil des créations
     const seen = new Set(questions.map(q => normText(q.text)));
-    let dups = 0;
-    for (const { quizName, ...row } of csvRows) {
+    let dups = 0, updated = 0, missing = 0;
+    for (const { quizName, id: rowId, oldText, ...row } of csvRows) {
+      // Mise à jour d'une question existante : par id, ou par son ancien texte
+      if (rowId || oldText) {
+        const target = questions.find(q => rowId && q.id === rowId) || questions.find(q => oldText && normText(q.text) === normText(oldText));
+        if (!target) { missing++; continue; }
+        const quizFound = quizName ? known.find(z => z.catId === row.category && z.themeId === row.theme && z.name === quizName) : null;
+        const patch = { category: row.category, theme: row.theme, diff: row.diff, text: row.text, options: row.options, answer: row.answer, explanation: row.explanation, ...(quizFound ? { quizId: quizFound.id } : {}) };
+        await updateDoc(doc(db, 'questions', target.id), patch);
+        setQuestions(p => p.map(x => x.id === target.id ? { ...x, ...patch } : x));
+        updated++; continue;
+      }
       const key = normText(row.text);
       if (seen.has(key)) { dups++; continue; } // doublon : déjà en base ou déjà vu dans ce CSV
       seen.add(key);
@@ -197,8 +217,10 @@ export default function Admin() {
         notFound.push({ category: row.category, theme: row.theme, diff: row.diff });
     }
     setCsvRows([]);
+    if (updated || missing) ok(`✓ ${updated} question${updated > 1 ? 's' : ''} corrigée${updated > 1 ? 's' : ''}${n ? ` · ${n} ajoutée${n > 1 ? 's' : ''}` : ''}${missing ? ` · ⚠️ ${missing} introuvable${missing > 1 ? 's' : ''}` : ''}`);
     const dupTxt = dups ? ` · ${dups} doublon${dups > 1 ? 's' : ''} ignoré${dups > 1 ? 's' : ''}` : '';
-    if (notFound.length > 0)
+    if (updated || missing) { /* message déjà affiché */ }
+    else if (notFound.length > 0)
       ok(`✓ ${n} importées · ${linked} liées · ⚠️ ${n - linked} sans quiz (${notFound.map(x => x.category + '/' + x.theme).join(', ')})${dupTxt}`);
     else
       ok(`✓ ${n} questions importées et liées${created ? ` · ${created} quiz créé${created > 1 ? 's' : ''}` : ''}${dupTxt} !`);
@@ -217,6 +239,8 @@ export default function Admin() {
           answer: parseInt(p[8]) || 0,
           explanation: (p[9] || '').trim(),
           quizName: (p[10] || '').trim(), // optionnel : nom du quiz cible
+          id: (p[11] || '').trim(),       // optionnel : identifiant → met à jour la question
+          oldText: (p[12] || '').trim(),  // optionnel : ancien texte exact → met à jour la question
         }));
       setCsvRows(rows);
     };
@@ -447,7 +471,7 @@ export default function Admin() {
   ];
 
   const ctx = {
-    user, isAdmin, showAuth, setShowAuth, tab, setTab, toast, setToast, questions, setQuestions, quizzes, setQuizzes, cats, setCats, themes, setThemes, reports, setReports, loading, setLoading, filterCat, setFilterCat, filterDiff, setFilterDiff, filterLinked, setFilterLinked, editQ, setEditQ, confirmDel, setConfirmDel, selectedQ, setSelectedQ, confirmBulk, setConfirmBulk, expandedQuiz, setExpandedQuiz, editQuiz, setEditQuiz, linkQuizId, setLinkQuizId, linkSelected, setLinkSelected, linkFilter, setLinkFilter, editItem, setEditItem, qCat, setQCat, qTheme, setQTheme, qDiff, setQDiff, qText, setQText, qOpts, setQOpts, qAns, setQAns, qExpl, setQExpl, newCat, setNewCat, newTheme, setNewTheme, newQuiz, setNewQuiz, csvRows, setCsvRows, qStats, setQStats, statsOk, setStatsOk, csvQuizRows, setCsvQuizRows, ok, filtered, toggleSelectQ, selectAllFiltered, deselectAll, addQuestion, deleteQuestion, bulkUpdateQuestions, deleteBulk, saveQuestion, importCSVQuestions, parseCSVQuestions, addQuiz, saveQuiz, deleteQuiz, parseCSVQuiz, importCSVQuiz, unlinkedQuestions, linkFilteredQ, toggleLinkSelect, linkQuestionsToQuiz, duplicateQuiz, moveQuestion, unlinkQuestion, addCat, deleteCat, saveCat, addTheme, deleteTheme, saveTheme, allCats, allThemes, DIFF_ORDER, groupedQuizzes, unlinkedCount, TABS,
+    user, isAdmin, showAuth, setShowAuth, tab, setTab, toast, setToast, questions, setQuestions, quizzes, setQuizzes, cats, setCats, themes, setThemes, reports, setReports, loading, setLoading, filterCat, setFilterCat, filterDiff, setFilterDiff, filterLinked, setFilterLinked, filterTheme, setFilterTheme, filterQuiz, setFilterQuiz, search, setSearch, shown, setShown, editQ, setEditQ, confirmDel, setConfirmDel, selectedQ, setSelectedQ, confirmBulk, setConfirmBulk, expandedQuiz, setExpandedQuiz, editQuiz, setEditQuiz, linkQuizId, setLinkQuizId, linkSelected, setLinkSelected, linkFilter, setLinkFilter, editItem, setEditItem, qCat, setQCat, qTheme, setQTheme, qDiff, setQDiff, qText, setQText, qOpts, setQOpts, qAns, setQAns, qExpl, setQExpl, newCat, setNewCat, newTheme, setNewTheme, newQuiz, setNewQuiz, csvRows, setCsvRows, qStats, setQStats, statsOk, setStatsOk, csvQuizRows, setCsvQuizRows, ok, filtered, toggleSelectQ, selectAllFiltered, deselectAll, addQuestion, deleteQuestion, bulkUpdateQuestions, deleteBulk, saveQuestion, importCSVQuestions, parseCSVQuestions, addQuiz, saveQuiz, deleteQuiz, parseCSVQuiz, importCSVQuiz, unlinkedQuestions, linkFilteredQ, toggleLinkSelect, linkQuestionsToQuiz, duplicateQuiz, moveQuestion, unlinkQuestion, addCat, deleteCat, saveCat, addTheme, deleteTheme, saveTheme, allCats, allThemes, DIFF_ORDER, groupedQuizzes, unlinkedCount, TABS,
   };
 
   return (
