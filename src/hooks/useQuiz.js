@@ -1,3 +1,4 @@
+import { addEvent } from '../utils/activity';
 import { weeklyCat, WEEKLY_MULT } from '../utils/weekly';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { doc, updateDoc, setDoc, writeBatch, increment, serverTimestamp, collection, getDocs, query, where } from 'firebase/firestore';
@@ -343,7 +344,10 @@ export function useQuiz(quiz) {
       setRewards({ replayPct: replayFactor < 1 ? Math.round(replayFactor * 100) : 0, replayed: replayFactor < 1, newCard: gainedCard ? cardInfo(gainedCard) : null, earnedXP, chestXP, freezeUsed, freezeGained, streak: newStreak, leagueMoved: lg.moved, league: lg.league, newCosmetics: gainedCosmetics,
         milestone, milestoneBonus, missions: mis.missions.map(m => m.label), weeklyNew: mis.weeklyNew, missionBonus: mis.bonus, goalReached, goalBonus });
 
+      const quizEvent = milestone ? { k: '🔥', t: `série de ${milestone} jours` } : (lvl > (profile?.level || 1) ? { k: '⬆️', t: `est passé niveau ${lvl}` } : (perfectNow && finalTotal >= 5 ? { k: '💯', t: `sans-faute (${finalScore}/${finalTotal})` } : null));
+      const newEvents = quizEvent ? addEvent(profile, quizEvent) : (profile?.events || []);
       await updateProfile({
+        events:         newEvents,
         totalXP:        newTotalXP,
         level:          lvl,
         xpInLevel:      remaining,
@@ -378,7 +382,7 @@ export function useQuiz(quiz) {
       // Envoyées ensemble, sans bloquer l'écran de résultat (hors-ligne : partent au retour du réseau)
       const pub = [setDoc(doc(db, 'leaderboard', user.uid), {
         uid: user.uid, name, totalXP: newTotalXP, level: lvl, streak: newStreak,
-        weekKey: lg.weekKey, weekXP: lg.weekXP, league: lg.league, catXP: newCatXP,
+        weekKey: lg.weekKey, weekXP: lg.weekXP, league: lg.league, catXP: newCatXP, events: newEvents,
         avatar: profile?.avatar || '', title: profile?.title || '', updatedAt: serverTimestamp(),
       }, { merge: true })];
       for (const code of (profile?.groups || [])) {
