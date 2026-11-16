@@ -1,3 +1,4 @@
+import { dynCosmetic, seasonItems } from './seasonThemes';
 // Avatars et titres à débloquer.
 // "when" = débloqué automatiquement quand la condition est remplie ; "chest" = peut tomber d'un coffre quotidien ; "free" = dès le départ.
 export const AVATARS = [
@@ -55,15 +56,26 @@ FRAMES.push(
   { id: 'f_dragon', name: 'Écailles de dragon', hint: 'Dragon en héroïque', style: { border: '3px solid #E5604D', boxShadow: '0 0 14px #E5604D, 0 0 32px #5FA8A0AA' } },
   { id: 'f_hero',   name: 'Héros',              hint: 'Les 6 boss en héroïque', style: { border: '3px solid #FFD166', boxShadow: '0 0 14px #FFD166, 0 0 34px #E5604DAA' } },
 );
-export const frameStyle = id => FRAMES.find(f => f.id === id)?.style || null;
+export const frameStyle = id => FRAMES.find(f => f.id === id)?.style || dynCosmetic(id)?.style || null;
+
+// Objets des saisons ≥ 2 : ceux déjà gagnés + ceux de la saison en cours (verrouillés)
+export function seasonCosmetics(profile, currentSeason) {
+  const owned = new Set(profile?.unlocked || []);
+  const out = { frames: [], titles: [], avatars: [] };
+  for (let n = 2; n <= currentSeason; n++) {
+    const it = seasonItems(n);
+    ['frames', 'titles', 'avatars'].forEach(k => it[k].forEach(c => { if (owned.has(c.id) || n === currentSeason) out[k].push(c); }));
+  }
+  return out;
+}
 
 const ALL = [...AVATARS, ...TITLES, ...FRAMES];
-export const findCosmetic = id => ALL.find(c => c.id === id);
-export const isAvatar = id => AVATARS.some(a => a.id === id);
+export const findCosmetic = id => ALL.find(c => c.id === id) || dynCosmetic(id);
+export const isAvatar = id => AVATARS.some(a => a.id === id) || /^a_s\d+$/.test(String(id));
 
 export const FREE_IDS = ALL.filter(c => c.free).map(c => c.id);
-export const avatarIcon = id => AVATARS.find(a => a.id === id)?.icon || '🙂';
-export const titleName  = id => TITLES.find(t => t.id === id)?.name || '';
+export const avatarIcon = id => AVATARS.find(a => a.id === id)?.icon || dynCosmetic(id)?.icon || '🙂';
+export const titleName  = id => TITLES.find(t => t.id === id)?.name || dynCosmetic(id)?.name || '';
 
 export function ownedIds(profile) {
   return new Set([...FREE_IDS, ...(profile?.unlocked || [])]);

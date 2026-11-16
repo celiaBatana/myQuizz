@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { seasonInfo, seasonPts, claimedTiers, TIERS, tierLabel, tierIcon } from '../utils/season';
+import { seasonInfo, seasonPts, claimedTiers, tiersFor, themeOf, tierLabel, tierIcon } from '../utils/season';
 
 const display = { fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 800 };
 
@@ -18,6 +18,8 @@ export default function SeasonCard() {
   }, [user?.uid, profile?.season?.id]);
 
   if (!user || !profile) return null;
+  const TIERS = tiersFor(info.id);
+  const th = themeOf(info.id);
   const pts = seasonPts(profile, info);
   const claimed = claimedTiers(profile, info);
   // Paliers espacés régulièrement ; la barre se remplit entre deux paliers
@@ -43,7 +45,7 @@ export default function SeasonCard() {
   return (
     <div data-testid="season" style={{ background: 'linear-gradient(135deg, rgba(230,179,90,.14), var(--s1) 65%)', border: '1px solid var(--s2)', borderRadius: 18, padding: '14px 16px', marginBottom: 14 }}>
       <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 10 }}>
-        <div style={{ ...display, fontSize: 16, flex: 1 }}>🏆 Saison {info.id}</div>
+        <div style={{ ...display, fontSize: 16, flex: 1 }}>{th.emoji} Saison {info.id} · {th.name}</div>
         <div style={{ fontSize: 11, color: 'var(--muted)' }}>{info.daysLeft} j restants</div>
       </div>
       <div style={{ position: 'relative', height: 10, borderRadius: 5, background: 'var(--s2)', margin: '6px 0 30px' }}>
