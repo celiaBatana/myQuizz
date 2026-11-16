@@ -40,6 +40,7 @@ export const TITLES = [
   { id: 't_h_minotaure', name: 'Dompteur de minotaure',  hint: 'Minotaure en héroïque' },
   { id: 't_h_oni',       name: "Exorciste d'oni",        hint: 'Oni en héroïque' },
   { id: 't_h_sphinx',    name: "Briseur d'énigmes",      hint: 'Sphinx en héroïque' },
+  { id: 't_raid',      name: 'Fléau des boss',          hint: 'Raid hebdo vaincu en équipe' },
   { id: 't_h_all',       name: 'Héros des boss',         hint: 'Les 6 boss en héroïque' },
   { id: 't_s1_fan',  name: 'Pionnier',            hint: 'Saison 1 · palier 4' },
   { id: 't_s1_top',  name: 'Légende de saison 1', hint: 'Saison 1 · palier 10' },

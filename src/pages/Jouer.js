@@ -92,6 +92,9 @@ export default function Jouer() {
         <div onClick={() => navigate('/boss')} style={{ padding: '12px 14px', borderRadius: 16, cursor: 'pointer', background: 'linear-gradient(145deg, rgba(229,96,77,.38), rgba(201,163,79,.12))', border: '1px solid rgba(229,96,77,.55)' }}>
           <div style={{ fontSize: 26 }}>🐉</div><div style={{ fontWeight: 800, fontSize: 14, marginTop: 2 }}>Boss</div><div style={{ fontSize: 11, color: 'var(--muted)' }}>Vide leur barre de vie</div>
         </div>
+        <div onClick={() => navigate('/raid')} data-testid="jouer-raid" style={{ padding: '12px 14px', borderRadius: 16, cursor: 'pointer', background: 'linear-gradient(145deg, rgba(95,168,160,.4), rgba(229,96,77,.14))', border: '1px solid rgba(95,168,160,.6)' }}>
+          <div style={{ fontSize: 26 }}>🛡️</div><div style={{ fontWeight: 800, fontSize: 14, marginTop: 2 }}>Raid</div><div style={{ fontSize: 11, color: 'var(--muted)' }}>Un boss pour tous</div>
+        </div>
         <div onClick={() => navigate('/rush')} data-testid="jouer-rush" style={{ padding: '12px 14px', borderRadius: 16, cursor: 'pointer', background: 'linear-gradient(145deg, rgba(230,179,90,.4), rgba(232,132,74,.14))', border: '1px solid rgba(230,179,90,.6)' }}>
           <div style={{ fontSize: 26 }}>⚡</div><div style={{ fontWeight: 800, fontSize: 14, marginTop: 2 }}>Rush 60 s</div><div style={{ fontSize: 11, color: 'var(--muted)' }}>Classement du jour</div>
         </div>
