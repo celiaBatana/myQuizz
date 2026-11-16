@@ -16,6 +16,7 @@ import InstallPrompt from '../components/InstallPrompt';
 import { useChampions } from '../hooks/useChampions';
 import { weeklyBoss, weeklyCat, weeklyEnds, WEEKLY_MULT, WEEKLY_BOSS_GEMS } from '../utils/weekly';
 import { BOSSES } from '../data/bosses';
+import { raidBoss } from '../utils/raid';
 import { gemsBalance } from '../utils/gems';
 import { streakInfo } from '../utils/retention';
 import { cleanQuizName } from '../utils/quizName';
@@ -208,6 +209,15 @@ export default function Home() {
           <div style={{ ...display, fontSize: 17, marginTop: 2 }}>Mixte & mort subite</div>
           <div style={{ fontSize: 12, opacity: .8, marginTop: 3, lineHeight: 1.35 }}>Mélange les catégories ou tiens le plus longtemps.</div>
           {profile && profile.suddenBest > 0 && <div className="mode-stat">Record : {profile.suddenBest} d'affilée</div>}
+        </div>
+      </div>
+
+      <div data-testid="home-raid" className="weekly-card" onClick={() => navigate('/raid')} style={{ borderColor: raidBoss().color + '99', marginBottom: 10 }}>
+        <div style={{ fontSize: 34 }}>{raidBoss().emoji}</div>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: '.1em', color: raidBoss().color }}>🛡️ RAID COLLECTIF · {weeklyEnds()} J</div>
+          <div style={{ ...display, fontSize: 15 }}>{raidBoss().name}</div>
+          <div style={{ fontSize: 12, color: 'var(--muted)' }}>Tous les joueurs attaquent ensemble, récompense pour tous</div>
         </div>
       </div>
 
