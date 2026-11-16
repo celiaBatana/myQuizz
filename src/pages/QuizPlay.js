@@ -438,14 +438,20 @@ export function QuizPlayInner({ quizData, cat, theme, catId, themeId, navigate, 
       </div>
 
       {/* Explication */}
-      {quiz.answered && quiz.explanation && (
-        <div style={{ background: 'rgba(143,195,159,.05)', border: '1px solid rgba(143,195,159,.16)', borderRadius: 10, padding: '11px 13px', marginBottom: 12, fontSize: 12, color: 'var(--muted)', lineHeight: 1.6, animation: 'fadeIn .3s ease' }}>
-          <strong style={{ color: 'var(--cyan)' }}>
-            {quiz.selectedOption === quiz.currentQuestion?.a ? '✓ Bonne réponse !' : '✗ Pas tout à fait.'}
-          </strong>{' '}
-          {quiz.explanation}
-        </div>
-      )}
+      {quiz.answered && (quiz.explanation || quiz.selectedOption === quiz.currentQuestion?.a) && (() => {
+        const good = quiz.selectedOption === quiz.currentQuestion?.a;
+        return (
+          <div data-testid="feedback" style={{ background: good ? 'rgba(143,195,159,.07)' : 'rgba(229,96,77,.07)', border: `1px solid ${good ? 'rgba(143,195,159,.3)' : 'rgba(229,96,77,.3)'}`, borderRadius: 10, padding: '11px 13px', marginBottom: 12, fontSize: 12, color: 'var(--muted)', lineHeight: 1.6, animation: 'fadeIn .3s ease' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: quiz.explanation ? 4 : 0 }}>
+              <strong style={{ color: good ? 'var(--cyan)' : 'var(--red)', fontSize: 14 }}>{good ? '✓ Bonne réponse !' : '✗ Pas tout à fait.'}</strong>
+              {good && quiz.XP_MAP?.[quiz.qDiff] > 0 && (
+                <span data-testid="xp-pop" style={{ background: 'var(--yellow)', color: '#1F1A16', fontWeight: 800, fontSize: 14, borderRadius: 999, padding: '3px 12px', animation: 'popIn .4s cubic-bezier(.175,.885,.32,1.275)' }}>+{quiz.XP_MAP[quiz.qDiff]} XP</span>
+              )}
+            </div>
+            {quiz.explanation}
+          </div>
+        );
+      })()}
 
       {quiz.answered && quiz.currentQuestion?.id && (
         <div style={{ textAlign: 'right', marginBottom: 10, fontSize: 11 }}>
@@ -595,7 +601,7 @@ function ResultScreen({ quiz, quizData, catId, themeId, navigate, onReplay, onPr
       </div>
 
       {quiz.rewards && (quiz.rewards.newCard || quiz.rewards.replayed || quiz.rewards.missionBonus > 0 || quiz.rewards.goalReached || quiz.rewards.milestone > 0 || quiz.rewards.newCosmetics?.length > 0 || quiz.rewards.leagueMoved || quiz.rewards.chestXP > 0 || quiz.rewards.freezeUsed || quiz.rewards.freezeGained || quiz.rewards.streak > 1) && (
-        <div style={{ background: 'var(--s1)', border: '1px solid var(--s2)', borderRadius: 14, padding: '11px 14px', marginTop: 10, fontSize: 13, lineHeight: 1.7 }}>
+        <div data-testid="rewards-box" style={{ background: 'rgba(232,132,74,.1)', border: '1px solid rgba(232,132,74,.45)', borderRadius: 14, padding: '13px 16px', marginTop: 12, fontSize: 14, lineHeight: 1.8 }}>
           {quiz.rewards.newCard && <div>🃏 Nouvelle carte : <strong>{quiz.rewards.newCard.icon} {quiz.rewards.newCard.name}</strong> <Link to="/collection" style={{ color: 'var(--cyan)' }}>Voir ma collection</Link></div>}
           {quiz.rewards.replayPct > 0 && <div>Quiz déjà réussi : XP de la partie réduit à {quiz.rewards.replayPct} % → <strong style={{ color: 'var(--yellow)' }}>+{quiz.rewards.earnedXP} XP</strong>. Améliore ton score pour gagner plus !</div>}
           {quiz.rewards.replayPct === 0 && quiz.rewards.earnedXP === 0 && quiz.rewards.replayed && <div>Quiz déjà rejoué plusieurs fois aujourd'hui : plus d'XP sur celui-ci. Essaie un autre quiz !</div>}
@@ -612,7 +618,6 @@ function ResultScreen({ quiz, quizData, catId, themeId, navigate, onReplay, onPr
         </div>
       )}
 
-      {extra && (quiz.saved ? extra : <div style={{ textAlign: 'center', color: 'var(--muted)', fontSize: 12, padding: 14 }}>Enregistrement du score…</div>)}
 
       {!quiz.practice && <ShareButton title={`${sudden ? 'Mort subite' : (quiz.name || quiz.title || 'Quiz')}`} big={sudden ? `${quiz.score} d'affilée` : `${quiz.score}/${quiz.totalQuestions}`} sub={`+${quiz.totalXP} XP`} emoji={emoji} style={{ marginTop: 8 }} />}
 
@@ -654,6 +659,7 @@ function ResultScreen({ quiz, quizData, catId, themeId, navigate, onReplay, onPr
           Accueil
         </button>
       </div>
+      {extra && (quiz.saved ? extra : <div style={{ textAlign: 'center', color: 'var(--muted)', fontSize: 12, padding: 14 }}>Enregistrement du score…</div>)}
       <style>{`@keyframes popIn { from { transform: scale(0); } to { transform: scale(1); } }`}</style>
     </div>
     </div>
