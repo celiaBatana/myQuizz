@@ -8,6 +8,7 @@ import { mapQ, fetchVaried } from '../utils/questions';
 import { QuizPlayInner } from './QuizPlay';
 import { DuelBoard } from './Leaderboard';
 import { BlindPlay, decodeRounds } from './BlindTest';
+import { gemsBalance } from '../utils/gems';
 
 // Dernière manche d'un salon : on suit la chaîne nextId (jamais plus de 50 maillons)
 async function lastRound(id, first) {
@@ -76,6 +77,32 @@ export default function Duel() {
   return <DuelInner key={id} id={id} />;
 }
 
+function StakeStart({ id, duel, onGo, label }) {
+  const { profile, updateProfile } = useAuth();
+  const [busy, setBusy] = useState(false);
+  const stake = duel?.invitedUid && duel?.stake > 0 ? duel.stake : 0;
+  const paid = !!profile?.duelStakes?.[id];
+  const bal = gemsBalance(profile);
+  async function go() {
+    if (!stake || paid) { onGo(); return; }
+    if (bal < stake) return;
+    setBusy(true);
+    try {
+      await updateProfile({ gemsSpent: (profile.gemsSpent || 0) + stake, duelStakes: { ...(profile.duelStakes || {}), [id]: { s: stake } } });
+      onGo();
+    } catch (e) { console.error(e); setBusy(false); }
+  }
+  return (
+    <>
+      {stake > 0 && <div data-testid="stake-info" style={{ margin: '0 auto 14px', maxWidth: 300, padding: '10px 14px', borderRadius: 12, background: 'rgba(127,214,232,.12)', border: '1px solid rgba(127,214,232,.4)', fontSize: 13 }}>
+        💎 Mise : <strong>{stake}</strong> chacun · le gagnant empoche <strong>{stake * 2}</strong>
+        {!paid && bal < stake && <div style={{ color: 'var(--red)', marginTop: 4 }}>Il te manque {stake - bal} 💎 pour relever ce défi.</div>}
+      </div>}
+      <button className="btn btn-primary" data-testid={stake && !paid ? 'stake-pay' : 'bt-duel-start'} disabled={busy || (stake > 0 && !paid && bal < stake)} onClick={go}>{stake > 0 && !paid ? `Miser ${stake} 💎 et ${label.toLowerCase()}` : label}</button>
+    </>
+  );
+}
+
 function DuelInner({ id }) {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -141,7 +168,7 @@ function DuelInner({ id }) {
   if (state === 'played') return wrap(
     <>
       <div style={{ color: 'var(--muted)', fontSize: 13, marginBottom: 10 }}>Tu as déjà joué ce duel. Résultats :</div>
-      <DuelBoard duelId={id} invitedUid={duel?.invitedUid} invitedName={duel?.invitedName} />
+      <DuelBoard duelId={id} invitedUid={duel?.invitedUid} invitedName={duel?.invitedName} creatorUid={duel?.creatorUid} stake={duel?.stake} createdAt={duel?.createdAt} />
       {shareBtn}
       {duel?.type !== 'blind' && <NextRound id={id} duel={duel} navigate={navigate} />}
       <button className="btn btn-secondary btn-full" style={{ marginTop: 8 }} onClick={() => navigate(duel?.type === 'blind' ? '/blindtest' : '/jouer')}>Retour</button>
@@ -154,7 +181,7 @@ function DuelInner({ id }) {
         <p style={{ color: 'var(--muted)', fontSize: 14, maxWidth: 300, margin: '0 auto 18px', lineHeight: 1.6 }}>
           <strong>{duel?.creatorName || 'Un ami'}</strong> te défie au blind test ! 10 extraits, un seul essai. Monte le son.
         </p>
-        <button className="btn btn-primary" data-testid="bt-duel-start" onClick={() => setStarted(true)}>Relever le défi</button>
+        <StakeStart id={id} duel={duel} onGo={() => setStarted(true)} label="Relever le défi" />
         {shareBtn}
       </div>
     );
@@ -166,11 +193,11 @@ function DuelInner({ id }) {
       <p style={{ color: 'var(--muted)', fontSize: 14, maxWidth: 300, margin: '0 auto 18px', lineHeight: 1.6 }}>
         <strong>{duel?.creatorName || 'Un ami'}</strong> te défie sur {questions.length} questions. Un seul essai !
       </p>
-      <button className="btn btn-primary" onClick={() => setStarted(true)}>Relever le défi</button>
+      <StakeStart id={id} duel={duel} onGo={() => setStarted(true)} label="Relever le défi" />
     </div>
   );
 
   const quizData = { id: `duel_${id}`, name: `Duel de ${duel?.creatorName || 'un ami'}`, diff: 'medium', mode: 'duel', duelId: id, noBest: true, questions };
   return <QuizPlayInner quizData={quizData} navigate={navigate} backTo="/jouer" tagLabel="Duel" noReplay
-    extra={<div style={{ marginTop: 14 }}><div className="section-label">Résultats du duel</div><DuelBoard duelId={id} invitedUid={duel?.invitedUid} invitedName={duel?.invitedName} />{shareBtn}<NextRound id={id} duel={duel} navigate={navigate} /></div>} />;
+    extra={<div style={{ marginTop: 14 }}><div className="section-label">Résultats du duel</div><DuelBoard duelId={id} invitedUid={duel?.invitedUid} invitedName={duel?.invitedName} creatorUid={duel?.creatorUid} stake={duel?.stake} createdAt={duel?.createdAt} />{shareBtn}<NextRound id={id} duel={duel} navigate={navigate} /></div>} />;
 }

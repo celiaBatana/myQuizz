@@ -6,6 +6,8 @@ import { useAuth } from '../context/AuthContext';
 import AuthModal from '../components/AuthModal';
 import { getCategoryList, DIFF_LABELS } from '../data/quizData';
 import { fetchVaried } from '../utils/questions';
+import { STAKES } from '../utils/stakes';
+import { gemsBalance } from '../utils/gems';
 
 const MODES = [
   { id: 'mix',    icon: '🎲', name: 'Quiz mixte',   desc: '10 questions au hasard', color: '#E8844A' },
@@ -30,6 +32,7 @@ export default function Jouer() {
   const [busy, setBusy] = useState(false);
   const [err, setErr]   = useState('');
   const [showAuth, setShowAuth] = useState(false);
+  const [stake, setStake] = useState(0);
 
   const chip = (active) => ({
     padding: '8px 13px', borderRadius: 20, fontSize: 12, fontWeight: 600, cursor: 'pointer',
@@ -49,7 +52,7 @@ export default function Jouer() {
           questionIds: qs.map(q => q.id), cat, diff,
           creatorUid: user.uid, creatorName: profile?.displayName || user.displayName || 'Un joueur',
           createdAt: serverTimestamp(),
-          ...(invitedUid ? { invitedUid, invitedName } : {}),
+          ...(invitedUid ? { invitedUid, invitedName, ...(stake > 0 ? { stake } : {}) } : {}),
         });
         navigate(`/duel/${ref.id}`);
       } catch (e) {
@@ -136,6 +139,18 @@ export default function Jouer() {
         <div data-testid="duel-friends" onClick={() => navigate('/amis')} style={{ background: 'var(--s1)', border: '1px solid var(--yellow)', borderRadius: 14, padding: '12px 14px', marginBottom: 14, cursor: 'pointer', fontSize: 13 }}>
           <div style={{ fontWeight: 700, color: 'var(--yellow)' }}>{invitedUid ? `Défi pour ${invitedName || 'ton ami'}` : '👥 Défier un ami directement'}</div>
           <div style={{ color: 'var(--muted)', marginTop: 2 }}>{invitedUid ? 'Le duel lui sera proposé sur son accueil.' : 'Ajoute-le par code ou pseudo, puis défie-le (sinon, partage le lien du duel).'}</div>
+        </div>
+      )}
+
+      {mode === 'duel' && invitedUid && (
+        <div data-testid="stake-picker" style={{ marginBottom: 14 }}>
+          <div className="section-label">Mise (chacun paie, le gagnant remporte tout)</div>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            {STAKES.map(v => (
+              <div key={v} data-testid={`stake-${v}`} onClick={() => gemsBalance(profile) >= v && setStake(v)} style={{ ...chip(stake === v), opacity: gemsBalance(profile) >= v ? 1 : .4 }}>{v === 0 ? 'Sans mise' : `${v} 💎`}</div>
+            ))}
+          </div>
+          {stake > 0 && <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 6 }}>Le gagnant empoche {stake * 2} 💎. Égalité : chacun récupère sa mise.</div>}
         </div>
       )}
 
