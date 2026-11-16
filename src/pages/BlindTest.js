@@ -6,11 +6,11 @@ import { BLIND_CATS, ALL_TRACKS, getBlindCat } from '../data/blindtest';
 import { fetchPreview } from '../utils/itunes';
 import { doc, setDoc, addDoc, serverTimestamp, collection, getDocs, query, where, orderBy, limit } from 'firebase/firestore';
 import { DuelBoard } from './Leaderboard';
-import { avatarIcon } from '../data/cosmetics';
 import { db } from '../firebase';
 import { useAuth } from '../context/AuthContext';
 import { nextLeagueState } from '../utils/league';
 import { dayKey } from '../hooks/useQuiz';
+import Avatar from '../components/Avatar';
 
 const XP_PER_LEVEL = 200;
 const XP_PER_GOOD = 8;      // 10 bonnes réponses = 80 XP
@@ -379,7 +379,7 @@ export function BlindBoard() {
       {list.map((r, k) => (
         <div key={r.uid} data-testid="bb-row" style={{ display: 'flex', alignItems: 'center', gap: 10, background: r.uid === user?.uid ? 'rgba(232,132,74,.15)' : 'var(--s1)', border: `1px solid ${r.uid === user?.uid ? 'var(--yellow)' : 'var(--s2)'}`, borderRadius: 12, padding: '10px 13px', marginBottom: 6 }}>
           <div style={{ width: 28, textAlign: 'center', fontWeight: 800, fontSize: k < 3 ? 18 : 13, color: 'var(--muted)' }}>{MEDALS[k] || k + 1}</div>
-          <div style={{ flex: 1, minWidth: 0, fontSize: 14, fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{r.avatar ? avatarIcon(r.avatar) + ' ' : ''}{r.name}{r.uid === user?.uid && ' (toi)'}</div>
+          <div style={{ flex: 1, minWidth: 0, fontSize: 14, fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}><Avatar id={r.avatar} frame={r.frame} size={24} />{r.name}{r.uid === user?.uid && ' (toi)'}</div>
           <div style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 800, color: 'var(--yellow)' }}>{sel === 'total' ? score(r) : `${score(r)}/10`}</div>
         </div>
       ))}

@@ -5,7 +5,8 @@ import { db } from '../firebase';
 import { useAuth } from '../context/AuthContext';
 import AuthModal from '../components/AuthModal';
 import { weekKey } from '../utils/league';
-import { avatarIcon, titleName } from '../data/cosmetics';
+import { titleName } from '../data/cosmetics';
+import Avatar from '../components/Avatar';
 
 const ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 const newCode = () => Array.from({ length: 6 }, () => ALPHABET[Math.floor(Math.random() * ALPHABET.length)]).join('');
@@ -21,7 +22,7 @@ function useMemberJoin() {
     const wk = weekKey();
     await setDoc(doc(db, 'group_members', `${code}_${user.uid}`), {
       code, uid: user.uid, name, totalXP: profile?.totalXP || 0, level: profile?.level || 1,
-      avatar: profile?.avatar || '', title: profile?.title || '',
+      avatar: profile?.avatar || '', frame: profile?.frame || '', title: profile?.title || '',
       weekKey: profile?.weekKey === wk ? wk : '', weekXP: profile?.weekKey === wk ? (profile?.weekXP || 0) : 0,
       updatedAt: serverTimestamp(),
     }, { merge: true });
@@ -202,7 +203,7 @@ export function GroupDetail() {
         <div key={r.uid} style={{ display: 'flex', alignItems: 'center', gap: 10, background: r.uid === user.uid ? 'rgba(207,122,69,.15)' : 'var(--s1)', border: `1px solid ${r.uid === user.uid ? 'var(--purple)' : 'var(--s2)'}`, borderRadius: 12, padding: '10px 13px', marginBottom: 6 }}>
           <div style={{ width: 28, textAlign: 'center', fontWeight: 800, color: 'var(--muted)' }}>{MEDALS[i] || i + 1}</div>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: 14, fontWeight: 700 }}>{r.avatar ? avatarIcon(r.avatar) + ' ' : ''}{r.name}{r.uid === user.uid && ' (toi)'}</div>
+            <div style={{ fontSize: 14, fontWeight: 700 }}><Avatar id={r.avatar} frame={r.frame} size={24} />{r.name}{r.uid === user.uid && ' (toi)'}</div>
             {r.title && <div style={{ fontSize: 10, color: 'var(--muted)' }}>{titleName(r.title)}</div>}
           </div>
           <div style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 800, color: 'var(--yellow)' }}>{r.score} XP</div>

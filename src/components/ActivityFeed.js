@@ -4,7 +4,7 @@ import { collection, doc, getDoc, getDocs, query, where } from 'firebase/firesto
 import { db } from '../firebase';
 import { useAuth } from '../context/AuthContext';
 import { ago } from '../utils/activity';
-import { avatarIcon } from '../data/cosmetics';
+import Avatar from './Avatar';
 
 const KEY = 'quizly-feed', TTL = 2 * 60 * 1000;
 const cached = uid => { try { const c = JSON.parse(sessionStorage.getItem(KEY) || 'null'); return c && c.uid === uid && Date.now() - c.t < TTL ? c.items : null; } catch (e) { return null; } };
@@ -30,7 +30,7 @@ export default function ActivityFeed() {
         const uniq = [...new Set(uids)].slice(0, 20);
         const docs = await Promise.all(uniq.map(id => getDoc(doc(db, 'leaderboard', id)).catch(() => null)));
         const out = [];
-        docs.forEach(s => { if (s && s.exists()) { const x = s.data(); (x.events || []).forEach(e => out.push({ uid: s.id, name: x.name, avatar: x.avatar, ...e })); } });
+        docs.forEach(s => { if (s && s.exists()) { const x = s.data(); (x.events || []).forEach(e => out.push({ uid: s.id, name: x.name, avatar: x.avatar, frame: x.frame, ...e })); } });
         out.sort((p, q) => q.at - p.at);
         const top = out.slice(0, 8);
         if (!alive) return;
@@ -54,7 +54,7 @@ export default function ActivityFeed() {
           </div>
         ) : items.map((e, i) => (
           <div key={i} data-testid="activity-item" style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 0', borderTop: i ? '1px solid var(--s2)' : 'none' }}>
-            <div style={{ fontSize: 24, width: 34, textAlign: 'center' }}>{e.avatar ? avatarIcon(e.avatar) : '🙂'}</div>
+            <div style={{ width: 40, textAlign: 'center' }}><Avatar id={e.avatar} frame={e.frame} size={34} style={{ marginRight: 0 }} /></div>
             <div style={{ flex: 1, minWidth: 0, fontSize: 13, lineHeight: 1.4 }}><strong>{e.name}</strong> {e.k} {e.t}</div>
             <div style={{ fontSize: 11, color: 'var(--muted)', whiteSpace: 'nowrap' }}>{ago(e.at)}</div>
           </div>
