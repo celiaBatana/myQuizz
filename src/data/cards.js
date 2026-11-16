@@ -15,11 +15,26 @@ export function themeStatus(quizzes, best) {
   return { levels, done, earned: levels.length > 0 && done.length === levels.length };
 }
 
+// Raretés : fixées une fois pour toutes pour chaque carte (même rareté pour tous les joueurs)
+export const RARITIES = [
+  { id: 'common',    label: 'Commune',     color: '#A9B4BE', gems: 10,  w: 60 },
+  { id: 'rare',      label: 'Rare',        color: '#5FA8D9', gems: 25,  w: 25 },
+  { id: 'epic',      label: 'Épique',      color: '#B07BE0', gems: 60,  w: 12 },
+  { id: 'legendary', label: 'Légendaire',  color: '#FFD166', gems: 150, w: 3 },
+];
+function hash(str) { let h = 2166136261; for (const c of String(str)) { h ^= c.charCodeAt(0); h = Math.imul(h, 16777619) >>> 0; } return h; }
+export function rarityOf(key) {
+  const r = hash('rarity-' + key) % 100;
+  let acc = 0;
+  for (const x of RARITIES) { acc += x.w; if (r < acc) return x; }
+  return RARITIES[0];
+}
+
 export function cardInfo(key) {
   const [catId, themeId] = String(key).split(':');
   const cat = CATEGORIES[catId]; const th = cat?.themes?.[themeId];
   if (!th) return null;
-  return { key, catId, themeId, name: th.label, icon: th.icon, color: cat.color, gradient: cat.gradient, catLabel: cat.label, fact: FACTS[themeId] || 'Tu maîtrises ce thème sur tous les niveaux. Bravo !' };
+  return { key, rarity: rarityOf(key), catId, themeId, name: th.label, icon: th.icon, color: cat.color, gradient: cat.gradient, catLabel: cat.label, fact: FACTS[themeId] || 'Tu maîtrises ce thème sur tous les niveaux. Bravo !' };
 }
 
 const FACTS = {
