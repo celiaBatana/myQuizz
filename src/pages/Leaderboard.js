@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { dayKey } from '../hooks/useQuiz';
 import { titleName } from '../data/cosmetics';
+import { stakeOutcome, payout, createdMs, REFUND_AFTER_MS } from '../utils/stakes';
 import { LEAGUES, PROMOTE_XP, DEMOTE_XP, weekKey } from '../utils/league';
 import Avatar from '../components/Avatar';
 
@@ -66,8 +67,9 @@ export function DailyBoard({ date }) {
   ));
 }
 
-export function DuelBoard({ duelId, invitedUid, invitedName }) {
-  const { user } = useAuth();
+export function DuelBoard({ duelId, invitedUid, invitedName, creatorUid, stake, createdAt }) {
+  const { user, profile, updateProfile } = useAuth();
+  const [refunding, setRefunding] = useState(false);
   const [rows, setRows] = useState(null);
   // Actualisé toutes les 4 s : le score de l'autre apparaît dès qu'il a fini
   useEffect(() => {
@@ -82,14 +84,35 @@ export function DuelBoard({ duelId, invitedUid, invitedName }) {
     const t = setInterval(() => { if (++n > 150) clearInterval(t); else load(); }, 4000);
     return () => { alive = false; clearInterval(t); };
   }, [duelId]);
+  // Mise : le gagnant récupère 2× la mise, égalité = mise rendue (chaque joueur règle sa part)
+  const mine = profile?.duelStakes?.[duelId];
+  const oppUid = user && creatorUid && invitedUid ? (user.uid === creatorUid ? invitedUid : creatorUid) : null;
+  const outcome = rows && mine && oppUid ? stakeOutcome(rows, user.uid, oppUid) : null;
+  useEffect(() => {
+    if (!outcome || !mine || mine.settled) return;
+    updateProfile({ gemsBonus: (profile.gemsBonus || 0) + payout(outcome, mine.s), duelStakes: { ...profile.duelStakes, [duelId]: { ...mine, settled: outcome } } }).catch(() => {});
+    // eslint-disable-next-line
+  }, [outcome]);
+  const shown = mine?.settled || outcome;
+  async function refund() {
+    setRefunding(true);
+    try { await updateProfile({ gemsBonus: (profile.gemsBonus || 0) + mine.s, duelStakes: { ...profile.duelStakes, [duelId]: { ...mine, settled: 'refund' } } }); } catch (e) { console.error(e); }
+    setRefunding(false);
+  }
   if (!rows) return <Empty text="Chargement…" />;
   const waiting = invitedUid && !rows.some(r => r.uid === invitedUid);
+  const canRefund = mine && !mine.settled && !outcome && Date.now() - createdMs({ createdAt }) > REFUND_AFTER_MS && rows.some(r => r.uid === user?.uid) && !(oppUid && rows.some(r => r.uid === oppUid));
   return (
     <div data-testid="duel-board">
       {!rows.length && <Empty text="Pas encore de résultat." />}
       {rows.map((r, i) => (
         <Row key={r.uid} rank={i} name={r.name} me={r.uid === user?.uid} right={`${r.score}/${r.total}`} />
       ))}
+      {mine && shown && <div data-testid="stake-result" style={{ margin: '8px 0', padding: '10px 14px', borderRadius: 12, fontSize: 14, fontWeight: 700, background: shown === 'win' ? 'rgba(143,195,159,.2)' : 'var(--s1)', border: `1px solid ${shown === 'win' ? 'var(--cyan)' : 'var(--s2)'}` }}>
+        {shown === 'win' ? `🏆 Tu remportes ${mine.s * 2} 💎 !` : shown === 'lose' ? `💸 Tu perds ta mise de ${mine.s} 💎` : shown === 'refund' ? `↩️ Mise de ${mine.s} 💎 récupérée` : `🤝 Égalité : mise de ${mine.s} 💎 rendue`}
+      </div>}
+      {canRefund && <button data-testid="stake-refund" className="btn btn-secondary btn-full" disabled={refunding} onClick={refund} style={{ margin: '8px 0' }}>Récupérer ma mise de {mine.s} 💎 (l'autre joueur n'a pas joué)</button>}
+      {mine && !shown && !canRefund && <div style={{ fontSize: 12, color: 'var(--muted)', padding: '4px 4px 0' }}>💎 Mise en jeu : {mine.s} chacun. Le gagnant empoche {mine.s * 2}.</div>}
       {waiting && <div data-testid="duel-waiting" style={{ fontSize: 13, color: 'var(--muted)', padding: '8px 4px' }}>⏳ {invitedName || 'Ton ami'} n'a pas encore joué, son score apparaîtra ici.</div>}
       {rows.length === 1 && !invitedUid && <div style={{ fontSize: 12, color: 'var(--muted)', padding: '8px 4px' }}>En attente des autres joueurs… le score s'affichera ici.</div>}
     </div>
