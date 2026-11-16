@@ -1,11 +1,11 @@
 import React from 'react';
 import { CATEGORIES } from '../../data/quizData';
 import { S } from '../adminStyles';
-import { normText } from '../../utils/csv';
+import { normText, questionsToCSV, inventoryCSV, downloadText } from '../../utils/csv';
 
 export default function TabAjouter({ ctx }) {
   const {
-    questions, themes, qCat, setQCat, qTheme, setQTheme, qDiff, setQDiff, qText, setQText, qOpts, setQOpts, qAns, setQAns, qExpl, setQExpl, csvRows, addQuestion, importCSVQuestions, parseCSVQuestions, allCats, allThemes,
+    questions, themes, qCat, setQCat, qTheme, setQTheme, qDiff, setQDiff, qText, setQText, qOpts, setQOpts, qAns, setQAns, qExpl, setQExpl, csvRows, addQuestion, importCSVQuestions, parseCSVQuestions, allCats, allThemes, quizzes,
   } = ctx;
   return (
     <>
@@ -55,6 +55,14 @@ export default function TabAjouter({ ctx }) {
             </div>
             <button type="submit" className="btn btn-primary btn-full" style={{ fontFamily: "'Bricolage Grotesque'", fontWeight: 700 }}>Ajouter la question</button>
           </form>
+
+          <div style={S.divider} />
+          <div style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 700, fontSize: 14, marginBottom: 6 }}>Export</div>
+          <div style={{ fontSize: 11, color: 'var(--muted)', marginBottom: 10 }}>Sauvegarde de toutes les questions (même format que l'import, donc réimportable) et inventaire par catégorie / thème / niveau pour préparer de nouveaux quiz.</div>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 4 }}>
+            <button type="button" data-testid="export-questions" className="btn btn-secondary" onClick={() => downloadText(`quizly-questions-${new Date().toISOString().slice(0, 10)}.csv`, questionsToCSV(questions, quizzes || []))}>⬇️ Exporter les {questions.length} questions</button>
+            <button type="button" data-testid="export-inventory" className="btn btn-secondary" onClick={() => downloadText(`quizly-inventaire-${new Date().toISOString().slice(0, 10)}.csv`, inventoryCSV(questions, quizzes || []))}>📊 Exporter l'inventaire</button>
+          </div>
 
           <div style={S.divider} />
           <div style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 700, fontSize: 14, marginBottom: 6 }}>Import CSV questions</div>
