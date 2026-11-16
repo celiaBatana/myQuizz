@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { AVATARS, TITLES, ownedIds } from '../data/cosmetics';
 import { gemsBalance } from '../utils/gems';
+import { POWERUPS, stockOf } from '../utils/powerups';
 
 const PRICE = { freeze: 60, chest: 100, avatar: 150, title: 100 };
 const disp = { fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 800 };
@@ -60,6 +61,15 @@ export default function Boutique() {
         <div style={{ flex: 1 }}><div style={{ ...disp, fontSize: 15 }}>Coffre mystère</div><div style={{ fontSize: 12, color: 'var(--muted)' }}>{locked.length ? 'Un avatar ou un titre rare au hasard' : 'Tu as tout débloqué !'}</div></div>
         <Btn id="buy-chest" cost={PRICE.chest} onClick={buyChest} disabled={!locked.length} />
       </div>
+
+      <div className="section-label" style={{ marginTop: 18 }}>Power-ups</div>
+      {POWERUPS.map(p => (
+        <div key={p.id} style={tile}>
+          <div style={{ fontSize: 34 }}>{p.icon}</div>
+          <div style={{ flex: 1 }}><div style={{ ...disp, fontSize: 15 }}>{p.name} <span data-testid={`stock-${p.id}`} style={{ fontSize: 12, color: 'var(--muted)', fontWeight: 600 }}>· ×{stockOf(profile, p.id)}</span></div><div style={{ fontSize: 12, color: 'var(--muted)' }}>{p.desc}</div></div>
+          <Btn id={`buy-${p.id}`} cost={p.price} onClick={() => buy(p.price, { powerups: { ...(profile.powerups || {}), [p.id]: stockOf(profile, p.id) + 1 } }, `${p.icon} ${p.name} ajouté !`)} />
+        </div>
+      ))}
 
       {locked.length > 0 && <>
         <div className="section-label" style={{ marginTop: 18 }}>Cosmétiques</div>
