@@ -9,7 +9,8 @@ import { useChampions } from '../hooks/useChampions';
 import { getCategoryList } from '../data/quizData';
 import { rankFor } from '../utils/rank';
 import { gemsBalance } from '../utils/gems';
-import { AVATARS, TITLES, FRAMES, frameStyle, ownedIds, avatarIcon, titleName } from '../data/cosmetics';
+import { seasonInfo } from '../utils/season';
+import { AVATARS, TITLES, FRAMES, frameStyle, seasonCosmetics, ownedIds, avatarIcon, titleName } from '../data/cosmetics';
 import { cleanQuizName } from '../utils/quizName';
 
 const XP_PER_LEVEL = 200;
@@ -95,6 +96,7 @@ export default function Profile() {
   }
 
   const owned = ownedIds(profile);
+  const sc = seasonCosmetics(profile, seasonInfo().id);
   async function equip(field, id) {
     try {
       await updateProfile({ [field]: id });
@@ -174,7 +176,7 @@ export default function Profile() {
           <div style={{ marginTop: 10 }}>
             <div style={{ fontSize: 11, color: 'var(--muted)', marginBottom: 6 }}>Avatars — les cachés tombent des coffres quotidiens (40 % de chance).</div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 6, marginBottom: 12 }}>
-              {AVATARS.map(a => {
+              {[...AVATARS, ...sc.avatars].map(a => {
                 const has = owned.has(a.id);
                 return (
                   <div key={a.id} title={has ? a.name : (a.hint || 'Coffre quotidien')}
@@ -189,7 +191,7 @@ export default function Profile() {
             </div>
             <div style={{ fontSize: 11, color: 'var(--muted)', marginBottom: 6 }}>Cadres — récompenses de la saison</div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 12 }} data-testid="frames">
-              {FRAMES.map(f => {
+              {[...FRAMES, ...sc.frames].map(f => {
                 const has = owned.has(f.id);
                 return (
                   <div key={f.id} onClick={() => has && equip('frame', f.id)}
@@ -202,7 +204,7 @@ export default function Profile() {
             </div>
             <div style={{ fontSize: 11, color: 'var(--muted)', marginBottom: 6 }}>Titres</div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-              {TITLES.map(t => {
+              {[...TITLES, ...sc.titles].map(t => {
                 const has = owned.has(t.id);
                 return (
                   <div key={t.id} onClick={() => has && equip('title', t.id)}
