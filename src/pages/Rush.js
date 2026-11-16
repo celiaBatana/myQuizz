@@ -7,9 +7,9 @@ import { fetchVaried, shuffle } from '../utils/questions';
 import { nextLeagueState } from '../utils/league';
 import { dayKey } from '../hooks/useQuiz';
 import { addEvent } from '../utils/activity';
-import { avatarIcon } from '../data/cosmetics';
 import { usePowerups } from '../utils/powerups';
 import ShareButton from '../components/ShareButton';
+import Avatar from '../components/Avatar';
 
 const ROUND = 60, PENALTY = 3, XP_PER = 2, XP_CAP = 40, XP_RUNS = 3, XP_LEVEL = 200;
 const disp = { fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 800 };
@@ -129,7 +129,7 @@ export default function Rush() {
         : board.map((r, i) => (
           <div key={r.uid} data-testid="rush-row" style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', marginBottom: 6, borderRadius: 14, background: user && r.uid === user.uid ? 'rgba(232,132,74,.18)' : 'var(--s1)', border: `1px solid ${user && r.uid === user.uid ? 'var(--yellow)' : 'var(--s2)'}` }}>
             <div style={{ width: 26, textAlign: 'center', fontWeight: 800 }}>{['🥇', '🥈', '🥉'][i] || i + 1}</div>
-            <div style={{ flex: 1, fontSize: 14, fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{r.avatar ? avatarIcon(r.avatar) + ' ' : ''}{r.name}{user && r.uid === user.uid ? ' (toi)' : ''}</div>
+            <div style={{ flex: 1, fontSize: 14, fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}><Avatar id={r.avatar} frame={r.frame} size={24} />{r.name}{user && r.uid === user.uid ? ' (toi)' : ''}</div>
             <div style={{ ...disp, color: 'var(--yellow)' }}>{r.rushScore} ⚡</div>
           </div>
         ))}
