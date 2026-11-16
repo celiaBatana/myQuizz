@@ -139,4 +139,20 @@ t('manifest et service worker servis', async a => {
   for (const f of ['/manifest.json', '/sw.js', '/icon-192.png']) { const r = await a.page.request.get(a.url + f); a.assert.ok(r.ok(), f); }
   const m = await (await a.page.request.get(a.url + '/manifest.json')).json(); a.assert.strictEqual(m.short_name, 'Quizly');
 });
+t('après « Rejouer mes erreurs » : le bouton « Quiz suivant » reste disponible', async a => {
+  const { page } = a;
+  await a.go('/category/culture/theme/geographie'); await page.click('text=Relief'); await page.waitForTimeout(900);
+  for (let i = 0; i < 10; i++) {
+    await page.locator('text=' + (i < 2 ? 'Fausse 1' : 'Bonne')).first().click({ timeout: 4000 }); await page.waitForTimeout(450);
+    await page.locator('button:has-text("Suivant"), button:has-text("Terminer"), button:has-text("Résultat"), button:has-text("Voir")').first().click({ timeout: 3000 }); await page.waitForTimeout(350);
+  }
+  await page.waitForTimeout(1500);
+  await page.locator('button:has-text("Rejouer mes")').click(); await page.waitForTimeout(900);
+  for (let i = 0; i < 2; i++) {
+    await page.locator('text=Bonne').first().click({ timeout: 4000 }); await page.waitForTimeout(450);
+    await page.locator('button:has-text("Suivant"), button:has-text("Terminer"), button:has-text("Résultat"), button:has-text("Voir")').first().click({ timeout: 3000 }); await page.waitForTimeout(350);
+  }
+  await page.waitForTimeout(1200);
+  const b = await a.body(); a.assert.ok(/Quiz suivant : Capitales/.test(b), b.slice(0, 400));
+});
 module.exports = { tests };
