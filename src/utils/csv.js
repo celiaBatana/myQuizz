@@ -32,10 +32,10 @@ export const toCSV = rows => rows.map(r => r.map(esc).join(',')).join('\r\n');
 
 export function questionsToCSV(questions, quizzes) {
   const qz = Object.fromEntries(quizzes.map(q => [q.id, q.name]));
-  const head = ['categorie', 'theme', 'difficulte', 'question', 'optA', 'optB', 'optC', 'optD', 'reponse', 'explication', 'quiz'];
+  const head = ['categorie', 'theme', 'difficulte', 'question', 'optA', 'optB', 'optC', 'optD', 'reponse', 'explication', 'quiz', 'id'];
   const rows = [...questions]
     .sort((a, b) => (a.category + a.theme + a.diff).localeCompare(b.category + b.theme + b.diff))
-    .map(q => [q.category, q.theme, q.diff, q.text, ...[0, 1, 2, 3].map(i => (q.options || [])[i] || ''), q.answer ?? 0, q.explanation || '', qz[q.quizId] || '']);
+    .map(q => [q.category, q.theme, q.diff, q.text, ...[0, 1, 2, 3].map(i => (q.options || [])[i] || ''), q.answer ?? 0, q.explanation || '', qz[q.quizId] || '', q.id]);
   return toCSV([head, ...rows]);
 }
 

@@ -5,20 +5,34 @@ import { S } from '../adminStyles';
 
 export default function TabQuestions({ ctx }) {
   const {
-    filterCat, setFilterCat, filterDiff, setFilterDiff, filterLinked, setFilterLinked, editQ, setEditQ, confirmDel, setConfirmDel, selectedQ, setSelectedQ, confirmBulk, setConfirmBulk, filtered, toggleSelectQ, selectAllFiltered, deselectAll, deleteQuestion, deleteBulk, saveQuestion, unlinkQuestion, allCats,
+    filterCat, setFilterCat, filterDiff, setFilterDiff, filterLinked, setFilterLinked, filterTheme, setFilterTheme, filterQuiz, setFilterQuiz, search, setSearch, shown, setShown, quizzes, allThemes, questions, editQ, setEditQ, confirmDel, setConfirmDel, selectedQ, setSelectedQ, confirmBulk, setConfirmBulk, filtered, toggleSelectQ, selectAllFiltered, deselectAll, deleteQuestion, deleteBulk, saveQuestion, unlinkQuestion, allCats,
   } = ctx;
   return (
     <>
         <div>
+          {/* Recherche */}
+          <input data-testid="q-search" value={search} onChange={e => { setSearch(e.target.value); setShown(60); setSelectedQ([]); }}
+            placeholder="🔎 Chercher un mot dans la question, les réponses, l'explication ou le nom du quiz…"
+            style={{ width: '100%', background: 'var(--s2)', border: '1px solid var(--s3)', borderRadius: 10, padding: '10px 12px', color: 'var(--text)', fontSize: 13, marginBottom: 10, boxSizing: 'border-box' }} />
           {/* Filtres */}
           <div style={S.grid2}>
-            <select style={S.select} value={filterCat} onChange={e => { setFilterCat(e.target.value); setSelectedQ([]); }}>
+            <select style={S.select} value={filterCat} onChange={e => { setFilterCat(e.target.value); setFilterTheme(''); setFilterQuiz(''); setShown(60); setSelectedQ([]); }}>
               <option value="">Toutes catégories</option>
               {allCats.map(c => <option key={c.id} value={c.id}>{c.icon} {c.label}</option>)}
             </select>
             <select style={S.select} value={filterDiff} onChange={e => { setFilterDiff(e.target.value); setSelectedQ([]); }}>
               <option value="">Toutes difficultés</option>
               <option value="easy">Facile</option><option value="medium">Moyen</option><option value="hard">Expert</option>
+            </select>
+          </div>
+          <div style={S.grid2}>
+            <select data-testid="q-theme" style={S.select} value={filterTheme} onChange={e => { setFilterTheme(e.target.value); setFilterQuiz(''); setShown(60); setSelectedQ([]); }}>
+              <option value="">Tous les thèmes</option>
+              {[...new Set(questions.filter(q => !filterCat || q.category === filterCat).map(q => q.theme).filter(Boolean))].sort().map(t => <option key={t} value={t}>{t}</option>)}
+            </select>
+            <select data-testid="q-quiz" style={S.select} value={filterQuiz} onChange={e => { setFilterQuiz(e.target.value); setShown(60); setSelectedQ([]); }}>
+              <option value="">Tous les quiz</option>
+              {(quizzes || []).filter(z => (!filterCat || z.catId === filterCat) && (!filterTheme || z.themeId === filterTheme)).sort((a, b) => a.name.localeCompare(b.name)).map(z => <option key={z.id} value={z.id}>{z.name} ({z.diff})</option>)}
             </select>
           </div>
           <div style={{ marginBottom: 12 }}>
@@ -73,7 +87,7 @@ export default function TabQuestions({ ctx }) {
           )}
 
           {/* Liste */}
-          {filtered.slice(0, 60).map(q => {
+          {filtered.slice(0, shown).map(q => {
             const isSel = selectedQ.includes(q.id);
             return (
               <div key={q.id} style={{ ...S.card, borderColor: isSel ? 'var(--purple)' : 'var(--s2)', background: isSel ? 'rgba(207,122,69,.07)' : 'var(--s1)' }}>
@@ -88,6 +102,7 @@ export default function TabQuestions({ ctx }) {
                       </div>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ fontSize: 12, fontWeight: 500, marginBottom: 4, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{q.text}</div>
+                        <div style={{ fontSize: 11, color: 'var(--cyan)', marginBottom: 4, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>✓ {(q.options || [])[q.answer]}{q.quizId && (quizzes || []).find(z => z.id === q.quizId) ? <span style={{ color: 'var(--muted)' }}> · {(quizzes || []).find(z => z.id === q.quizId).name}</span> : ''}</div>
                         <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
                           <span style={S.tag('var(--purple)')}>{q.category}</span>
                           <span style={S.tag(q.diff === 'easy' ? 'var(--cyan)' : q.diff === 'medium' ? 'var(--amber)' : 'var(--pink)')}>{DIFF_LABELS[q.diff]}</span>
@@ -118,7 +133,7 @@ export default function TabQuestions({ ctx }) {
               </div>
             );
           })}
-          {filtered.length > 60 && <div style={{ textAlign: 'center', color: 'var(--muted)', fontSize: 12, padding: 12 }}>Affichage limité à 60 — utilise les filtres</div>}
+          {filtered.length > shown && <button data-testid="q-more" className="btn btn-secondary btn-full" style={{ margin: '8px 0' }} onClick={() => setShown(s => s + 60)}>Afficher 60 de plus ({filtered.length - shown} restantes)</button>}
           {filtered.length === 0 && (
             <div style={{ textAlign: 'center', padding: '32px 16px', color: 'var(--muted)' }}>
               <div style={{ fontSize: 36, marginBottom: 10 }}>📭</div>
