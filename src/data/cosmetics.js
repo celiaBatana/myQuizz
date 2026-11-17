@@ -2,23 +2,26 @@ import { dynCosmetic, seasonItems } from './seasonThemes';
 // Avatars et titres à débloquer.
 // "when" = débloqué automatiquement quand la condition est remplie ; "chest" = peut tomber d'un coffre quotidien ; "free" = dès le départ.
 export const AVATARS = [
-  { id: 'a_smile',  icon: '🙂', name: 'Classique',     free: true },
-  { id: 'a_fox',    icon: '🦊', name: 'Renard',        free: true },
-  { id: 'a_panda',  icon: '🐼', name: 'Panda',         free: true },
-  { id: 'a_frog',   icon: '🐸', name: 'Grenouille',    free: true },
+  { id: 'a_cat',    art: 'cat', icon: '🐱', name: 'Chat',          free: true },
+  { id: 'a_bear',   art: 'bear', icon: '🐻', name: 'Ours',         free: true },
+  { id: 'a_smile',  art: 'quizly', icon: '🙂', name: 'Classique',     free: true },
+  { id: 'a_fox',    art: 'fox', icon: '🦊', name: 'Renard',        free: true },
+  { id: 'a_panda',  art: 'panda', icon: '🐼', name: 'Panda',         free: true },
+  { id: 'a_frog',   art: 'frog', icon: '🐸', name: 'Grenouille',    free: true },
   { id: 'a_lion',   icon: '🦁', name: 'Lion',          hint: 'Niveau 3',            when: s => s.level >= 3 },
   { id: 'a_dragon', icon: '🐉', name: 'Dragon',        hint: 'Niveau 5',            when: s => s.level >= 5 },
   { id: 'a_fire',   icon: '🔥', name: 'Flamme',        hint: 'Série de 7 jours',    when: s => s.streak >= 7 },
   { id: 'a_trophy', icon: '🏆', name: 'Champion',      hint: 'Un quiz sans faute',  when: s => s.perfectQuizzes >= 1 },
   { id: 'a_unicorn',icon: '🦄', name: 'Licorne',       chest: true },
   { id: 'a_alien',  icon: '👽', name: 'Alien',         chest: true },
-  { id: 'a_robot',  icon: '🤖', name: 'Robot',         chest: true },
+  { id: 'a_robot',  art: 'robot', icon: '🤖', name: 'Robot',         chest: true },
   { id: 'a_wizard', icon: '🧙', name: 'Magicien',      chest: true },
   { id: 'a_ninja',  icon: '🥷', name: 'Ninja',         chest: true },
-  { id: 'a_owl',    icon: '🦉', name: 'Hibou',         chest: true },
+  { id: 'a_owl',    art: 'owl', icon: '🦉', name: 'Hibou',         chest: true },
   { id: 'a_octo',   icon: '🐙', name: 'Pieuvre',       chest: true },
   { id: 'a_rocket', icon: '🚀', name: 'Fusée',         chest: true },
   { id: 'a_crown',  icon: '👑', name: 'Couronne',      chest: true },
+  { id: 'a_penguin', art: 'penguin', icon: '🐧', name: 'Manchot',     chest: true },
   { id: 'a_phoenix', icon: '🦅', name: 'Phénix',        hint: 'Saison 1 · palier 9' },
 ];
 
@@ -75,6 +78,7 @@ export const findCosmetic = id => ALL.find(c => c.id === id) || dynCosmetic(id);
 export const isAvatar = id => AVATARS.some(a => a.id === id) || /^a_s\d+$/.test(String(id));
 
 export const FREE_IDS = ALL.filter(c => c.free).map(c => c.id);
+export const avatarArtId = id => AVATARS.find(a => a.id === id)?.art || (id ? null : 'quizly');
 export const avatarIcon = id => AVATARS.find(a => a.id === id)?.icon || dynCosmetic(id)?.icon || '🙂';
 export const titleName  = id => TITLES.find(t => t.id === id)?.name || dynCosmetic(id)?.name || '';
 
