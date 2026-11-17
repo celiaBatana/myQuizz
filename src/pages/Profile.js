@@ -1,3 +1,4 @@
+import { ArtSvg, artBg } from '../data/avatarArt';
 import BadgesGrid from '../components/BadgesGrid';
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -11,7 +12,7 @@ import { getCategoryList } from '../data/quizData';
 import { rankFor } from '../utils/rank';
 import { gemsBalance } from '../utils/gems';
 import { seasonInfo } from '../utils/season';
-import { AVATARS, TITLES, FRAMES, frameStyle, seasonCosmetics, ownedIds, avatarIcon, titleName } from '../data/cosmetics';
+import { AVATARS, TITLES, FRAMES, frameStyle, seasonCosmetics, ownedIds, avatarIcon, avatarArtId, titleName } from '../data/cosmetics';
 import { cleanQuizName } from '../utils/quizName';
 
 const XP_PER_LEVEL = 200;
@@ -106,7 +107,7 @@ export default function Profile() {
       {/* ── Hero profil ── */}
       <div style={{ background: `linear-gradient(160deg, ${rankFor(level).color}30, var(--s1) 55%)`, border: `1px solid ${rankFor(level).color}66`, borderRadius: 24, padding: '22px 16px', marginBottom: 14, textAlign: 'center' }}>
         <div style={{ position: 'relative', width: 88, height: 88, margin: '0 auto 10px', borderRadius: '50%', background: 'var(--s2)', border: `3px solid ${rankFor(level).color}`, boxShadow: `0 0 22px ${rankFor(level).color}55`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 46, ...(frameStyle(profile?.frame) || {}) }}>
-          {profile?.avatar ? avatarIcon(profile.avatar) : levelEmoji(level)}
+          {profile?.avatar ? (avatarArtId(profile.avatar) ? <span style={{ display: 'inline-block', width: 82, height: 82, borderRadius: '50%', overflow: 'hidden', background: artBg(avatarArtId(profile.avatar)), lineHeight: 0 }}><ArtSvg art={avatarArtId(profile.avatar)} size={82} /></span> : avatarIcon(profile.avatar)) : levelEmoji(level)}
           <div style={{ position: 'absolute', bottom: -6, right: -6, minWidth: 30, height: 30, padding: '0 6px', borderRadius: 15, background: 'var(--yellow)', color: 'var(--on-primary)', fontSize: 13, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '3px solid var(--s1)' }}>{level}</div>
         </div>
         {crowns.length > 0 && <div data-testid="profile-crowns" style={{ marginBottom: 6, fontSize: 12, fontWeight: 800, color: '#FFD166' }}>👑 Champion × {crowns.length} : {crowns.map(id => getCategoryList().find(c => c.id === id)?.label).join(', ')}</div>}
@@ -175,7 +176,7 @@ export default function Profile() {
                     style={{ textAlign: 'center', fontSize: 24, padding: '6px 0', borderRadius: 10, cursor: has ? 'pointer' : 'default',
                       opacity: has ? 1 : 0.3, filter: has ? 'none' : 'grayscale(1)',
                       border: `2px solid ${profile?.avatar === a.id ? 'var(--purple)' : 'transparent'}`, background: 'var(--s2)' }}>
-                    {has ? a.icon : '🔒'}
+                    {has ? (a.art ? <span style={{ display: 'inline-block', width: 34, height: 34, borderRadius: '50%', overflow: 'hidden', background: artBg(a.art), verticalAlign: 'middle' }}><ArtSvg art={a.art} size={34} /></span> : a.icon) : '🔒'}
                   </div>
                 );
               })}

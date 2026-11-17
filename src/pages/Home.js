@@ -152,7 +152,7 @@ export default function Home() {
         </div>
         <div className="hero-actions" style={{ display: 'flex', gap: 10 }}>
           <button className="btn btn-primary" data-testid="home-play" style={{ flex: 1 }} onClick={() => navigate('/jouer')}>▶ Jouer</button>
-          <button className="btn btn-secondary" data-testid="home-daily" style={{ flex: 1 }} onClick={() => navigate('/daily')}>Défi du jour</button>
+          <button className="btn" data-testid="home-daily" style={{ flex: 1, background: 'linear-gradient(135deg, #E6B35A, #E8844A)', color: '#1F1A16', fontWeight: 800, border: 'none', boxShadow: '0 0 0 2px rgba(230,179,90,.35), 0 4px 18px rgba(232,132,74,.45)' }} onClick={() => navigate('/daily')}>📅 Défi du jour</button>
         </div>
         <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 10 }}>
           {categories.length} catégories · {totalThemes} thèmes · {totalQuizzes} quiz · {totalQuestions} questions
