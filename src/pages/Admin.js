@@ -8,6 +8,7 @@ import { S } from '../components/adminStyles';
 import { QuestionForm, QuizForm, InlineEdit } from '../components/AdminForms';
 import AdminReports from '../components/AdminReports';
 import AdminSante from '../components/AdminSante';
+import AdminJoueurs from '../components/AdminJoueurs';
 import TabQuiz from '../components/admin/TabQuiz';
 import TabLier from '../components/admin/TabLier';
 import TabQuestions from '../components/admin/TabQuestions';
@@ -466,6 +467,7 @@ export default function Admin() {
     { id: 'ajouter',    label: 'Ajouter' },
     { id: 'sante',      label: '🩺 Santé' },
     { id: 'reports',    label: `🚩 Signalements${reports.length ? ` (${reports.length})` : ''}` },
+    { id: 'joueurs',    label: '👥 Joueurs' },
     { id: 'categories', label: 'Catégories' },
     { id: 'themes',     label: 'Thèmes' },
   ];
@@ -524,6 +526,8 @@ export default function Admin() {
         <AdminReports reports={reports} setReports={setReports} questions={questions} cats={cats} themes={themes} quizzes={quizzes}
           onSaveQuestion={saveQuestion} onDeleteQuestion={deleteQuestion} ok={ok} />
       )}
+
+      {!loading && tab === 'joueurs' && <AdminJoueurs ok={ok} />}
 
       {!loading && tab === 'categories' && <TabCategories ctx={ctx} />}
 

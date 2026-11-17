@@ -27,9 +27,15 @@ service cloud.firestore {
       let n = request.resource.data;
       let o = resource.data;
       let dXP = n.get('totalXP', 0) - o.get('totalXP', 0);
-      return dXP >= 0 && dXP <= 7000
+      // Plafond de débit : 300 XP + 12 XP par seconde écoulée depuis le dernier gain (jamais plus de 1 500 d'un coup)
+      let secs = (request.time.toMillis() - o.get('xpAt', timestamp.value(0)).toMillis()) / 1000;
+      return dXP >= 0 && dXP <= 1500
         && (dXP == 0 || (n.get('xpAt', null) == request.time
-              && request.time >= o.get('xpAt', timestamp.value(0)) + duration.value(8, 's')))
+              && request.time >= o.get('xpAt', timestamp.value(0)) + duration.value(8, 's')
+              && dXP <= 300 + 12 * secs))
+        // Éclats : la dépense ne peut pas être effacée, et les gains bonus sont plafonnés par écriture
+        && n.get('gemsSpent', 0) >= o.get('gemsSpent', 0)
+        && n.get('gemsBonus', 0) <= o.get('gemsBonus', 0) + 600
         && n.get('streak', 0) <= o.get('streak', 0) + 1
         && n.get('freezes', 0) <= 2
         && n.get('weekXP', 0) <= (n.get('weekKey', '') == o.get('weekKey', '') ? o.get('weekXP', 0) : 0) + dXP
@@ -53,12 +59,17 @@ service cloud.firestore {
       allow update: if signedIn() && request.auth.uid == uid
         && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['isAdmin', 'isPremium'])
         && profileOk();
+      // L'admin peut corriger le profil d'un joueur (XP, éclats) depuis l'onglet Joueurs
+      allow update: if isAdmin();
     }
 
     // Classement public : chacun écrit uniquement sa propre ligne
     match /leaderboard/{uid} {
       allow read: if true;
-      allow create, update: if signedIn() && request.auth.uid == uid && publicStatsOk();
+      allow create, update: if signedIn() && request.auth.uid == uid && publicStatsOk()
+        && request.resource.data.get('rushScore', 0) <= 200
+        && request.resource.data.get('blindTotal', 0) <= 300;
+      allow create, update: if isAdmin();
     }
 
     // Défi du jour : un score par joueur et par jour (id = date_uid), non modifiable
