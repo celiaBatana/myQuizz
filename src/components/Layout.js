@@ -9,6 +9,7 @@ import { gemsBalance } from '../utils/gems';
 import SoundToggle from './SoundToggle';
 import Avatar from './Avatar';
 import RewardBanner from './RewardBanner';
+import BadgeSync from './BadgeSync';
 
 export default function Layout() {
   const { user, profile, isAdmin } = useAuth();
@@ -35,6 +36,7 @@ export default function Layout() {
     <div className="app">
       <Notifs />
       <RewardBanner />
+      <BadgeSync />
       {/* Navbar */}
       <nav className="navbar">
         <span className="navbar-logo" onClick={() => navigate('/')}>Quizly</span>

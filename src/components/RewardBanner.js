@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { cardInfo } from '../data/cards';
 import { findCosmetic } from '../data/cosmetics';
+import { badgeById } from '../data/badges';
 
 // Détecte tout gain du joueur (XP, éclats, niveau, cartes, cosmétiques) quelle que soit la page,
 // et l'annonce dans un bandeau bien visible. Les gains rapprochés sont regroupés dans le même bandeau.
@@ -17,6 +18,10 @@ export function diffGains(prev, next) {
   (next.cards || []).filter(c => !pc.has(c)).forEach(c => { const ci = cardInfo(c); g.push({ k: 'card:' + c, icon: ci?.icon || '🃏', text: `Nouvelle carte : ${ci?.name || c}` }); });
   const pu = new Set(prev.unlocked || []);
   (next.unlocked || []).filter(c => !pu.has(c)).forEach(c => { const co = findCosmetic(c); if (co) g.push({ k: 'cos:' + c, icon: co.icon || '🎁', text: `Débloqué : ${co.name}` }); });
+  const pb = new Set(prev.badges || []);
+  const nb = (next.badges || []).filter(c => !pb.has(c) && badgeById(c));
+  if (nb.length > 3) g.push({ k: 'badges', icon: '🏅', text: `${nb.length} succès débloqués !` });
+  else nb.forEach(c => { const b = badgeById(c); g.push({ k: 'badge:' + c, icon: b.icon, text: `Succès : ${b.name}` }); });
   return g;
 }
 

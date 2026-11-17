@@ -18,6 +18,54 @@ function Bar({ pct, h = 6 }) {
   );
 }
 
+
+const JOURS = ['dim', 'lun', 'mar', 'mer', 'jeu', 'ven', 'sam'];
+export function statsFromHistory(history) {
+  const days = [];
+  for (let i = 6; i >= 0; i--) { const d = new Date(); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() - i); days.push({ d, key: d.toDateString(), xp: 0, n: 0 }); }
+  const byKey = Object.fromEntries(days.map(x => [x.key, x]));
+  const buckets = { matin: 0, apres: 0, soir: 0, nuit: 0 };
+  (history || []).forEach(h => {
+    const dt = new Date(h.date); if (isNaN(dt)) return;
+    const slot = byKey[dt.toDateString()]; if (slot) { slot.xp += h.xp || 0; slot.n += 1; }
+    const hr = dt.getHours();
+    buckets[hr >= 5 && hr < 12 ? 'matin' : hr >= 12 && hr < 18 ? 'apres' : hr >= 18 && hr < 23 ? 'soir' : 'nuit'] += 1;
+  });
+  return { days, buckets };
+}
+
+function StatsCard({ profile }) {
+  const { days, buckets } = statsFromHistory(profile?.history);
+  const max = Math.max(1, ...days.map(d => d.xp));
+  const tot = Object.values(buckets).reduce((a, b) => a + b, 0);
+  const top = tot >= 5 ? Object.entries(buckets).sort((a, b) => b[1] - a[1])[0] : null;
+  const label = { matin: '🌅 le matin', apres: '☀️ l\'après-midi', soir: '🌆 le soir', nuit: '🌙 la nuit' };
+  const week = days.reduce((a, d) => a + d.xp, 0);
+  const acc = profile?.totalAnswers ? Math.round(100 * (profile.correctAnswers || 0) / profile.totalAnswers) : null;
+  const kpi = (v, l) => <div style={{ textAlign: 'center' }}><div style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 900, fontSize: 20 }}>{v}</div><div style={{ fontSize: 10, color: 'var(--muted)' }}>{l}</div></div>;
+  return (
+    <div data-testid="stats-card" style={card}>
+      <div style={{ fontWeight: 800, fontFamily: "'Bricolage Grotesque', sans-serif", marginBottom: 10 }}>📊 Mes stats</div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6, marginBottom: 14 }}>
+        {kpi(profile?.quizzesPlayed || 0, 'parties')}
+        {kpi(profile?.totalXP || 0, 'XP')}
+        {kpi(acc === null ? '–' : acc + ' %', 'bonnes rép.')}
+        {kpi(profile?.streak || 0, 'jours de série')}
+      </div>
+      <div style={{ fontSize: 11, color: 'var(--muted)', marginBottom: 6 }}>XP des 7 derniers jours · {week} XP</div>
+      <div style={{ display: 'flex', alignItems: 'flex-end', gap: 6, height: 70 }}>
+        {days.map(d => (
+          <div key={d.key} data-testid="stats-day" style={{ flex: 1, textAlign: 'center' }}>
+            <div style={{ height: Math.max(3, Math.round(52 * d.xp / max)), background: d.xp ? 'var(--yellow)' : 'var(--s2)', borderRadius: 4, marginBottom: 3 }} title={`${d.xp} XP`} />
+            <div style={{ fontSize: 9, color: 'var(--muted)' }}>{JOURS[d.d.getDay()]}</div>
+          </div>
+        ))}
+      </div>
+      {top && <div data-testid="stats-moment" style={{ fontSize: 12, color: 'var(--muted)', marginTop: 10 }}>Tu joues surtout {label[top[0]]} ({Math.round(100 * top[1] / tot)} % de tes parties récentes).</div>}
+    </div>
+  );
+}
+
 export default function Progress() {
   const { user, profile } = useAuth();
   const navigate = useNavigate();
@@ -70,7 +118,9 @@ export default function Progress() {
   return (
     <div className="page">
       <div className="page-title">Ma progression</div>
-      <div className="page-sub">Là où tu en es, thème par thème</div>
+      <div className="page-sub">Tes stats et ta maîtrise, thème par thème</div>
+
+      <StatsCard profile={profile} />
 
       <div style={card}>
         <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 6 }}>

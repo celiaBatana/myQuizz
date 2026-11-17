@@ -117,6 +117,7 @@ export default function Home() {
   return (
     <div className="page">
       <InstallPrompt />
+      <div data-testid="home-search" onClick={() => navigate('/recherche')} style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'var(--s1)', border: '1px solid var(--s2)', borderRadius: 14, padding: '11px 14px', marginBottom: 12, color: 'var(--muted)', fontSize: 14, cursor: 'pointer' }}>🔎 Rechercher un quiz, un thème…</div>
       <div className="home-top">
       <div className="home-hero hero-grid" style={{ background: 'linear-gradient(135deg, var(--s1), #33291F)', border: '1px solid var(--s2)', borderRadius: 24, padding: 20, marginBottom: 14 }}>
         <div className="hero-main">
