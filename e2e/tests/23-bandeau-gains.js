@@ -2,7 +2,7 @@
 const tests = [];
 const t = (n, f) => tests.push([n, f]);
 const seed = b => b();
-t('fin de quiz : le bandeau annonce l\'XP gagnée', async a => {
+t('pas de bandeau XP sur un écran de résultat', async a => {
   const { page } = a;
   await a.signup('Gain', 'g@g.fr');
   await a.patchDb(d => { Object.values(d.users)[0].onboarded = true; });
@@ -12,7 +12,9 @@ t('fin de quiz : le bandeau annonce l\'XP gagnée', async a => {
     await page.locator('button:has-text("Suivant"), button:has-text("Terminer"), button:has-text("Résultat"), button:has-text("Voir")').first().click({ timeout: 3000 }); await page.waitForTimeout(350);
   }
   await page.waitForTimeout(1500);
-  const txt = await page.locator('[data-testid="reward-banner"]').innerText({ timeout: 4000 });
-  a.assert.ok(/Tu as gagné/i.test(txt) && /\+\d+ XP/.test(txt), txt);
+  // le résultat du quiz est déjà affiché : pas de bandeau en doublon
+  const b = page.locator('[data-testid="reward-banner"]');
+  const txt = (await b.count()) ? await b.innerText() : '';
+  a.assert.ok(!/XP|éclats/.test(txt), 'pas de gain XP/éclats en doublon sur le résultat : ' + txt);
 });
 module.exports = { tests, seed };

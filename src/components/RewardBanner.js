@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { cardInfo } from '../data/cards';
 import { findCosmetic } from '../data/cosmetics';
@@ -25,7 +26,12 @@ export function diffGains(prev, next) {
   return g;
 }
 
+// Pages qui affichent déjà elles-mêmes ce que tu as gagné : le bandeau n'y annonce que les succès
+const SELF = ['/quiz/', '/play', '/daily', '/blindtest/', '/raid', '/rush', '/boss/', '/duel/', '/revision', '/boutique'];
+export const hasOwnResult = path => path === '/' || (SELF.some(p => path.startsWith(p)) && path !== '/blindtest/classement');
+
 export default function RewardBanner() {
+  const { pathname } = useLocation();
   const { user, profile } = useAuth();
   const prev = useRef(null);
   const prevUid = useRef(null);
@@ -52,7 +58,8 @@ export default function RewardBanner() {
   }, [profile, user]);
   useEffect(() => () => clearTimeout(timer.current), []);
 
-  if (!items.length) return null;
+  const shown = hasOwnResult(pathname) ? items.filter(i => i.k.startsWith('badge')) : items;
+  if (!shown.length) return null;
   return (
     <div data-testid="reward-banner" role="status" aria-live="polite" onClick={() => setItems([])}
       style={{ position: 'fixed', top: 66, left: '50%', transform: 'translateX(-50%)', zIndex: 900, width: 'calc(100% - 32px)', maxWidth: 400, cursor: 'pointer',
@@ -60,7 +67,7 @@ export default function RewardBanner() {
         boxShadow: '0 10px 30px rgba(0,0,0,.55), 0 0 24px rgba(232,132,74,.35)', animation: 'rbIn .35s cubic-bezier(.175,.885,.32,1.275)' }}>
       <style>{'@keyframes rbIn { from { opacity: 0; transform: translate(-50%, -16px) scale(.94) } to { opacity: 1; transform: translate(-50%, 0) scale(1) } }'}</style>
       <div style={{ fontSize: 11, letterSpacing: 1.2, textTransform: 'uppercase', color: 'var(--yellow)', fontWeight: 800, marginBottom: 6 }}>Tu as gagné</div>
-      {items.map(i => (
+      {shown.map(i => (
         <div key={i.k} data-testid="reward-line" style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 17, fontWeight: 800, lineHeight: 1.5 }}>
           <span style={{ fontSize: 22 }}>{i.icon}</span><span>{i.text}</span>
         </div>
