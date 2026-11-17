@@ -3,6 +3,7 @@ import { GroupsList, GroupDetail } from './pages/Groups';
 import Review from './pages/Review';
 import Collection from './pages/Collection';
 import Progress from './pages/Progress';
+import Search from './pages/Search';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import Layout from './components/Layout';
@@ -54,6 +55,7 @@ export default function App() {
             <Route path="/groupes" element={<GroupsList />} />
             <Route path="/groupes/:code" element={<GroupDetail />} />
             <Route path="/collection" element={<Collection />} />
+            <Route path="/recherche" element={<Search />} />
             <Route path="/progression" element={<Progress />} />
             <Route path="/revision" element={<Review />} />
             <Route path="/classement" element={<Leaderboard />} />
