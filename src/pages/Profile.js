@@ -196,6 +196,11 @@ export default function Profile() {
             </div>
             <div style={{ fontSize: 11, color: 'var(--muted)', marginBottom: 6 }}>Titres</div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+              <div data-testid="title-none" onClick={() => equip('title', '')}
+                style={{ fontSize: 11, fontWeight: 600, padding: '5px 10px', borderRadius: 20, cursor: 'pointer',
+                  background: !profile?.title ? 'var(--purple)' : 'var(--s2)', color: '#fff' }}>
+                Aucun
+              </div>
               {[...TITLES, ...sc.titles].map(t => {
                 const has = owned.has(t.id);
                 return (
