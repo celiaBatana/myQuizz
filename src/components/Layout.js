@@ -7,6 +7,7 @@ import { streakInfo } from '../utils/retention';
 import Notifs from './Notifs';
 import { gemsBalance } from '../utils/gems';
 import SoundToggle from './SoundToggle';
+import Avatar from './Avatar';
 
 export default function Layout() {
   const { user, profile, isAdmin } = useAuth();
@@ -47,13 +48,14 @@ export default function Layout() {
           )}
           {user && <div data-testid="nav-gems" title="Éclats : boutique" onClick={() => navigate('/boutique')} className="xp-badge" style={{ cursor: 'pointer', color: '#7FD6E8' }}>💎 {gemsBalance(profile)}</div>}
           <div className="xp-badge nav-dup" style={bump ? { animation: 'qz-bump .9s ease' } : undefined}>{xp} XP</div>
-          <style>{`@media (max-width: 420px) { .navbar-right .level-pill { display: none } .navbar-right { gap: 6px !important } } @keyframes qz-bump { 0% { transform: scale(1) } 30% { transform: scale(1.25); box-shadow: 0 0 14px var(--yellow) } 100% { transform: scale(1) } }`}</style>
+          <style>{`@media (max-width: 420px) { .navbar-right .level-pill { display: none } .navbar-right .nav-name { display: none } .navbar-right [data-testid=nav-profile] { padding: 4px !important } .navbar-right [data-testid=nav-profile] [data-testid=avatar] { margin-right: 0 !important } .navbar-right { gap: 6px !important } } @keyframes qz-bump { 0% { transform: scale(1) } 30% { transform: scale(1.25); box-shadow: 0 0 14px var(--yellow) } 100% { transform: scale(1) } }`}</style>
           <SoundToggle />
           <div className="level-pill nav-dup">Niv. {level}</div>
           {user ? (
             <NavLink to="/profile">
-              <button className="btn btn-secondary" style={{ padding: '5px 13px', fontSize: 12 }}>
-                {profile?.displayName?.split(' ')[0] || user.displayName?.split(' ')[0] || 'Profil'}
+              <button className="btn btn-secondary" data-testid="nav-profile" style={{ padding: '4px 12px 4px 5px', fontSize: 12, display: 'inline-flex', alignItems: 'center' }}>
+                <Avatar id={profile?.avatar} frame={profile?.frame} size={26} />
+                <span className="nav-name">{profile?.displayName?.split(' ')[0] || user.displayName?.split(' ')[0] || 'Profil'}</span>
               </button>
             </NavLink>
           ) : (
