@@ -3,11 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { getCategoryList } from '../data/quizData';
 import { DAILY_GOALS } from '../utils/retention';
+import { useTaxonomy } from '../data/taxonomy';
 
 const GOAL_TXT = { 20: ['Tranquille', '≈ 2 quiz par jour'], 50: ['Régulier', '≈ 4 à 5 quiz par jour'], 100: ['Intense', '≈ 8 à 10 quiz par jour'] };
 
 // Premier lancement : 3 écrans (bienvenue, objectif quotidien, premier quiz)
 export default function Onboarding() {
+  useTaxonomy();
   const { updateProfile } = useAuth();
   const navigate = useNavigate();
   const [step, setStep] = useState(0);

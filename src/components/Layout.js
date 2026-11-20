@@ -10,6 +10,7 @@ import SoundToggle from './SoundToggle';
 import Avatar from './Avatar';
 import RewardBanner from './RewardBanner';
 import BadgeSync from './BadgeSync';
+import TaxonomySync from './TaxonomySync';
 
 export default function Layout() {
   const { user, profile, isAdmin } = useAuth();
@@ -37,6 +38,7 @@ export default function Layout() {
       <Notifs />
       <RewardBanner />
       <BadgeSync />
+      <TaxonomySync />
       {/* Navbar */}
       <nav className="navbar">
         <span className="navbar-logo" onClick={() => navigate('/')}>Quizly</span>

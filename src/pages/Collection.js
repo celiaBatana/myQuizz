@@ -6,8 +6,10 @@ import { useAuth } from '../context/AuthContext';
 import { CATEGORIES } from '../data/quizData';
 import { BOSSES } from '../data/bosses';
 import { cardKey, cardInfo, themeStatus, rarityOf, RARITIES, DIFFS, DIFF_SHORT } from '../data/cards';
+import { useTaxonomy } from '../data/taxonomy';
 
 export default function Collection() {
+  const tv = useTaxonomy();
   const { user, profile, updateProfile } = useAuth();
   const navigate = useNavigate();
   const [quizzes, setQuizzes] = useState(null);
@@ -33,7 +35,7 @@ export default function Collection() {
         return { key: cardKey(cat.id, t.id), t, st: themeStatus(qs, best), hasQuiz: qs.length > 0 };
       }).filter(x => x.hasQuiz),
     })).filter(c => c.items.length);
-  }, [quizzes, best]);
+  }, [quizzes, best, tv]);
 
   // Récupère les cartes déjà méritées avant la sortie de la collection (une seule fois)
   useEffect(() => {

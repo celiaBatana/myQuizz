@@ -15,9 +15,11 @@ import Confetti from '../components/Confetti';
 import { playCorrect, playWrong, playWin, playLose } from '../utils/sound';
 import { findCosmetic, isAvatar } from '../data/cosmetics';
 import { cleanQuizName } from '../utils/quizName';
+import { useTaxonomy } from '../data/taxonomy';
 
 // ── Themes ───────────────────────────────────────────────────────────────────
 export function Themes() {
+  useTaxonomy();
   const { catId } = useParams();
   const navigate = useNavigate();
   const cat = CATEGORIES[catId];
@@ -98,6 +100,7 @@ export function Themes() {
 const PASS = 60; // % à atteindre pour débloquer l'étape suivante
 
 export function Quizzes() {
+  useTaxonomy();
   const { catId, themeId } = useParams();
   const navigate = useNavigate();
   const cat = CATEGORIES[catId];
@@ -218,6 +221,7 @@ export function Quizzes() {
 
 // ── QuizPlay ──────────────────────────────────────────────────────────────────
 export function QuizPlay() {
+  useTaxonomy();
   const { catId, themeId, quizId } = useParams();
   const navigate  = useNavigate();
   const cat   = CATEGORIES[catId];
@@ -490,6 +494,7 @@ export function QuizPlayInner({ quizData, cat, theme, catId, themeId, navigate, 
 
 // ── ResultScreen ──────────────────────────────────────────────────────────────
 function ResultScreen({ quiz, quizData, catId, themeId, navigate, onReplay, onPractice, backTo, extra, noReplay }) {
+  useTaxonomy();
   const pct   = quiz.score / quiz.totalQuestions;
   const sudden = quiz.mode === 'sudden';
   const maxRun = quizData?.questions?.length || quiz.totalQuestions;

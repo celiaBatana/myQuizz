@@ -3,9 +3,11 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { CATEGORIES } from '../data/quizData';
 import { fetchVaried } from '../utils/questions';
 import { QuizPlayInner } from './QuizPlay';
+import { useTaxonomy } from '../data/taxonomy';
 
 // Quiz mixte (10 questions au hasard) et mort subite (jusqu'à la première erreur)
 export default function Play() {
+  useTaxonomy();
   const [params] = useSearchParams();
   const navigate = useNavigate();
   const mode = params.get('mode') === 'sudden' ? 'sudden' : 'mix';

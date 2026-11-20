@@ -1,5 +1,4 @@
 import React from 'react';
-import { CATEGORIES } from '../../data/quizData';
 import { S } from '../adminStyles';
 import PasteImport from './PasteImport';
 import { questionsToCSV, inventoryCSV, downloadText } from '../../utils/csv';
@@ -15,7 +14,7 @@ export default function TabAjouter({ ctx }) {
             <div style={S.grid2}>
               <div>
                 <label style={S.label}>Catégorie</label>
-                <select style={S.select} value={qCat} onChange={e => { setQCat(e.target.value); setQTheme(Object.keys(CATEGORIES[e.target.value]?.themes || {})[0] || ''); }}>
+                <select style={S.select} value={qCat} onChange={e => { setQCat(e.target.value); setQTheme(allThemes.find(t => t.catId === e.target.value)?.id || ''); }}>
                   {allCats.map(c => <option key={c.id} value={c.id}>{c.icon} {c.label}</option>)}
                 </select>
               </div>

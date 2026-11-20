@@ -4,11 +4,13 @@ import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../firebase';
 import { CATEGORIES } from '../data/quizData';
 import { normText } from '../utils/csv';
+import { useTaxonomy } from '../data/taxonomy';
 
 const DIFF = { easy: 'Facile', medium: 'Moyen', hard: 'Expert' };
 const row = { display: 'flex', alignItems: 'center', gap: 10, background: 'var(--s1)', border: '1px solid var(--s2)', borderRadius: 12, padding: '10px 12px', marginBottom: 8, cursor: 'pointer' };
 
 export default function Search() {
+  useTaxonomy();
   const navigate = useNavigate();
   const [q, setQ] = useState('');
   const [quizzes, setQuizzes] = useState([]);
