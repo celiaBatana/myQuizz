@@ -4,8 +4,9 @@ import {
   streakInfo, activeSet, dk, addDays, DAILY_GOALS, GOAL_BONUS, goalProgress,
   dailyMissions, todayStats, doneToday, weeklyStatus, MISSION_XP, WEEKLY_XP, MILESTONES,
 } from '../utils/retention';
+import { weekKey } from '../utils/league';
 
-const LETTERS = ['D', 'L', 'M', 'M', 'J', 'V', 'S'];
+const LETTERS = ['D', 'L', 'M', 'M', 'J', 'V', 'S']; // index = getDay()
 const card = { background: 'var(--s1)', border: '1px solid var(--s2)', borderRadius: 16, padding: '14px 16px', marginBottom: 12 };
 
 function Ring({ pct, label }) {
@@ -26,7 +27,7 @@ export default function DailyPanel() {
 
   const s = streakInfo(profile);
   const active = activeSet(profile);
-  const days = Array.from({ length: 7 }, (_, i) => dk(-(6 - i)));
+  const days = Array.from({ length: 7 }, (_, i) => addDays(weekKey(), i));
   const g = goalProgress(profile);
   const stats = todayStats(profile);
   const done = doneToday(profile);
@@ -64,7 +65,7 @@ export default function DailyPanel() {
                 <div style={{
                   width: 28, height: 28, margin: '0 auto', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14,
                   background: on ? 'var(--yellow)' : 'var(--s2)', color: on ? 'var(--on-primary)' : '#fff',
-                  border: isToday ? '2px solid var(--yellow)' : '2px solid transparent', opacity: on || isToday ? 1 : 0.55,
+                  border: isToday ? '2px solid var(--yellow)' : '2px solid transparent', opacity: on || isToday || k < dk(0) ? 1 : 0.4,
                 }}>{on ? '🔥' : ''}</div>
               </div>
             );
