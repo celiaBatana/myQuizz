@@ -15,7 +15,7 @@ import TabQuestions from '../components/admin/TabQuestions';
 import TabAjouter from '../components/admin/TabAjouter';
 import TabCategories from '../components/admin/TabCategories';
 import TabThemes from '../components/admin/TabThemes';
-import { parseCSV, normText } from '../utils/csv';
+import { parseCSV, normText, rowsFromCSVText, prepareRows } from '../utils/csv';
 
 
 // Parseur CSV robuste : gère les guillemets, les virgules dans les champs et les "" échappés
@@ -179,7 +179,8 @@ export default function Admin() {
     const known = [...quizzes]; // quiz connus, enrichis au fil des créations
     const seen = new Set(questions.map(q => normText(q.text)));
     let dups = 0, updated = 0, missing = 0;
-    for (const { quizName, id: rowId, oldText, ...row } of csvRows) {
+    for (const { quizName, id: rowId, oldText, skip, problem, ...row } of csvRows) {
+      if (skip) continue;
       // Mise à jour d'une question existante : par id, ou par son ancien texte
       if (rowId || oldText) {
         const target = questions.find(q => rowId && q.id === rowId) || questions.find(q => oldText && normText(q.text) === normText(oldText));
@@ -231,19 +232,7 @@ export default function Admin() {
     const file = e.target.files[0]; if (!file) return;
     const r = new FileReader();
     r.onload = ev => {
-      const rows = parseCSV(ev.target.result)
-        .filter(p => !p[0].trim().toLowerCase().startsWith('categorie') && p.length >= 8)
-        .map(p => ({
-          category: p[0].trim(), theme: p[1].trim(), diff: p[2].trim(),
-          text: p[3].trim(),
-          options: [p[4], p[5], p[6], p[7]].map(x => x?.trim() || ''),
-          answer: parseInt(p[8]) || 0,
-          explanation: (p[9] || '').trim(),
-          quizName: (p[10] || '').trim(), // optionnel : nom du quiz cible
-          id: (p[11] || '').trim(),       // optionnel : identifiant → met à jour la question
-          oldText: (p[12] || '').trim(),  // optionnel : ancien texte exact → met à jour la question
-        }));
-      setCsvRows(rows);
+      setCsvRows(prepareRows(rowsFromCSVText(ev.target.result), allThemes));
     };
     r.readAsText(file);
   }

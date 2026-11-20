@@ -1,11 +1,12 @@
 import React from 'react';
 import { CATEGORIES } from '../../data/quizData';
 import { S } from '../adminStyles';
-import { normText, questionsToCSV, inventoryCSV, downloadText } from '../../utils/csv';
+import PasteImport from './PasteImport';
+import { questionsToCSV, inventoryCSV, downloadText } from '../../utils/csv';
 
 export default function TabAjouter({ ctx }) {
   const {
-    questions, themes, qCat, setQCat, qTheme, setQTheme, qDiff, setQDiff, qText, setQText, qOpts, setQOpts, qAns, setQAns, qExpl, setQExpl, csvRows, addQuestion, importCSVQuestions, parseCSVQuestions, allCats, allThemes, quizzes,
+    questions, themes, qCat, setQCat, qTheme, setQTheme, qDiff, setQDiff, qText, setQText, qOpts, setQOpts, qAns, setQAns, qExpl, setQExpl, addQuestion, parseCSVQuestions, allCats, allThemes, quizzes,
   } = ctx;
   return (
     <>
@@ -79,21 +80,8 @@ export default function TabAjouter({ ctx }) {
             <div style={{ fontSize: 13, fontWeight: 500 }}>Glisse ton CSV de questions ici</div>
             <input id="csv-q-in" type="file" accept=".csv" style={{ display: 'none' }} onChange={parseCSVQuestions} />
           </div>
-          {csvRows.length > 0 && (
-            <div style={{ background: 'var(--s2)', borderRadius: 10, padding: 12 }}>
-              <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--cyan)', marginBottom: 8 }}>{csvRows.length} questions détectées</div>
-              {(() => {
-                const ex = new Set(questions.map(q => normText(q.text)));
-                const n = csvRows.filter(r => ex.has(normText(r.text))).length;
-                return n > 0 ? <div style={{ fontSize: 11, color: 'var(--yellow)', marginBottom: 8 }}>⚠️ {n} déjà en base : elles seront ignorées à l'import</div> : null;
-              })()}
-              {csvRows.slice(0, 3).map((q, i) => <div key={i} style={{ fontSize: 11, color: 'var(--muted)', marginBottom: 3 }}>• {q.text?.slice(0, 60)}…</div>)}
-              {csvRows.length > 3 && <div style={{ fontSize: 11, color: 'var(--muted)' }}>+{csvRows.length - 3} autres</div>}
-              <button className="btn btn-primary btn-full" style={{ marginTop: 10, fontFamily: "'Bricolage Grotesque'", fontWeight: 700 }} onClick={importCSVQuestions}>
-                Importer {csvRows.length} questions
-              </button>
-            </div>
-          )}
+          <div style={S.divider} />
+          <PasteImport ctx={ctx} />
         </div>
     </>
   );

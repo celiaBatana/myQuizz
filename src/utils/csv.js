@@ -1,4 +1,4 @@
-export function parseCSV(text) {
+export function parseCSV(text, sep = ',') {
   const rows = []; let row = [], cur = '', inQ = false;
   const t = text.replace(/^\uFEFF/, '');
   for (let i = 0; i < t.length; i++) {
@@ -7,7 +7,7 @@ export function parseCSV(text) {
       if (c === '"') { if (t[i + 1] === '"') { cur += '"'; i++; } else inQ = false; }
       else cur += c;
     } else if (c === '"') inQ = true;
-    else if (c === ',') { row.push(cur); cur = ''; }
+    else if (c === sep) { row.push(cur); cur = ''; }
     else if (c === '\n' || c === '\r') {
       if (c === '\r' && t[i + 1] === '\n') i++;
       row.push(cur); cur = '';
@@ -54,3 +54,34 @@ export function downloadText(name, text) {
   const a = document.createElement('a'); a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
+
+// Texte collé ou fichier → lignes de questions (virgules, points-virgules ou tabulations venant d'un tableur)
+export function rowsFromCSVText(text) {
+  const first = String(text).split(/\r?\n/).find(l => l.trim()) || '';
+  const sep = first.includes('\t') ? '\t' : (!first.includes(',') && first.includes(';') ? ';' : ',');
+  const ans = v => { const t = String(v || '').trim().toUpperCase(); const i = 'ABCD'.indexOf(t); return t.length === 1 && i >= 0 ? i : (parseInt(t) || 0); };
+  return parseCSV(String(text), sep)
+    .filter(p => !p[0].trim().toLowerCase().startsWith('categorie') && p.length >= 8)
+    .map(p => ({
+      category: p[0].trim(), theme: p[1].trim(), diff: p[2].trim(),
+      text: p[3].trim(),
+      options: [p[4], p[5], p[6], p[7]].map(x => x?.trim() || ''),
+      answer: ans(p[8]),
+      explanation: (p[9] || '').trim(),
+      quizName: (p[10] || '').trim(),
+      id: (p[11] || '').trim(),
+      oldText: (p[12] || '').trim(),
+    }));
+}
+
+// Problème bloquant d'une ligne (ou '' si elle est importable)
+export function rowProblem(r, themes) {
+  if (!r.text) return 'question vide';
+  if (r.options.some(o => !o)) return 'option manquante';
+  if (!['easy', 'medium', 'hard'].includes(r.diff)) return `difficulté « ${r.diff} » inconnue (easy, medium ou hard)`;
+  if (!themes.some(t => t.catId === r.category && t.id === r.theme)) return `thème « ${r.category}/${r.theme} » inconnu`;
+  return '';
+}
+
+// Marque les lignes invalides (ignorées par défaut)
+export const prepareRows = (rows, themes) => rows.map(r => { const problem = rowProblem(r, themes); return { ...r, problem, skip: !!problem }; });
