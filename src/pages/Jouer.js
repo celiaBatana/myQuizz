@@ -8,6 +8,7 @@ import { getCategoryList, DIFF_LABELS } from '../data/quizData';
 import { fetchVaried } from '../utils/questions';
 import { STAKES } from '../utils/stakes';
 import { gemsBalance } from '../utils/gems';
+import { useTaxonomy } from '../data/taxonomy';
 
 const MODES = [
   { id: 'mix',    icon: '🎲', name: 'Quiz mixte',   desc: '10 questions au hasard', color: '#E8844A' },
@@ -16,6 +17,7 @@ const MODES = [
 ];
 
 export default function Jouer() {
+  useTaxonomy();
   const navigate = useNavigate();
   const [sp] = useSearchParams();
   const invitedUid = sp.get('duel') || '';

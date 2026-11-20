@@ -1,12 +1,17 @@
 import React, { useState } from 'react';
 import { S } from '../adminStyles';
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { db } from '../../firebase';
 import { normText, rowsFromCSVText, rowProblem, prepareRows } from '../../utils/csv';
+import { nextColor } from '../../data/taxonomy';
+
+const human = id => { const t = String(id).replace(/_/g, ' ').trim(); return t.charAt(0).toUpperCase() + t.slice(1); };
 
 const DIFFS = ['easy', 'medium', 'hard'];
 
 // Import par copier-coller + aperçu ligne par ligne (ignorer / remplacer / modifier)
 export default function PasteImport({ ctx }) {
-  const { questions, csvRows, setCsvRows, allThemes, importCSVQuestions } = ctx;
+  const { questions, csvRows, setCsvRows, allThemes, allCats, setCats, setThemes, importCSVQuestions, ok } = ctx;
   const [text, setText] = useState('');
   const [editing, setEditing] = useState(-1);
 
@@ -23,6 +28,23 @@ export default function PasteImport({ ctx }) {
     if (n.problem) n.skip = true;
     return n;
   }));
+
+  // Crée la catégorie et/ou le thème qui manquent, puis revalide les lignes concernées
+  async function createMissing(r) {
+    try {
+      if (!allCats.some(c => c.id === r.category)) {
+        const data = { label: human(r.category), icon: '📚', color: nextColor(), createdAt: serverTimestamp() };
+        await setDoc(doc(db, 'categories', r.category), data, { merge: true });
+        setCats(p => [...p, { id: r.category, ...data }]);
+      }
+      const th = { catId: r.category, cardCat: r.category, label: human(r.theme), icon: '📖', createdAt: serverTimestamp() };
+      await setDoc(doc(db, 'themes', r.theme), th, { merge: true });
+      setThemes(p => [...p, { id: r.theme, ...th }]);
+      const next = [...allThemes, { id: r.theme, catId: r.category }];
+      setCsvRows(csvRows.map(x => { const problem = rowProblem(x, next); return x.category === r.category && x.theme === r.theme ? { ...x, problem, skip: !!problem } : x; }));
+      ok(`✓ Thème « ${human(r.theme)} » créé (tu pourras le renommer dans Organisation)`);
+    } catch (e) { ok('⚠️ Création impossible (droits admin ?)'); }
+  }
 
   const existing = new Map(questions.map(q => [normText(q.text), q]));
   const seen = new Set();
@@ -88,6 +110,9 @@ export default function PasteImport({ ctx }) {
                 )}
                 <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                   <button type="button" data-testid="row-edit" style={btn} onClick={() => setEditing(editing === i ? -1 : i)}>{editing === i ? 'Fermer' : '✏️ Modifier'}</button>
+                  {x.kind === 'err' && /thème/.test(r.problem) && /^[a-z0-9_]+$/.test(r.theme) && /^[a-z0-9_]+$/.test(r.category) && !allThemes.some(t => t.id === r.theme) && (
+                    <button type="button" data-testid="row-create-theme" style={btn} onClick={() => createMissing(r)}>➕ Créer le thème « {r.theme} »</button>
+                  )}
                   {(x.kind === 'dup') && !r.id && <button type="button" data-testid="row-replace" style={btn} onClick={() => patch(i, { id: x.ex.id, skip: false })}>🔁 Remplacer l'existante</button>}
                   {x.kind !== 'err' && x.kind !== 'dup' && x.kind !== 'dup2' && (
                     <button type="button" data-testid="row-skip" style={btn} onClick={() => patch(i, { skip: !r.skip })}>{r.skip ? '↩︎ Réintégrer' : '🚫 Ignorer'}</button>

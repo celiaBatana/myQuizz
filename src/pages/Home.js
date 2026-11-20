@@ -20,6 +20,7 @@ import { raidBoss } from '../utils/raid';
 import { gemsBalance } from '../utils/gems';
 import { streakInfo } from '../utils/retention';
 import { cleanQuizName } from '../utils/quizName';
+import { useTaxonomy } from '../data/taxonomy';
 
 const Icon = ({ d, size = 22, color = 'currentColor' }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={d} /></svg>
@@ -37,6 +38,7 @@ const row = { background: 'var(--s1)', border: '1px solid var(--s2)', borderRadi
 const display = { fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 700 };
 
 export default function Home() {
+  useTaxonomy();
   const navigate = useNavigate();
   const { profile, user } = useAuth();
   const [invites, setInvites] = useState([]);

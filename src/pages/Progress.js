@@ -4,6 +4,7 @@ import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useAuth } from '../context/AuthContext';
 import { CATEGORIES } from '../data/quizData';
+import { useTaxonomy } from '../data/taxonomy';
 
 const PASS = 60;       // % pour valider un quiz
 const WEAK = 70;       // moyenne en dessous de laquelle un thème est « à renforcer »
@@ -67,6 +68,7 @@ function StatsCard({ profile }) {
 }
 
 export default function Progress() {
+  useTaxonomy();
   const { user, profile } = useAuth();
   const navigate = useNavigate();
   const [quizzes, setQuizzes] = useState(null);

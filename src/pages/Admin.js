@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { collection, addDoc, getDocs, deleteDoc, doc, updateDoc, writeBatch, serverTimestamp } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useAuth } from '../context/AuthContext';
-import { CATEGORIES, DIFF_LABELS } from '../data/quizData';
+import { DIFF_LABELS } from '../data/quizData';
+import { applyTaxonomy, getAdminTree, useTaxonomy } from '../data/taxonomy';
 import AuthModal from '../components/AuthModal';
 import { S } from '../components/adminStyles';
 import { QuestionForm, QuizForm, InlineEdit } from '../components/AdminForms';
@@ -13,8 +14,7 @@ import TabQuiz from '../components/admin/TabQuiz';
 import TabLier from '../components/admin/TabLier';
 import TabQuestions from '../components/admin/TabQuestions';
 import TabAjouter from '../components/admin/TabAjouter';
-import TabCategories from '../components/admin/TabCategories';
-import TabThemes from '../components/admin/TabThemes';
+import TabOrganisation from '../components/admin/TabOrganisation';
 import { parseCSV, normText, rowsFromCSVText, prepareRows } from '../utils/csv';
 
 
@@ -22,6 +22,7 @@ import { parseCSV, normText, rowsFromCSVText, prepareRows } from '../utils/csv';
 
 export default function Admin() {
   const { user, isAdmin } = useAuth();
+  useTaxonomy();
   const [showAuth, setShowAuth] = useState(false);
   const [tab, setTab]           = useState('quizzes');
   const [toast, setToast]       = useState('');
@@ -54,9 +55,6 @@ export default function Admin() {
   const [linkSelected, setLinkSelected] = useState([]);
   const [linkFilter,   setLinkFilter]   = useState({ cat:'', theme:'', diff:'' });
 
-  // UI catégories / thèmes
-  const [editItem, setEditItem] = useState(null);
-
   // Formulaire question manuelle
   const [qCat,  setQCat]  = useState('culture');
   const [qTheme,setQTheme]= useState('classique');
@@ -67,8 +65,6 @@ export default function Admin() {
   const [qExpl, setQExpl] = useState('');
 
   // Formulaire nouveaux
-  const [newCat,   setNewCat]   = useState({ label:'', icon:'📚' });
-  const [newTheme, setNewTheme] = useState({ catId:'', label:'', icon:'📖' });
   const [newQuiz,  setNewQuiz]  = useState({ catId:'', themeId:'', name:'', diff:'medium' });
 
   // CSV
@@ -105,6 +101,9 @@ export default function Admin() {
       setLoading(false);
     })();
   }, [user, isAdmin]);
+
+  // Les réglages de catégories / thèmes lus ici deviennent ceux de toute l'appli
+  useEffect(() => { if (!loading) applyTaxonomy(cats, themes); }, [loading, cats, themes]);
 
   // ── Questions ────────────────────────────────────────────────────────────────
   const filtered = questions.filter(q => {
@@ -346,58 +345,10 @@ export default function Admin() {
   }
 
   // ── Catégories ────────────────────────────────────────────────────────────────
-  async function addCat(e) {
-    e.preventDefault();
-    if (!newCat.label.trim()) return;
-    const ref = await addDoc(collection(db, 'categories'), { ...newCat, label: newCat.label.trim(), createdAt: serverTimestamp() });
-    setCats(p => [...p, { id: ref.id, ...newCat }]);
-    setNewCat({ label: '', icon: '📚' }); ok('✓ Catégorie ajoutée');
-  }
-
-  async function deleteCat(cat) {
-    if (themes.some(t => t.catId === cat.id) || questions.some(q => q.category === cat.id)) { ok('⚠️ Supprime d\'abord les thèmes et questions'); return; }
-    await deleteDoc(doc(db, 'categories', cat.id));
-    setCats(p => p.filter(c => c.id !== cat.id)); ok('✓ Catégorie supprimée');
-  }
-
-  async function saveCat(id, data) {
-    await updateDoc(doc(db, 'categories', id), data);
-    setCats(p => p.map(c => c.id === id ? { ...c, ...data } : c));
-    setEditItem(null); ok('✓ Modifié');
-  }
-
-  // ── Thèmes ────────────────────────────────────────────────────────────────────
-  async function addTheme(e) {
-    e.preventDefault();
-    if (!newTheme.label.trim() || !newTheme.catId) return;
-    const ref = await addDoc(collection(db, 'themes'), { ...newTheme, label: newTheme.label.trim(), createdAt: serverTimestamp() });
-    setThemes(p => [...p, { id: ref.id, ...newTheme }]);
-    setNewTheme({ catId: '', label: '', icon: '📖' }); ok('✓ Thème ajouté');
-  }
-
-  async function deleteTheme(theme) {
-    if (quizzes.some(q => q.themeId === theme.id) || questions.some(q => q.theme === theme.id)) { ok('⚠️ Supprime d\'abord les quiz et questions'); return; }
-    await deleteDoc(doc(db, 'themes', theme.id));
-    setThemes(p => p.filter(t => t.id !== theme.id)); ok('✓ Thème supprimé');
-  }
-
-  async function saveTheme(id, data) {
-    await updateDoc(doc(db, 'themes', id), data);
-    setThemes(p => p.map(t => t.id === id ? { ...t, ...data } : t));
-    setEditItem(null); ok('✓ Modifié');
-  }
-
   // ── Computed ─────────────────────────────────────────────────────────────────
-  const allCats = [
-    ...Object.values(CATEGORIES).map(c => ({ id: c.id, label: c.label, icon: c.icon })),
-    ...cats,
-  ];
-  const allThemes = [
-    ...Object.values(CATEGORIES).flatMap(cat =>
-      Object.values(cat.themes).map(t => ({ id: t.id, label: t.label, icon: t.icon, catId: cat.id }))
-    ),
-    ...themes,
-  ];
+  const tree = getAdminTree();
+  const allCats = tree.map(c => ({ id: c.id, label: c.label, icon: c.icon, hidden: c.hidden }));
+  const allThemes = tree.flatMap(c => c.themes.map(t => ({ id: t.id, label: t.label, icon: t.icon, catId: c.id, hidden: t.hidden })));
 
   // ── Quizzes groupés par catégorie → thème → difficulté ──────────────────────
   const DIFF_ORDER = { easy: 0, medium: 1, hard: 2 };
@@ -457,12 +408,11 @@ export default function Admin() {
     { id: 'sante',      label: '🩺 Santé' },
     { id: 'reports',    label: `🚩 Signalements${reports.length ? ` (${reports.length})` : ''}` },
     { id: 'joueurs',    label: '👥 Joueurs' },
-    { id: 'categories', label: 'Catégories' },
-    { id: 'themes',     label: 'Thèmes' },
+    { id: 'organisation', label: '🗂️ Organisation' },
   ];
 
   const ctx = {
-    user, isAdmin, showAuth, setShowAuth, tab, setTab, toast, setToast, questions, setQuestions, quizzes, setQuizzes, cats, setCats, themes, setThemes, reports, setReports, loading, setLoading, filterCat, setFilterCat, filterDiff, setFilterDiff, filterLinked, setFilterLinked, filterTheme, setFilterTheme, filterQuiz, setFilterQuiz, search, setSearch, shown, setShown, editQ, setEditQ, confirmDel, setConfirmDel, selectedQ, setSelectedQ, confirmBulk, setConfirmBulk, expandedQuiz, setExpandedQuiz, editQuiz, setEditQuiz, linkQuizId, setLinkQuizId, linkSelected, setLinkSelected, linkFilter, setLinkFilter, editItem, setEditItem, qCat, setQCat, qTheme, setQTheme, qDiff, setQDiff, qText, setQText, qOpts, setQOpts, qAns, setQAns, qExpl, setQExpl, newCat, setNewCat, newTheme, setNewTheme, newQuiz, setNewQuiz, csvRows, setCsvRows, qStats, setQStats, statsOk, setStatsOk, csvQuizRows, setCsvQuizRows, ok, filtered, toggleSelectQ, selectAllFiltered, deselectAll, addQuestion, deleteQuestion, bulkUpdateQuestions, deleteBulk, saveQuestion, importCSVQuestions, parseCSVQuestions, addQuiz, saveQuiz, deleteQuiz, parseCSVQuiz, importCSVQuiz, unlinkedQuestions, linkFilteredQ, toggleLinkSelect, linkQuestionsToQuiz, duplicateQuiz, moveQuestion, unlinkQuestion, addCat, deleteCat, saveCat, addTheme, deleteTheme, saveTheme, allCats, allThemes, DIFF_ORDER, groupedQuizzes, unlinkedCount, TABS,
+    user, isAdmin, showAuth, setShowAuth, tab, setTab, toast, setToast, questions, setQuestions, quizzes, setQuizzes, cats, setCats, themes, setThemes, reports, setReports, loading, setLoading, filterCat, setFilterCat, filterDiff, setFilterDiff, filterLinked, setFilterLinked, filterTheme, setFilterTheme, filterQuiz, setFilterQuiz, search, setSearch, shown, setShown, editQ, setEditQ, confirmDel, setConfirmDel, selectedQ, setSelectedQ, confirmBulk, setConfirmBulk, expandedQuiz, setExpandedQuiz, editQuiz, setEditQuiz, linkQuizId, setLinkQuizId, linkSelected, setLinkSelected, linkFilter, setLinkFilter, qCat, setQCat, qTheme, setQTheme, qDiff, setQDiff, qText, setQText, qOpts, setQOpts, qAns, setQAns, qExpl, setQExpl, newQuiz, setNewQuiz, csvRows, setCsvRows, qStats, setQStats, statsOk, setStatsOk, csvQuizRows, setCsvQuizRows, ok, filtered, toggleSelectQ, selectAllFiltered, deselectAll, addQuestion, deleteQuestion, bulkUpdateQuestions, deleteBulk, saveQuestion, importCSVQuestions, parseCSVQuestions, addQuiz, saveQuiz, deleteQuiz, parseCSVQuiz, importCSVQuiz, unlinkedQuestions, linkFilteredQ, toggleLinkSelect, linkQuestionsToQuiz, duplicateQuiz, moveQuestion, unlinkQuestion, allCats, allThemes, DIFF_ORDER, groupedQuizzes, unlinkedCount, TABS,
   };
 
   return (
@@ -507,21 +457,18 @@ export default function Admin() {
 
       {/* ══ CATÉGORIES ══ */}
       {!loading && tab === 'sante' && (
-        <AdminSante questions={questions} quizzes={quizzes} cats={cats} themes={themes} reports={reports}
+        <AdminSante questions={questions} quizzes={quizzes} cats={allCats} themes={allThemes} reports={reports}
           stats={qStats} statsOk={statsOk} onSaveQuestion={saveQuestion} onDeleteQuestion={deleteQuestion} onBulkUpdate={bulkUpdateQuestions} setTab={setTab} ok={ok} />
       )}
 
       {!loading && tab === 'reports' && (
-        <AdminReports reports={reports} setReports={setReports} questions={questions} cats={cats} themes={themes} quizzes={quizzes}
+        <AdminReports reports={reports} setReports={setReports} questions={questions} cats={allCats} themes={allThemes} quizzes={quizzes}
           onSaveQuestion={saveQuestion} onDeleteQuestion={deleteQuestion} ok={ok} />
       )}
 
       {!loading && tab === 'joueurs' && <AdminJoueurs ok={ok} />}
 
-      {!loading && tab === 'categories' && <TabCategories ctx={ctx} />}
-
-      {/* ══ THÈMES ══ */}
-      {!loading && tab === 'themes' && <TabThemes ctx={ctx} />}
+      {!loading && tab === 'organisation' && <TabOrganisation ctx={ctx} />}
     </div>
   );
 }

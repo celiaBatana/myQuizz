@@ -2,11 +2,16 @@
 // existant dans le thème. Une carte gagnée est enregistrée dans le profil (profile.cards) et
 // n'est jamais retirée, même si de nouveaux quiz sont ajoutés ensuite.
 import { CATEGORIES } from './quizData';
+import { findTheme } from './taxonomy';
 
 export const PASS = 60;
 export const DIFFS = ['easy', 'medium', 'hard'];
 export const DIFF_SHORT = { easy: 'Facile', medium: 'Moyen', hard: 'Difficile' };
-export const cardKey = (catId, themeId) => `${catId}:${themeId}`;
+// La clé garde la catégorie d'origine du thème : déplacer un thème ne fait pas perdre les cartes gagnées
+export const cardKey = (catId, themeId) => {
+  const th = findTheme(themeId);
+  return `${th?.cardCat || catId}:${themeId}`;
+};
 
 // Niveaux présents dans le thème, niveaux réussis, carte gagnée ou non
 export function themeStatus(quizzes, best) {
@@ -31,9 +36,10 @@ export function rarityOf(key) {
 }
 
 export function cardInfo(key) {
-  const [catId, themeId] = String(key).split(':');
-  const cat = CATEGORIES[catId]; const th = cat?.themes?.[themeId];
+  const themeId = String(key).split(':')[1];
+  const cat = Object.values(CATEGORIES).find(c => c.themes?.[themeId]); const th = cat?.themes?.[themeId];
   if (!th) return null;
+  const catId = cat.id;
   return { key, rarity: rarityOf(key), catId, themeId, name: th.label, icon: th.icon, color: cat.color, gradient: cat.gradient, catLabel: cat.label, fact: FACTS[themeId] || 'Tu maîtrises ce thème sur tous les niveaux. Bravo !' };
 }
 

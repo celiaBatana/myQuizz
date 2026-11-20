@@ -14,10 +14,12 @@ import { gemsBalance } from '../utils/gems';
 import { seasonInfo } from '../utils/season';
 import { AVATARS, TITLES, FRAMES, frameStyle, seasonCosmetics, ownedIds, avatarIcon, avatarArtId, titleName } from '../data/cosmetics';
 import { cleanQuizName } from '../utils/quizName';
+import { useTaxonomy } from '../data/taxonomy';
 
 const XP_PER_LEVEL = 200;
 
 export default function Profile() {
+  useTaxonomy();
   const { user, profile, logout, isAdmin, updateProfile } = useAuth();
   const champs = useChampions(getCategoryList().map(c => c.id));
   const crowns = champs && user ? Object.entries(champs).filter(([, v]) => v && v.uid === user.uid).map(([id]) => id) : [];

@@ -21,7 +21,7 @@ t('devenir admin', async a => {
   await a.patchDb(d => { const u = Object.values(d.users)[0]; u.isAdmin = true; u.onboarded = true; });
   await a.go('/admin'); a.assert.ok(/Admin Quizly/.test(await a.body()));
 });
-for (const l of ['Quiz (', 'Lier questions', 'Questions (', 'Ajouter', 'Santé', 'Signalements', 'Catégories', 'Thèmes']) {
+for (const l of ['Quiz (', 'Lier questions', 'Questions (', 'Ajouter', 'Santé', 'Signalements', 'Organisation']) {
   t('onglet ' + l, async a => { await openTab(a, l); a.assert.ok((await a.body()).length > 150); });
 }
 t('import CSV : doublon ignoré, quiz créé, guillemets', async a => {
@@ -87,7 +87,7 @@ t('santé : supprimer un exemplaire', async a => {
 });
 t('signalements : affichage de l\'origine', async a => {
   await openTab(a, 'Signalements'); const b = await a.body();
-  a.assert.ok(/culture › geographie › Quiz A/.test(b) && /Réponse fausse/.test(b), b.slice(0, 300));
+  a.assert.ok(/Culture générale › Géographie › Quiz A/.test(b) && /Réponse fausse/.test(b), b.slice(0, 300));
 });
 t('signalements : corriger ouvre l\'éditeur', async a => {
   await openTab(a, 'Signalements'); await a.page.locator('button:has-text("Corriger")').first().click(); await a.page.waitForTimeout(500);

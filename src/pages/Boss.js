@@ -15,6 +15,7 @@ import { addEvent } from '../utils/activity';
 import ShareButton from '../components/ShareButton';
 import CardReveal from '../components/CardReveal';
 import Confetti from '../components/Confetti';
+import { useTaxonomy } from '../data/taxonomy';
 
 const XP_PER_LEVEL = 200;
 const HEARTS = 3;
@@ -24,6 +25,7 @@ const disp = { fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 800 
 
 // ── Liste des boss ──
 export default function BossHub() {
+  useTaxonomy();
   const navigate = useNavigate();
   const wb = weeklyBoss();
   const { profile } = useAuth();
@@ -62,6 +64,7 @@ function nextQuestion(pool, phase2, heroic) {
 }
 
 export function BossFight() {
+  useTaxonomy();
   const { id } = useParams();
   const boss = getBoss(id);
   const navigate = useNavigate();
